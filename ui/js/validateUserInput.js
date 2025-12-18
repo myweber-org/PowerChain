@@ -4,51 +4,34 @@ function validateUsername(username) {
 }
 
 function validatePassword(password) {
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-    return passwordRegex.test(password);
+    const minLength = 8;
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasNumbers = /\d/.test(password);
+    const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
+    
+    return password.length >= minLength && 
+           hasUpperCase && 
+           hasLowerCase && 
+           hasNumbers && 
+           hasSpecialChar;
 }
 
 function validateUserInput(username, password) {
-    const usernameValid = validateUsername(username);
-    const passwordValid = validatePassword(password);
+    const errors = [];
     
-    if (!usernameValid && !passwordValid) {
-        return 'Both username and password are invalid';
-    } else if (!usernameValid) {
-        return 'Username is invalid';
-    } else if (!passwordValid) {
-        return 'Password is invalid';
-    } else {
-        return 'Input is valid';
+    if (!validateUsername(username)) {
+        errors.push('Username must be 3-20 characters and contain only letters, numbers, and underscores');
     }
-}
-
-module.exports = {
-    validateUsername,
-    validatePassword,
-    validateUserInput
-};function validateUserInput(username, email) {
-    const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    if (!usernameRegex.test(username)) {
-        return {
-            isValid: false,
-            message: "Username must be 3-20 characters and contain only letters, numbers, and underscores."
-        };
+    
+    if (!validatePassword(password)) {
+        errors.push('Password must be at least 8 characters with uppercase, lowercase, number, and special character');
     }
-
-    if (!emailRegex.test(email)) {
-        return {
-            isValid: false,
-            message: "Please provide a valid email address."
-        };
-    }
-
+    
     return {
-        isValid: true,
-        message: "Input validation passed."
+        isValid: errors.length === 0,
+        errors: errors
     };
 }
 
-module.exports = validateUserInput;
+export { validateUserInput, validateUsername, validatePassword };
