@@ -29,4 +29,28 @@ function validateCurrencyCode(currencyCode) {
     return currencyCodes.has(currencyCode.toUpperCase());
 }
 
-export { formatCurrency, parseCurrency, validateCurrencyCode };
+export { formatCurrency, parseCurrency, validateCurrencyCode };function formatCurrency(value, locale = 'en-US', currency = 'USD') {
+    const formatter = new Intl.NumberFormat(locale, {
+        style: 'currency',
+        currency: currency,
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+    
+    return formatter.format(value);
+}
+
+function parseCurrency(formattedValue, locale = 'en-US') {
+    const parts = new Intl.NumberFormat(locale).formatToParts(1111.11);
+    const groupSeparator = parts.find(part => part.type === 'group').value;
+    const decimalSeparator = parts.find(part => part.type === 'decimal').value;
+    
+    const regex = new RegExp(`[${groupSeparator}${decimalSeparator}]`, 'g');
+    const normalized = formattedValue.replace(regex, match => 
+        match === groupSeparator ? '' : '.'
+    );
+    
+    return parseFloat(normalized.replace(/[^\d.-]/g, ''));
+}
+
+export { formatCurrency, parseCurrency };
