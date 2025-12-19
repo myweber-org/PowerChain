@@ -95,4 +95,17 @@ function validateUserInput(username, email) {
     };
 }
 
-export { validateUsername, validateEmail, validateUserInput };
+export { validateUsername, validateEmail, validateUserInput };function validateUserInput(username, email) {
+    const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    
+    if (!usernameRegex.test(username)) {
+        throw new Error('Username must be 3-20 characters and contain only letters, numbers, and underscores');
+    }
+    
+    if (!emailRegex.test(email)) {
+        throw new Error('Invalid email format');
+    }
+    
+    return { username, email };
+}
