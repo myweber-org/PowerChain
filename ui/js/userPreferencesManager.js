@@ -380,4 +380,83 @@ export default UserPreferencesManager;const UserPreferencesManager = (() => {
     getAll,
     subscribe
   };
+})();const userPreferencesManager = (() => {
+  const PREFERENCES_KEY = 'app_preferences';
+  
+  const defaultPreferences = {
+    theme: 'light',
+    fontSize: 16,
+    notifications: true,
+    language: 'en',
+    autoSave: false,
+    lastUpdated: null
+  };
+
+  const loadPreferences = () => {
+    try {
+      const stored = localStorage.getItem(PREFERENCES_KEY);
+      if (stored) {
+        return JSON.parse(stored);
+      }
+    } catch (error) {
+      console.warn('Failed to load preferences:', error);
+    }
+    return { ...defaultPreferences };
+  };
+
+  const savePreferences = (preferences) => {
+    try {
+      const updated = {
+        ...loadPreferences(),
+        ...preferences,
+        lastUpdated: new Date().toISOString()
+      };
+      localStorage.setItem(PREFERENCES_KEY, JSON.stringify(updated));
+      return updated;
+    } catch (error) {
+      console.error('Failed to save preferences:', error);
+      return null;
+    }
+  };
+
+  const resetPreferences = () => {
+    try {
+      localStorage.removeItem(PREFERENCES_KEY);
+      return { ...defaultPreferences };
+    } catch (error) {
+      console.error('Failed to reset preferences:', error);
+      return null;
+    }
+  };
+
+  const getPreference = (key) => {
+    const prefs = loadPreferences();
+    return prefs[key] !== undefined ? prefs[key] : defaultPreferences[key];
+  };
+
+  const setPreference = (key, value) => {
+    return savePreferences({ [key]: value });
+  };
+
+  const getAllPreferences = () => {
+    return loadPreferences();
+  };
+
+  const subscribe = (callback) => {
+    const handler = (event) => {
+      if (event.key === PREFERENCES_KEY) {
+        callback(getAllPreferences());
+      }
+    };
+    window.addEventListener('storage', handler);
+    return () => window.removeEventListener('storage', handler);
+  };
+
+  return {
+    get: getPreference,
+    set: setPreference,
+    getAll: getAllPreferences,
+    reset: resetPreferences,
+    subscribe
+  };
 })();
