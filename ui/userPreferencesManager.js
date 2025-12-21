@@ -383,4 +383,59 @@ if (typeof module !== 'undefined' && module.exports) {
         getPreference,
         subscribe
     };
+})();const UserPreferencesManager = (() => {
+  const STORAGE_KEY = 'app_preferences';
+  const defaultPreferences = {
+    theme: 'light',
+    fontSize: 16,
+    notifications: true,
+    language: 'en'
+  };
+
+  let preferences = { ...defaultPreferences };
+
+  const loadPreferences = () => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        preferences = { ...defaultPreferences, ...JSON.parse(stored) };
+      }
+    } catch (error) {
+      console.warn('Failed to load preferences:', error);
+    }
+    return preferences;
+  };
+
+  const savePreferences = (newPreferences) => {
+    try {
+      preferences = { ...preferences, ...newPreferences };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(preferences));
+      return true;
+    } catch (error) {
+      console.warn('Failed to save preferences:', error);
+      return false;
+    }
+  };
+
+  const getPreference = (key) => {
+    return preferences[key];
+  };
+
+  const resetPreferences = () => {
+    preferences = { ...defaultPreferences };
+    localStorage.removeItem(STORAGE_KEY);
+  };
+
+  const getAllPreferences = () => {
+    return { ...preferences };
+  };
+
+  loadPreferences();
+
+  return {
+    save: savePreferences,
+    get: getPreference,
+    getAll: getAllPreferences,
+    reset: resetPreferences
+  };
 })();
