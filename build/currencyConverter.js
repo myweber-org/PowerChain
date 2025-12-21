@@ -63,4 +63,48 @@ class CurrencyConverter {
     }
 }
 
-module.exports = CurrencyConverter;
+module.exports = CurrencyConverter;const exchangeRates = {};
+
+async function fetchExchangeRate(base, target) {
+    const cacheKey = `${base}_${target}`;
+    const cached = exchangeRates[cacheKey];
+    
+    if (cached && Date.now() - cached.timestamp < 300000) {
+        return cached.rate;
+    }
+    
+    try {
+        const response = await fetch(`https://api.exchangerate-api.com/v4/latest/${base}`);
+        const data = await response.json();
+        const rate = data.rates[target];
+        
+        exchangeRates[cacheKey] = {
+            rate: rate,
+            timestamp: Date.now()
+        };
+        
+        return rate;
+    } catch (error) {
+        console.error('Failed to fetch exchange rate:', error);
+        throw new Error('Exchange rate service unavailable');
+    }
+}
+
+function convertCurrency(amount, fromCurrency, toCurrency) {
+    return fetchExchangeRate(fromCurrency, toCurrency)
+        .then(rate => {
+            if (!rate) {
+                throw new Error(`Exchange rate not available for ${fromCurrency} to ${toCurrency}`);
+            }
+            return amount * rate;
+        });
+}
+
+function formatCurrency(amount, currencyCode) {
+    return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: currencyCode
+    }).format(amount);
+}
+
+export { convertCurrency, formatCurrency };
