@@ -174,4 +174,108 @@ export default UserPreferencesManager;const UserPreferencesManager = (() => {
   };
 })();
 
-export default UserPreferencesManager;
+export default UserPreferencesManager;const userPreferencesManager = (() => {
+    const PREFERENCES_KEY = 'app_preferences';
+    
+    const defaultPreferences = {
+        theme: 'light',
+        language: 'en',
+        notifications: true,
+        fontSize: 'medium',
+        autoSave: false,
+        lastUpdated: null
+    };
+
+    function getPreferences() {
+        try {
+            const stored = localStorage.getItem(PREFERENCES_KEY);
+            if (stored) {
+                return JSON.parse(stored);
+            }
+            return { ...defaultPreferences };
+        } catch (error) {
+            console.error('Failed to retrieve preferences:', error);
+            return { ...defaultPreferences };
+        }
+    }
+
+    function savePreferences(preferences) {
+        try {
+            const mergedPreferences = {
+                ...defaultPreferences,
+                ...preferences,
+                lastUpdated: new Date().toISOString()
+            };
+            localStorage.setItem(PREFERENCES_KEY, JSON.stringify(mergedPreferences));
+            return true;
+        } catch (error) {
+            console.error('Failed to save preferences:', error);
+            return false;
+        }
+    }
+
+    function updatePreference(key, value) {
+        const current = getPreferences();
+        const updated = { ...current, [key]: value };
+        return savePreferences(updated);
+    }
+
+    function resetToDefaults() {
+        return savePreferences(defaultPreferences);
+    }
+
+    function exportPreferences() {
+        const prefs = getPreferences();
+        const blob = new Blob([JSON.stringify(prefs, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'user-preferences.json';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    function importPreferences(jsonString) {
+        try {
+            const imported = JSON.parse(jsonString);
+            return savePreferences(imported);
+        } catch (error) {
+            console.error('Failed to import preferences:', error);
+            return false;
+        }
+    }
+
+    function subscribeToChanges(callback) {
+        if (typeof callback !== 'function') {
+            throw new Error('Callback must be a function');
+        }
+
+        const storageHandler = (event) => {
+            if (event.key === PREFERENCES_KEY) {
+                callback(getPreferences());
+            }
+        };
+
+        window.addEventListener('storage', storageHandler);
+        
+        return () => {
+            window.removeEventListener('storage', storageHandler);
+        };
+    }
+
+    return {
+        getPreferences,
+        savePreferences,
+        updatePreference,
+        resetToDefaults,
+        exportPreferences,
+        importPreferences,
+        subscribeToChanges
+    };
+})();
+
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = userPreferencesManager;
+}
