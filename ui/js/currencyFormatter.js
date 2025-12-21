@@ -46,4 +46,19 @@ function parseCurrency(formattedString, locale = 'en-US') {
     return parseFloat(normalized.replace(/[^\d.-]/g, ''));
 }
 
-export { formatCurrency, parseCurrency };
+export { formatCurrency, parseCurrency };const currencyFormatter = (amount, locale = 'en-US', currency = 'USD') => {
+  if (typeof amount !== 'number' || isNaN(amount)) {
+    throw new Error('Invalid amount provided');
+  }
+  
+  const formatter = new Intl.NumberFormat(locale, {
+    style: 'currency',
+    currency: currency,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+  
+  return formatter.format(amount);
+};
+
+export default currencyFormatter;
