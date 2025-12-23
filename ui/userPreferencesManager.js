@@ -438,4 +438,49 @@ if (typeof module !== 'undefined' && module.exports) {
     getAll: getAllPreferences,
     reset: resetPreferences
   };
-})();
+})();const UserPreferences = {
+  _preferences: {},
+
+  init() {
+    try {
+      const stored = localStorage.getItem('userPreferences');
+      this._preferences = stored ? JSON.parse(stored) : {};
+    } catch (error) {
+      console.error('Failed to load preferences:', error);
+      this._preferences = {};
+    }
+  },
+
+  set(key, value) {
+    this._preferences[key] = value;
+    this._save();
+  },
+
+  get(key, defaultValue = null) {
+    return this._preferences[key] !== undefined ? this._preferences[key] : defaultValue;
+  },
+
+  remove(key) {
+    delete this._preferences[key];
+    this._save();
+  },
+
+  clear() {
+    this._preferences = {};
+    this._save();
+  },
+
+  getAll() {
+    return { ...this._preferences };
+  },
+
+  _save() {
+    try {
+      localStorage.setItem('userPreferences', JSON.stringify(this._preferences));
+    } catch (error) {
+      console.error('Failed to save preferences:', error);
+    }
+  }
+};
+
+UserPreferences.init();
