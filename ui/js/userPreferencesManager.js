@@ -695,4 +695,58 @@ if (typeof module !== 'undefined' && module.exports) {
     };
 })();
 
-export default userPreferencesManager;
+export default userPreferencesManager;const UserPreferences = {
+  _storageKey: 'app_user_preferences',
+
+  getPreferences() {
+    try {
+      const stored = localStorage.getItem(this._storageKey);
+      return stored ? JSON.parse(stored) : {};
+    } catch (error) {
+      console.error('Failed to retrieve preferences:', error);
+      return {};
+    }
+  },
+
+  setPreference(key, value) {
+    const preferences = this.getPreferences();
+    preferences[key] = value;
+    
+    try {
+      localStorage.setItem(this._storageKey, JSON.stringify(preferences));
+      return true;
+    } catch (error) {
+      console.error('Failed to save preference:', error);
+      return false;
+    }
+  },
+
+  removePreference(key) {
+    const preferences = this.getPreferences();
+    delete preferences[key];
+    
+    try {
+      localStorage.setItem(this._storageKey, JSON.stringify(preferences));
+      return true;
+    } catch (error) {
+      console.error('Failed to remove preference:', error);
+      return false;
+    }
+  },
+
+  clearAll() {
+    try {
+      localStorage.removeItem(this._storageKey);
+      return true;
+    } catch (error) {
+      console.error('Failed to clear preferences:', error);
+      return false;
+    }
+  },
+
+  getAll() {
+    return this.getPreferences();
+  }
+};
+
+export default UserPreferences;
