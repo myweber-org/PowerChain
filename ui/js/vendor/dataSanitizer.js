@@ -66,4 +66,15 @@ function validateAndSanitize(userInput, maxLength = 1000) {
 module.exports = {
   sanitizeInput,
   validateAndSanitize
-};
+};function sanitizeInput(input) {
+    const div = document.createElement('div');
+    div.textContent = input;
+    return div.innerHTML;
+}
+
+function validateAndSanitizeForm() {
+    const userInput = document.getElementById('userInput').value;
+    const sanitizedInput = sanitizeInput(userInput);
+    document.getElementById('output').innerHTML = sanitizedInput;
+    console.log('Sanitized input:', sanitizedInput);
+}
