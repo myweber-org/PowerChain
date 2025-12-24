@@ -12,7 +12,7 @@ function validateUserInput(username, password) {
     if (!passwordRegex.test(password)) {
         return {
             isValid: false,
-            message: "Password must be at least 8 characters and contain at least one letter and one number."
+            message: "Password must be at least 8 characters with at least one letter and one number."
         };
     }
 
