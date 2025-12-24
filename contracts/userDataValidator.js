@@ -25,4 +25,27 @@ function validateUserInput(email, password) {
     };
 }
 
-module.exports = { validateUserInput, validateEmail, validatePassword };
+module.exports = { validateUserInput, validateEmail, validatePassword };function validateUserData(user) {
+  const errors = [];
+
+  if (!user.username || user.username.trim().length < 3) {
+    errors.push('Username must be at least 3 characters long');
+  }
+
+  if (!user.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(user.email)) {
+    errors.push('Please provide a valid email address');
+  }
+
+  if (!user.password || user.password.length < 8) {
+    errors.push('Password must be at least 8 characters long');
+  }
+
+  if (user.password && user.password === user.username) {
+    errors.push('Password cannot be the same as username');
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors: errors
+  };
+}
