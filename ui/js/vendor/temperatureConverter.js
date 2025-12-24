@@ -127,4 +127,82 @@ module.exports = {
     celsiusToFahrenheit,
     fahrenheitToCelsius,
     convertTemperature
+};function celsiusToFahrenheit(celsius) {
+    return (celsius * 9/5) + 32;
+}
+
+function celsiusToKelvin(celsius) {
+    return celsius + 273.15;
+}
+
+function fahrenheitToCelsius(fahrenheit) {
+    return (fahrenheit - 32) * 5/9;
+}
+
+function fahrenheitToKelvin(fahrenheit) {
+    return (fahrenheit - 32) * 5/9 + 273.15;
+}
+
+function kelvinToCelsius(kelvin) {
+    return kelvin - 273.15;
+}
+
+function kelvinToFahrenheit(kelvin) {
+    return (kelvin - 273.15) * 9/5 + 32;
+}
+
+function convertTemperature(value, fromUnit, toUnit) {
+    const units = {
+        'C': 'celsius',
+        'F': 'fahrenheit', 
+        'K': 'kelvin'
+    };
+    
+    if (!units[fromUnit] || !units[toUnit]) {
+        throw new Error('Invalid temperature unit');
+    }
+    
+    if (fromUnit === toUnit) {
+        return value;
+    }
+    
+    const conversionKey = `${fromUnit}to${toUnit}`;
+    
+    switch(conversionKey) {
+        case 'CtoF':
+            return celsiusToFahrenheit(value);
+        case 'CtoK':
+            return celsiusToKelvin(value);
+        case 'FtoC':
+            return fahrenheitToCelsius(value);
+        case 'FtoK':
+            return fahrenheitToKelvin(value);
+        case 'KtoC':
+            return kelvinToCelsius(value);
+        case 'KtoF':
+            return kelvinToFahrenheit(value);
+        default:
+            throw new Error('Unsupported conversion');
+    }
+}
+
+function formatTemperature(value, unit) {
+    const symbols = {
+        'C': '°C',
+        'F': '°F',
+        'K': 'K'
+    };
+    
+    return `${value.toFixed(2)} ${symbols[unit]}`;
+}
+
+module.exports = {
+    celsiusToFahrenheit,
+    celsiusToKelvin,
+    fahrenheitToCelsius,
+    fahrenheitToKelvin,
+    kelvinToCelsius,
+    kelvinToFahrenheit,
+    convertTemperature,
+    formatTemperature
 };
