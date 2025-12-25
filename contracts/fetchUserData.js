@@ -110,4 +110,33 @@ fetchUserData(123)
     }
 
     return attemptFetch();
-}
+}const fetchUserData = async (userId, maxRetries = 3) => {
+  const fetchWithRetry = async (attempt) => {
+    try {
+      const response = await fetch(`https://api.example.com/users/${userId}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      return { success: true, data };
+    } catch (error) {
+      if (attempt < maxRetries) {
+        console.warn(`Attempt ${attempt + 1} failed. Retrying...`);
+        return fetchWithRetry(attempt + 1);
+      }
+      return { success: false, error: error.message };
+    }
+  };
+
+  return fetchWithRetry(0);
+};
+
+// Usage example
+fetchUserData(123)
+  .then(result => {
+    if (result.success) {
+      console.log('User data:', result.data);
+    } else {
+      console.error('Failed to fetch user data:', result.error);
+    }
+  });
