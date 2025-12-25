@@ -281,4 +281,61 @@ export default UserPreferencesManager;const UserPreferencesManager = (() => {
         clear: clearAllPreferences,
         getAll: getAllPreferences
     };
-})();
+})();const UserPreferencesManager = {
+  storageKey: 'user_preferences',
+
+  initialize: function(defaultPreferences = {}) {
+    if (!this.getPreferences()) {
+      this.savePreferences(defaultPreferences);
+    }
+  },
+
+  getPreferences: function() {
+    try {
+      const stored = localStorage.getItem(this.storageKey);
+      return stored ? JSON.parse(stored) : null;
+    } catch (error) {
+      console.error('Failed to retrieve preferences:', error);
+      return null;
+    }
+  },
+
+  savePreferences: function(preferences) {
+    try {
+      localStorage.setItem(this.storageKey, JSON.stringify(preferences));
+      return true;
+    } catch (error) {
+      console.error('Failed to save preferences:', error);
+      return false;
+    }
+  },
+
+  updatePreference: function(key, value) {
+    const current = this.getPreferences() || {};
+    current[key] = value;
+    return this.savePreferences(current);
+  },
+
+  getPreference: function(key, defaultValue = null) {
+    const preferences = this.getPreferences();
+    return preferences && preferences.hasOwnProperty(key) 
+      ? preferences[key] 
+      : defaultValue;
+  },
+
+  clearPreferences: function() {
+    try {
+      localStorage.removeItem(this.storageKey);
+      return true;
+    } catch (error) {
+      console.error('Failed to clear preferences:', error);
+      return false;
+    }
+  },
+
+  getAllPreferences: function() {
+    return this.getPreferences() || {};
+  }
+};
+
+export default UserPreferencesManager;
