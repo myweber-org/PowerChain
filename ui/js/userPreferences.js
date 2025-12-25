@@ -54,4 +54,50 @@ function loadPreferences() {
   return { ...defaultPreferences };
 }
 
-export { savePreferences, loadPreferences, validatePreferences };
+export { savePreferences, loadPreferences, validatePreferences };function validateUserPreferences(preferences) {
+    const defaults = {
+        theme: 'light',
+        notifications: true,
+        language: 'en',
+        timezone: 'UTC'
+    };
+
+    const validated = { ...defaults };
+
+    if (preferences && typeof preferences === 'object') {
+        if (['light', 'dark', 'auto'].includes(preferences.theme)) {
+            validated.theme = preferences.theme;
+        }
+
+        if (typeof preferences.notifications === 'boolean') {
+            validated.notifications = preferences.notifications;
+        }
+
+        if (typeof preferences.language === 'string' && preferences.language.length === 2) {
+            validated.language = preferences.language.toLowerCase();
+        }
+
+        if (typeof preferences.timezone === 'string' && Intl.supportedValuesOf('timeZone').includes(preferences.timezone)) {
+            validated.timezone = preferences.timezone;
+        }
+    }
+
+    return validated;
+}
+
+function initializeUserPreferences() {
+    const stored = localStorage.getItem('userPreferences');
+    let parsed = null;
+
+    try {
+        parsed = stored ? JSON.parse(stored) : null;
+    } catch (error) {
+        console.warn('Failed to parse stored preferences:', error);
+    }
+
+    const preferences = validateUserPreferences(parsed);
+    localStorage.setItem('userPreferences', JSON.stringify(preferences));
+    return preferences;
+}
+
+export { validateUserPreferences, initializeUserPreferences };
