@@ -3,30 +3,30 @@ function validateEmail(email) {
     return emailRegex.test(email);
 }
 
-function validatePhoneNumber(phone) {
+function validatePhone(phone) {
     const phoneRegex = /^\+?[\d\s\-\(\)]{10,}$/;
     return phoneRegex.test(phone);
 }
 
-function validateFormData(data) {
-    const errors = {};
+function validatePassword(password) {
+    const minLength = 8;
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasNumbers = /\d/.test(password);
+    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
     
-    if (data.email && !validateEmail(data.email)) {
-        errors.email = 'Invalid email format';
-    }
-    
-    if (data.phone && !validatePhoneNumber(data.phone)) {
-        errors.phone = 'Invalid phone number format';
-    }
-    
-    if (data.requiredField && data.requiredField.trim() === '') {
-        errors.requiredField = 'This field is required';
-    }
-    
-    return {
-        isValid: Object.keys(errors).length === 0,
-        errors: errors
-    };
+    return password.length >= minLength && 
+           hasUpperCase && 
+           hasLowerCase && 
+           hasNumbers && 
+           hasSpecialChar;
 }
 
-export { validateEmail, validatePhoneNumber, validateFormData };
+function sanitizeInput(input) {
+    return input.trim()
+                .replace(/[<>]/g, '')
+                .replace(/'/g, '&#39;')
+                .replace(/"/g, '&#34;');
+}
+
+export { validateEmail, validatePhone, validatePassword, sanitizeInput };
