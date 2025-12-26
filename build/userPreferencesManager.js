@@ -253,4 +253,140 @@ if (typeof module !== 'undefined' && module.exports) {
 };
 
 Object.freeze(UserPreferences);
-UserPreferences.init();
+UserPreferences.init();const UserPreferencesManager = (function() {
+    const STORAGE_KEY = 'user_preferences_v1';
+    const DEFAULT_PREFERENCES = {
+        theme: 'light',
+        language: 'en',
+        notifications: true,
+        fontSize: 16,
+        autoSave: true,
+        timezone: 'UTC'
+    };
+
+    let currentPreferences = { ...DEFAULT_PREFERENCES };
+
+    function loadPreferences() {
+        try {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            if (stored) {
+                const parsed = JSON.parse(stored);
+                currentPreferences = { ...DEFAULT_PREFERENCES, ...parsed };
+            }
+        } catch (error) {
+            console.warn('Failed to load preferences from localStorage:', error);
+        }
+        return currentPreferences;
+    }
+
+    function savePreferences() {
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(currentPreferences));
+            return true;
+        } catch (error) {
+            console.error('Failed to save preferences to localStorage:', error);
+            return false;
+        }
+    }
+
+    function getPreference(key) {
+        if (!currentPreferences.hasOwnProperty(key)) {
+            throw new Error(`Unknown preference key: ${key}`);
+        }
+        return currentPreferences[key];
+    }
+
+    function setPreference(key, value) {
+        if (!currentPreferences.hasOwnProperty(key)) {
+            throw new Error(`Unknown preference key: ${key}`);
+        }
+        
+        const oldValue = currentPreferences[key];
+        currentPreferences[key] = value;
+        
+        const success = savePreferences();
+        if (success) {
+            dispatchPreferenceChange(key, value, oldValue);
+        }
+        return success;
+    }
+
+    function resetPreferences() {
+        currentPreferences = { ...DEFAULT_PREFERENCES };
+        localStorage.removeItem(STORAGE_KEY);
+        dispatchPreferenceReset();
+        return true;
+    }
+
+    const listeners = new Map();
+
+    function addListener(key, callback) {
+        if (!listeners.has(key)) {
+            listeners.set(key, new Set());
+        }
+        listeners.get(key).add(callback);
+    }
+
+    function removeListener(key, callback) {
+        if (listeners.has(key)) {
+            listeners.get(key).delete(callback);
+        }
+    }
+
+    function dispatchPreferenceChange(key, newValue, oldValue) {
+        if (listeners.has(key)) {
+            listeners.get(key).forEach(callback => {
+                try {
+                    callback(newValue, oldValue);
+                } catch (error) {
+                    console.error(`Error in preference listener for ${key}:`, error);
+                }
+            });
+        }
+    }
+
+    function dispatchPreferenceReset() {
+        Object.keys(DEFAULT_PREFERENCES).forEach(key => {
+            dispatchPreferenceChange(key, DEFAULT_PREFERENCES[key], currentPreferences[key]);
+        });
+    }
+
+    function exportPreferences() {
+        return JSON.stringify(currentPreferences, null, 2);
+    }
+
+    function importPreferences(jsonString) {
+        try {
+            const imported = JSON.parse(jsonString);
+            const validKeys = Object.keys(DEFAULT_PREFERENCES);
+            
+            Object.keys(imported).forEach(key => {
+                if (validKeys.includes(key)) {
+                    setPreference(key, imported[key]);
+                }
+            });
+            return true;
+        } catch (error) {
+            console.error('Failed to import preferences:', error);
+            return false;
+        }
+    }
+
+    loadPreferences();
+
+    return {
+        get: getPreference,
+        set: setPreference,
+        reset: resetPreferences,
+        getAll: () => ({ ...currentPreferences }),
+        getDefaults: () => ({ ...DEFAULT_PREFERENCES }),
+        on: addListener,
+        off: removeListener,
+        export: exportPreferences,
+        import: importPreferences
+    };
+})();
+
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = UserPreferencesManager;
+}
