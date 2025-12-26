@@ -12,11 +12,11 @@ function validateUserInput(username, email) {
     const errors = [];
     
     if (!validateUsername(username)) {
-        errors.push('Username must be 3-20 characters and contain only letters, numbers, and underscores.');
+        errors.push('Username must be 3-20 characters and contain only letters, numbers, and underscores');
     }
     
     if (!validateEmail(email)) {
-        errors.push('Please enter a valid email address.');
+        errors.push('Please enter a valid email address');
     }
     
     return {
@@ -25,4 +25,4 @@ function validateUserInput(username, email) {
     };
 }
 
-export { validateUserInput, validateUsername, validateEmail };
+export { validateUsername, validateEmail, validateUserInput };
