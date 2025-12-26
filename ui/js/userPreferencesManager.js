@@ -798,4 +798,71 @@ export default UserPreferences;const UserPreferences = {
 };
 
 Object.freeze(UserPreferences);
-export default UserPreferences.init();
+export default UserPreferences.init();class UserPreferencesManager {
+    constructor() {
+        this.prefs = {};
+        this.storageAvailable = this.checkStorageAvailability();
+        this.loadPreferences();
+    }
+
+    checkStorageAvailability() {
+        const testKey = '__storage_test__';
+        try {
+            localStorage.setItem(testKey, testKey);
+            localStorage.removeItem(testKey);
+            return true;
+        } catch (e) {
+            console.warn('LocalStorage unavailable, falling back to sessionStorage');
+            return false;
+        }
+    }
+
+    getStorage() {
+        return this.storageAvailable ? localStorage : sessionStorage;
+    }
+
+    loadPreferences() {
+        const storage = this.getStorage();
+        const stored = storage.getItem('userPreferences');
+        if (stored) {
+            try {
+                this.prefs = JSON.parse(stored);
+            } catch (error) {
+                console.error('Failed to parse stored preferences:', error);
+                this.prefs = {};
+            }
+        }
+    }
+
+    savePreference(key, value) {
+        this.prefs[key] = value;
+        const storage = this.getStorage();
+        try {
+            storage.setItem('userPreferences', JSON.stringify(this.prefs));
+            return true;
+        } catch (error) {
+            console.error('Failed to save preference:', error);
+            return false;
+        }
+    }
+
+    getPreference(key, defaultValue = null) {
+        return this.prefs.hasOwnProperty(key) ? this.prefs[key] : defaultValue;
+    }
+
+    removePreference(key) {
+        if (this.prefs.hasOwnProperty(key)) {
+            delete this.prefs[key];
+            const storage = this.getStorage();
+            storage.setItem('userPreferences', JSON.stringify(this.prefs));
+            return true;
+        }
+        return false;
+    }
+
+    clearAllPreferences() {
+        this.prefs = {};
+        const storage = this.getStorage();
+        storage.removeItem('userPreferences');
+    }
+}
