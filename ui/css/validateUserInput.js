@@ -36,4 +36,35 @@ function validateUserInput(username, email) {
     };
 }
 
-export { validateUsername, validateEmail, validateUserInput };
+export { validateUsername, validateEmail, validateUserInput };function sanitizeInput(input) {
+    if (typeof input !== 'string') {
+        throw new TypeError('Input must be a string');
+    }
+    
+    return input
+        .trim()
+        .replace(/[<>]/g, '')
+        .replace(/\s+/g, ' ')
+        .substring(0, 255);
+}
+
+function validateEmail(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+}
+
+function validatePassword(password) {
+    const minLength = 8;
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasNumbers = /\d/.test(password);
+    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+    
+    return password.length >= minLength && 
+           hasUpperCase && 
+           hasLowerCase && 
+           hasNumbers && 
+           hasSpecialChar;
+}
+
+export { sanitizeInput, validateEmail, validatePassword };
