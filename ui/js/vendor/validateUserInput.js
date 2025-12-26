@@ -119,3 +119,41 @@ function validateUserInput(username, email) {
 }
 
 export { validateUserInput, validateUsername, validateEmail };
+function sanitizeInput(input) {
+  if (typeof input !== 'string') {
+    return '';
+  }
+  
+  const trimmed = input.trim();
+  const escaped = trimmed
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;')
+    .replace(/\//g, '&#x2F;');
+    
+  return escaped.substring(0, 255);
+}
+
+function validateEmail(email) {
+  const sanitized = sanitizeInput(email);
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(sanitized) ? sanitized : null;
+}
+
+function validatePassword(password) {
+  const sanitized = sanitizeInput(password);
+  if (sanitized.length < 8) {
+    return null;
+  }
+  
+  const hasUpperCase = /[A-Z]/.test(sanitized);
+  const hasLowerCase = /[a-z]/.test(sanitized);
+  const hasNumbers = /\d/.test(sanitized);
+  const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(sanitized);
+  
+  return (hasUpperCase && hasLowerCase && hasNumbers && hasSpecialChar) ? sanitized : null;
+}
+
+export { sanitizeInput, validateEmail, validatePassword };
