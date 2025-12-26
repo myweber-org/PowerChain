@@ -116,4 +116,37 @@ function validateUserInput(username, email) {
     };
 }
 
-export { validateUsername, validateEmail, validateUserInput };
+export { validateUsername, validateEmail, validateUserInput };function validateUserInput(input, type) {
+  if (typeof input !== 'string') {
+    return { isValid: false, message: 'Input must be a string' };
+  }
+
+  const trimmedInput = input.trim();
+
+  if (trimmedInput.length === 0) {
+    return { isValid: false, message: 'Input cannot be empty' };
+  }
+
+  switch (type) {
+    case 'email':
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      return {
+        isValid: emailRegex.test(trimmedInput),
+        message: emailRegex.test(trimmedInput) ? 'Valid email' : 'Invalid email format'
+      };
+    case 'username':
+      const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
+      return {
+        isValid: usernameRegex.test(trimmedInput),
+        message: usernameRegex.test(trimmedInput) ? 'Valid username' : 'Username must be 3-20 characters and contain only letters, numbers, and underscores'
+      };
+    case 'password':
+      const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;
+      return {
+        isValid: passwordRegex.test(trimmedInput),
+        message: passwordRegex.test(trimmedInput) ? 'Valid password' : 'Password must be at least 8 characters with uppercase, lowercase, and number'
+      };
+    default:
+      return { isValid: true, message: 'Input is valid' };
+  }
+}
