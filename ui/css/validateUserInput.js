@@ -1,13 +1,12 @@
-function validateUserInput(input) {
-    if (typeof input !== 'string') {
-        throw new TypeError('Input must be a string');
+function validateUserInput(input, type) {
+    const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    
+    if (type === 'username') {
+        return usernameRegex.test(input);
+    } else if (type === 'email') {
+        return emailRegex.test(input);
     }
     
-    const trimmed = input.trim();
-    if (trimmed.length === 0) {
-        throw new Error('Input cannot be empty or whitespace only');
-    }
-    
-    const sanitized = trimmed.replace(/[<>]/g, '');
-    return sanitized;
+    return false;
 }
