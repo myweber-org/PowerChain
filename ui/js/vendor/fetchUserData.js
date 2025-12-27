@@ -1,44 +1,46 @@
-function fetchUserData(userId) {
-  const apiUrl = `https://jsonplaceholder.typicode.com/users/${userId}`;
-  
-  fetch(apiUrl)
-    .then(response => {
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return response.json();
-    })
-    .then(data => {
-      console.log('User Data:', data);
-      displayUserInfo(data);
-    })
-    .catch(error => {
-      console.error('Error fetching user data:', error);
-      displayErrorMessage(error.message);
-    });
+async function fetchUserData(userId, maxRetries = 3) {
+    const baseUrl = 'https://api.example.com/users';
+    
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+            const response = await fetch(`${baseUrl}/${userId}`);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            return {
+                success: true,
+                data: data,
+                attempts: attempt
+            };
+            
+        } catch (error) {
+            console.warn(`Attempt ${attempt} failed: ${error.message}`);
+            
+            if (attempt === maxRetries) {
+                return {
+                    success: false,
+                    error: error.message,
+                    attempts: attempt
+                };
+            }
+            
+            await new Promise(resolve => 
+                setTimeout(resolve, Math.pow(2, attempt) * 100)
+            );
+        }
+    }
 }
 
-function displayUserInfo(user) {
-  const container = document.getElementById('user-info');
-  if (container) {
-    container.innerHTML = `
-      <h2>${user.name}</h2>
-      <p><strong>Email:</strong> ${user.email}</p>
-      <p><strong>Phone:</strong> ${user.phone}</p>
-      <p><strong>Company:</strong> ${user.company.name}</p>
-      <p><strong>Website:</strong> <a href="http://${user.website}" target="_blank">${user.website}</a></p>
-    `;
-  }
+function validateUserId(userId) {
+    if (!userId || typeof userId !== 'string') {
+        return false;
+    }
+    
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    return uuidRegex.test(userId);
 }
 
-function displayErrorMessage(message) {
-  const container = document.getElementById('user-info');
-  if (container) {
-    container.innerHTML = `<p class="error">Failed to load user data: ${message}</p>`;
-  }
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-  const userId = 1;
-  fetchUserData(userId);
-});
+export { fetchUserData, validateUserId };
