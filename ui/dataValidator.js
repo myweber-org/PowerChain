@@ -8,6 +8,12 @@ function validatePhone(phone) {
     return phoneRegex.test(phone);
 }
 
+function sanitizeInput(input) {
+    return input.trim()
+        .replace(/[<>]/g, '')
+        .substring(0, 255);
+}
+
 function validatePassword(password) {
     if (password.length < 8) return false;
     if (!/[A-Z]/.test(password)) return false;
@@ -16,11 +22,9 @@ function validatePassword(password) {
     return true;
 }
 
-function sanitizeInput(input) {
-    return input
-        .replace(/[<>]/g, '')
-        .trim()
-        .substring(0, 255);
-}
-
-export { validateEmail, validatePhone, validatePassword, sanitizeInput };
+module.exports = {
+    validateEmail,
+    validatePhone,
+    sanitizeInput,
+    validatePassword
+};
