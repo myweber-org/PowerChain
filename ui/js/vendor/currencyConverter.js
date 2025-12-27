@@ -78,4 +78,85 @@ class CurrencyConverter {
   }
 }
 
-module.exports = CurrencyConverter;
+module.exports = CurrencyConverter;const exchangeRates = {
+    USD: 1.0,
+    EUR: 0.85,
+    GBP: 0.73,
+    JPY: 110.0,
+    CAD: 1.25,
+    AUD: 1.35,
+    CNY: 6.45
+};
+
+const rateCache = new Map();
+
+class CurrencyConverter {
+    constructor(baseCurrency = 'USD') {
+        this.baseCurrency = baseCurrency.toUpperCase();
+        this.lastUpdated = new Date();
+    }
+
+    convert(amount, fromCurrency, toCurrency) {
+        const from = fromCurrency.toUpperCase();
+        const to = toCurrency.toUpperCase();
+        
+        if (!exchangeRates[from] || !exchangeRates[to]) {
+            throw new Error('Unsupported currency');
+        }
+
+        const cacheKey = `${from}_${to}`;
+        let rate;
+
+        if (rateCache.has(cacheKey)) {
+            const cached = rateCache.get(cacheKey);
+            if (Date.now() - cached.timestamp < 3600000) {
+                rate = cached.rate;
+            }
+        }
+
+        if (!rate) {
+            rate = exchangeRates[to] / exchangeRates[from];
+            rateCache.set(cacheKey, {
+                rate: rate,
+                timestamp: Date.now()
+            });
+        }
+
+        return amount * rate;
+    }
+
+    addCustomRate(currency, rate) {
+        const normalizedCurrency = currency.toUpperCase();
+        exchangeRates[normalizedCurrency] = rate;
+        rateCache.clear();
+        this.lastUpdated = new Date();
+    }
+
+    getSupportedCurrencies() {
+        return Object.keys(exchangeRates);
+    }
+
+    formatCurrency(amount, currency) {
+        const formatter = new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: currency.toUpperCase()
+        });
+        return formatter.format(amount);
+    }
+}
+
+const converter = new CurrencyConverter();
+
+function convertAndDisplay(amount, from, to) {
+    try {
+        const result = converter.convert(amount, from, to);
+        const formatted = converter.formatCurrency(result, to);
+        console.log(`${amount} ${from} = ${formatted}`);
+        return result;
+    } catch (error) {
+        console.error('Conversion error:', error.message);
+        return null;
+    }
+}
+
+export { CurrencyConverter, convertAndDisplay };
