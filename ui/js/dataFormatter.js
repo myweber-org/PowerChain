@@ -23,4 +23,11 @@ function formatRelativeTime(dateString) {
   return 'just now';
 }
 
-export default formatRelativeTime;
+export default formatRelativeTime;function formatDate(dateString) {
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) {
+    throw new Error('Invalid date string provided');
+  }
+  const options = { year: 'numeric', month: 'long', day: 'numeric' };
+  return date.toLocaleDateString('en-US', options);
+}
