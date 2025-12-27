@@ -1,98 +1,62 @@
-const UserPreferences = {
-  preferences: {},
+const UserPreferencesManager = (() => {
+  const STORAGE_KEY = 'app_preferences';
 
-  init() {
-    try {
-      const stored = localStorage.getItem('userPreferences');
-      this.preferences = stored ? JSON.parse(stored) : {};
-    } catch (error) {
-      console.warn('Failed to load preferences from localStorage:', error);
-      this.preferences = {};
-    }
-  },
-
-  set(key, value) {
-    this.preferences[key] = value;
-    this.persist();
-  },
-
-  get(key, defaultValue = null) {
-    return this.preferences.hasOwnProperty(key) ? this.preferences[key] : defaultValue;
-  },
-
-  remove(key) {
-    delete this.preferences[key];
-    this.persist();
-  },
-
-  clear() {
-    this.preferences = {};
-    this.persist();
-  },
-
-  getAll() {
-    return { ...this.preferences };
-  },
-
-  persist() {
-    try {
-      localStorage.setItem('userPreferences', JSON.stringify(this.preferences));
-    } catch (error) {
-      console.warn('Failed to save preferences to localStorage:', error);
-    }
-  }
-};
-
-UserPreferences.init();
-export default UserPreferences;const UserPreferences = {
-  storageKey: 'app_preferences',
-
-  defaults: {
+  const defaultPreferences = {
     theme: 'light',
-    fontSize: 16,
+    language: 'en',
     notifications: true,
-    language: 'en'
-  },
+    fontSize: 16,
+    autoSave: false
+  };
 
-  load() {
+  const getPreferences = () => {
     try {
-      const stored = localStorage.getItem(this.storageKey);
-      return stored ? JSON.parse(stored) : { ...this.defaults };
+      const stored = localStorage.getItem(STORAGE_KEY);
+      return stored ? { ...defaultPreferences, ...JSON.parse(stored) } : { ...defaultPreferences };
     } catch (error) {
-      console.error('Failed to load preferences:', error);
-      return { ...this.defaults };
+      console.error('Error reading preferences:', error);
+      return { ...defaultPreferences };
     }
-  },
+  };
 
-  save(preferences) {
+  const savePreferences = (preferences) => {
     try {
-      const merged = { ...this.defaults, ...preferences };
-      localStorage.setItem(this.storageKey, JSON.stringify(merged));
-      return true;
+      const current = getPreferences();
+      const updated = { ...current, ...preferences };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      return updated;
     } catch (error) {
-      console.error('Failed to save preferences:', error);
-      return false;
+      console.error('Error saving preferences:', error);
+      return null;
     }
-  },
+  };
 
-  update(key, value) {
-    const current = this.load();
-    current[key] = value;
-    return this.save(current);
-  },
+  const resetPreferences = () => {
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+      return { ...defaultPreferences };
+    } catch (error) {
+      console.error('Error resetting preferences:', error);
+      return null;
+    }
+  };
 
-  reset() {
-    return this.save(this.defaults);
-  },
+  const getPreference = (key) => {
+    const prefs = getPreferences();
+    return prefs[key] !== undefined ? prefs[key] : defaultPreferences[key];
+  };
 
-  getAll() {
-    return this.load();
-  },
+  const setPreference = (key, value) => {
+    return savePreferences({ [key]: value });
+  };
 
-  get(key) {
-    const prefs = this.load();
-    return prefs[key] !== undefined ? prefs[key] : this.defaults[key];
-  }
-};
+  return {
+    getPreferences,
+    savePreferences,
+    resetPreferences,
+    getPreference,
+    setPreference
+  };
+})();
 
-export default UserPreferences;
+export default UserPreferencesManager;
