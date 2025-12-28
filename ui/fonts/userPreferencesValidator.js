@@ -1,32 +1,39 @@
 function validateUserPreferences(preferences) {
-    const requiredFields = ['theme', 'language', 'notifications'];
-    const allowedThemes = ['light', 'dark', 'auto'];
-    const allowedLanguages = ['en', 'es', 'fr', 'de'];
-    
-    for (const field of requiredFields) {
-        if (!preferences.hasOwnProperty(field)) {
-            throw new Error(`Missing required field: ${field}`);
-        }
+    const errors = [];
+
+    if (!preferences || typeof preferences !== 'object') {
+        errors.push('Preferences must be a valid object');
+        return errors;
     }
-    
-    if (!allowedThemes.includes(preferences.theme)) {
-        throw new Error(`Invalid theme. Allowed values: ${allowedThemes.join(', ')}`);
+
+    if (preferences.theme && !['light', 'dark', 'auto'].includes(preferences.theme)) {
+        errors.push('Theme must be one of: light, dark, auto');
     }
-    
-    if (!allowedLanguages.includes(preferences.language)) {
-        throw new Error(`Invalid language. Allowed values: ${allowedLanguages.join(', ')}`);
+
+    if (preferences.notifications !== undefined && typeof preferences.notifications !== 'boolean') {
+        errors.push('Notifications must be a boolean value');
     }
-    
-    if (typeof preferences.notifications !== 'boolean') {
-        throw new Error('Notifications must be a boolean value');
+
+    if (preferences.language && typeof preferences.language !== 'string') {
+        errors.push('Language must be a string');
+    } else if (preferences.language && preferences.language.length !== 2) {
+        errors.push('Language must be a 2-letter code');
     }
-    
-    if (preferences.hasOwnProperty('timezone')) {
+
+    if (preferences.timezone !== undefined) {
         const timezoneRegex = /^[A-Za-z_]+\/[A-Za-z_]+$/;
-        if (!timezoneRegex.test(preferences.timezone)) {
-            throw new Error('Invalid timezone format');
+        if (typeof preferences.timezone !== 'string' || !timezoneRegex.test(preferences.timezone)) {
+            errors.push('Timezone must be in format: Area/Location');
         }
     }
-    
-    return true;
+
+    if (preferences.itemsPerPage !== undefined) {
+        if (!Number.isInteger(preferences.itemsPerPage)) {
+            errors.push('Items per page must be an integer');
+        } else if (preferences.itemsPerPage < 5 || preferences.itemsPerPage > 100) {
+            errors.push('Items per page must be between 5 and 100');
+        }
+    }
+
+    return errors;
 }
