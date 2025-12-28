@@ -43,4 +43,79 @@ const UserPreferencesManager = (function() {
         has: hasPreference,
         keys: getAllKeys
     };
+})();const UserPreferencesManager = (function() {
+    const STORAGE_KEY = 'app_preferences';
+    const DEFAULT_PREFERENCES = {
+        theme: 'light',
+        language: 'en',
+        notifications: true,
+        fontSize: 16,
+        autoSave: true
+    };
+
+    function getPreferences() {
+        try {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            if (stored) {
+                return { ...DEFAULT_PREFERENCES, ...JSON.parse(stored) };
+            }
+        } catch (error) {
+            console.warn('Failed to read preferences from localStorage:', error);
+        }
+        return { ...DEFAULT_PREFERENCES };
+    }
+
+    function savePreferences(preferences) {
+        try {
+            const current = getPreferences();
+            const updated = { ...current, ...preferences };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+            return updated;
+        } catch (error) {
+            console.warn('Failed to save preferences to localStorage:', error);
+            return getPreferences();
+        }
+    }
+
+    function resetPreferences() {
+        try {
+            localStorage.removeItem(STORAGE_KEY);
+        } catch (error) {
+            console.warn('Failed to reset preferences:', error);
+        }
+        return { ...DEFAULT_PREFERENCES };
+    }
+
+    function subscribe(callback) {
+        if (typeof callback !== 'function') {
+            throw new Error('Callback must be a function');
+        }
+
+        const handler = function(event) {
+            if (event.key === STORAGE_KEY || event.key === null) {
+                callback(getPreferences());
+            }
+        };
+
+        window.addEventListener('storage', handler);
+        
+        return function unsubscribe() {
+            window.removeEventListener('storage', handler);
+        };
+    }
+
+    return {
+        get: getPreferences,
+        save: savePreferences,
+        reset: resetPreferences,
+        subscribe: subscribe,
+        constants: {
+            THEMES: ['light', 'dark', 'auto'],
+            LANGUAGES: ['en', 'es', 'fr', 'de']
+        }
+    };
 })();
+
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = UserPreferencesManager;
+}
