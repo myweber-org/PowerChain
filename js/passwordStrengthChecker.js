@@ -1,4 +1,4 @@
-function checkPasswordStrength(password, options = {}) {
+function validatePassword(password, options = {}) {
     const defaults = {
         minLength: 8,
         requireUppercase: true,
@@ -10,7 +10,6 @@ function checkPasswordStrength(password, options = {}) {
     
     const config = { ...defaults, ...options };
     const errors = [];
-    const suggestions = [];
     
     if (password.length < config.minLength) {
         errors.push(`Password must be at least ${config.minLength} characters long`);
@@ -31,111 +30,39 @@ function checkPasswordStrength(password, options = {}) {
     if (config.requireSpecialChars) {
         const specialCharRegex = new RegExp(`[${config.specialChars.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}]`);
         if (!specialCharRegex.test(password)) {
-            errors.push(`Password must contain at least one special character (${config.specialChars})`);
-        }
-    }
-    
-    if (errors.length === 0) {
-        const strengthScore = calculateStrengthScore(password);
-        if (strengthScore < 3) {
-            suggestions.push("Consider adding more character variety");
-        }
-        if (password.length < 12) {
-            suggestions.push("Consider using a longer password (12+ characters)");
-        }
-        if (isCommonPassword(password)) {
-            suggestions.push("Avoid using commonly used passwords");
+            errors.push("Password must contain at least one special character");
         }
     }
     
     return {
         isValid: errors.length === 0,
-        errors,
-        suggestions,
-        strength: errors.length === 0 ? calculateStrengthScore(password) : 0
+        errors: errors,
+        score: calculatePasswordScore(password, config)
     };
 }
 
-function calculateStrengthScore(password) {
+function calculatePasswordScore(password, config) {
     let score = 0;
-    if (password.length >= 8) score++;
-    if (password.length >= 12) score++;
-    if (/[A-Z]/.test(password) && /[a-z]/.test(password)) score++;
-    if (/\d/.test(password)) score++;
-    if (/[^A-Za-z0-9]/.test(password)) score++;
-    return Math.min(score, 5);
-}
-
-function isCommonPassword(password) {
-    const commonPasswords = [
-        "password", "123456", "qwerty", "admin", "welcome",
-        "password123", "letmein", "monkey", "dragon", "sunshine"
-    ];
-    return commonPasswords.includes(password.toLowerCase());
-}
-
-export { checkPasswordStrength, calculateStrengthScore, isCommonPassword };function checkPasswordStrength(password, options = {}) {
-  const defaults = {
-    minLength: 8,
-    requireUppercase: true,
-    requireLowercase: true,
-    requireNumbers: true,
-    requireSpecialChars: true,
-    specialChars: "!@#$%^&*()_+-=[]{}|;:,.<>?"
-  };
-  
-  const config = { ...defaults, ...options };
-  const issues = [];
-  
-  if (password.length < config.minLength) {
-    issues.push(`Password must be at least ${config.minLength} characters long`);
-  }
-  
-  if (config.requireUppercase && !/[A-Z]/.test(password)) {
-    issues.push("Password must contain at least one uppercase letter");
-  }
-  
-  if (config.requireLowercase && !/[a-z]/.test(password)) {
-    issues.push("Password must contain at least one lowercase letter");
-  }
-  
-  if (config.requireNumbers && !/\d/.test(password)) {
-    issues.push("Password must contain at least one number");
-  }
-  
-  if (config.requireSpecialChars) {
+    
+    if (password.length >= config.minLength) score += 25;
+    if (/[A-Z]/.test(password)) score += 20;
+    if (/[a-z]/.test(password)) score += 20;
+    if (/\d/.test(password)) score += 20;
+    
     const specialCharRegex = new RegExp(`[${config.specialChars.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}]`);
-    if (!specialCharRegex.test(password)) {
-      issues.push("Password must contain at least one special character");
-    }
-  }
-  
-  const score = issues.length === 0 ? 5 : 
-                issues.length <= 2 ? 3 : 
-                issues.length <= 4 ? 1 : 0;
-  
-  return {
-    isValid: issues.length === 0,
-    score: score,
-    issues: issues,
-    suggestions: issues.length > 0 ? [
-      "Try using a longer password",
-      "Mix different character types",
-      "Avoid common words or patterns"
-    ] : []
-  };
+    if (specialCharRegex.test(password)) score += 15;
+    
+    if (password.length > 12) score += 10;
+    if (password.length > 16) score += 10;
+    
+    return Math.min(score, 100);
 }
 
-function generatePassword(length = 12) {
-  const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+-=[]{}|;:,.<>?";
-  let password = "";
-  
-  for (let i = 0; i < length; i++) {
-    const randomIndex = Math.floor(Math.random() * charset.length);
-    password += charset[randomIndex];
-  }
-  
-  return password;
+function getPasswordStrength(score) {
+    if (score >= 80) return "Strong";
+    if (score >= 60) return "Good";
+    if (score >= 40) return "Fair";
+    return "Weak";
 }
 
-export { checkPasswordStrength, generatePassword };
+export { validatePassword, calculatePasswordScore, getPasswordStrength };
