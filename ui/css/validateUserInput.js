@@ -20,4 +20,28 @@ function validateUserInput(username, email) {
         isValid: true,
         message: "Input validation successful."
     };
+}function sanitizeInput(input) {
+    if (typeof input !== 'string') {
+        return '';
+    }
+    return input.trim()
+        .replace(/[<>]/g, '')
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#x27;');
 }
+
+function validateEmail(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(sanitizeInput(email));
+}
+
+function validatePassword(password) {
+    const sanitized = sanitizeInput(password);
+    return sanitized.length >= 8 && 
+           /[A-Z]/.test(sanitized) && 
+           /[a-z]/.test(sanitized) && 
+           /\d/.test(sanitized);
+}
+
+module.exports = { sanitizeInput, validateEmail, validatePassword };
