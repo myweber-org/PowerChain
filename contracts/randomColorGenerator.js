@@ -1,4 +1,4 @@
-function generateRandomColor() {
+function getRandomHexColor() {
   const letters = '0123456789ABCDEF';
   let color = '#';
   for (let i = 0; i < 6; i++) {
@@ -7,12 +7,22 @@ function generateRandomColor() {
   return color;
 }
 
-function getRandomColorArray(count) {
+function getRandomRGBColor() {
+  const r = Math.floor(Math.random() * 256);
+  const g = Math.floor(Math.random() * 256);
+  const b = Math.floor(Math.random() * 256);
+  return `rgb(${r}, ${g}, ${b})`;
+}
+
+function generateRandomColors(count, format = 'hex') {
   const colors = [];
+  const generator = format === 'rgb' ? getRandomRGBColor : getRandomHexColor;
+  
   for (let i = 0; i < count; i++) {
-    colors.push(generateRandomColor());
+    colors.push(generator());
   }
+  
   return colors;
 }
 
-export { generateRandomColor, getRandomColorArray };
+export { getRandomHexColor, getRandomRGBColor, generateRandomColors };
