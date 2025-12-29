@@ -173,4 +173,59 @@ function clearUserCache(userId = null) {
     }
 }
 
-export { fetchUserData, clearUserCache };
+export { fetchUserData, clearUserCache };async function fetchUserData(userId, maxRetries = 3) {
+    const url = `https://api.example.com/users/${userId}`;
+    
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+            const response = await fetch(url);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            console.log(`User data fetched successfully on attempt ${attempt}`);
+            return data;
+            
+        } catch (error) {
+            console.error(`Attempt ${attempt} failed:`, error.message);
+            
+            if (attempt === maxRetries) {
+                throw new Error(`Failed to fetch user data after ${maxRetries} attempts`);
+            }
+            
+            // Exponential backoff delay
+            const delay = Math.min(1000 * Math.pow(2, attempt - 1), 10000);
+            console.log(`Retrying in ${delay}ms...`);
+            await new Promise(resolve => setTimeout(resolve, delay));
+        }
+    }
+}
+
+// Utility function to validate user ID format
+function isValidUserId(userId) {
+    return typeof userId === 'string' && /^[a-zA-Z0-9_-]+$/.test(userId);
+}
+
+// Example usage
+async function main() {
+    const testUserId = 'user_12345';
+    
+    if (!isValidUserId(testUserId)) {
+        console.error('Invalid user ID format');
+        return;
+    }
+    
+    try {
+        const userData = await fetchUserData(testUserId);
+        console.log('Fetched user data:', userData);
+    } catch (error) {
+        console.error('Final error:', error.message);
+    }
+}
+
+// Export for module usage
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = { fetchUserData, isValidUserId };
+}
