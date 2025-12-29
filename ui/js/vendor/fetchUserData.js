@@ -1,33 +1,39 @@
-function fetchUserData(userId, cacheDuration = 300000) {
-    const cacheKey = `user_${userId}`;
-    const cachedData = localStorage.getItem(cacheKey);
-    const now = Date.now();
-
-    if (cachedData) {
-        const { data, timestamp } = JSON.parse(cachedData);
-        if (now - timestamp < cacheDuration) {
-            console.log('Returning cached user data');
-            return Promise.resolve(data);
-        }
-    }
-
-    return fetch(`https://api.example.com/users/${userId}`)
+function fetchUserData(userId) {
+    const apiUrl = `https://jsonplaceholder.typicode.com/users/${userId}`;
+    
+    fetch(apiUrl)
         .then(response => {
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                throw new Error('Network response was not ok');
             }
             return response.json();
         })
-        .then(userData => {
-            const cacheData = {
-                data: userData,
-                timestamp: now
-            };
-            localStorage.setItem(cacheKey, JSON.stringify(cacheData));
-            return userData;
+        .then(data => {
+            console.log('User Data:', data);
+            displayUserInfo(data);
         })
         .catch(error => {
-            console.error('Failed to fetch user data:', error);
-            throw error;
+            console.error('Error fetching user data:', error);
+            displayErrorMessage(error.message);
         });
+}
+
+function displayUserInfo(user) {
+    const userInfoDiv = document.getElementById('user-info');
+    if (userInfoDiv) {
+        userInfoDiv.innerHTML = `
+            <h2>${user.name}</h2>
+            <p>Email: ${user.email}</p>
+            <p>Phone: ${user.phone}</p>
+            <p>Website: ${user.website}</p>
+            <p>Company: ${user.company.name}</p>
+        `;
+    }
+}
+
+function displayErrorMessage(message) {
+    const userInfoDiv = document.getElementById('user-info');
+    if (userInfoDiv) {
+        userInfoDiv.innerHTML = `<p class="error">Error: ${message}</p>`;
+    }
 }
