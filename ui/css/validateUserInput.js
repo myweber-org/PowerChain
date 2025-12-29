@@ -1,60 +1,23 @@
-function validateUsername(username) {
-  const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
-  return usernameRegex.test(username);
-}
-
-function validatePassword(password) {
-  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;
-  return passwordRegex.test(password);
-}
-
-function validateUserInput(username, password) {
-  const usernameValid = validateUsername(username);
-  const passwordValid = validatePassword(password);
-  
-  if (!usernameValid && !passwordValid) {
-    return 'Username and password are invalid';
-  } else if (!usernameValid) {
-    return 'Username is invalid';
-  } else if (!passwordValid) {
-    return 'Password is invalid';
-  }
-  
-  return 'User input is valid';
-}
-
-module.exports = {
-  validateUsername,
-  validatePassword,
-  validateUserInput
-};function validateUsername(username) {
+function validateUserInput(username, email) {
     const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
-    return usernameRegex.test(username);
-}
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-function validatePassword(password) {
-    const minLength = 8;
-    const hasUpperCase = /[A-Z]/.test(password);
-    const hasLowerCase = /[a-z]/.test(password);
-    const hasNumbers = /\d/.test(password);
-    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
-    
-    return password.length >= minLength && 
-           hasUpperCase && 
-           hasLowerCase && 
-           hasNumbers && 
-           hasSpecialChar;
-}
+    if (!usernameRegex.test(username)) {
+        return {
+            isValid: false,
+            message: "Username must be 3-20 characters and contain only letters, numbers, and underscores."
+        };
+    }
 
-function validateUserInput(username, password) {
-    const usernameValid = validateUsername(username);
-    const passwordValid = validatePassword(password);
-    
+    if (!emailRegex.test(email)) {
+        return {
+            isValid: false,
+            message: "Please provide a valid email address."
+        };
+    }
+
     return {
-        isValid: usernameValid && passwordValid,
-        usernameError: usernameValid ? null : 'Username must be 3-20 characters and contain only letters, numbers, and underscores',
-        passwordError: passwordValid ? null : 'Password must be at least 8 characters with uppercase, lowercase, number, and special character'
+        isValid: true,
+        message: "Input validation successful."
     };
 }
-
-export { validateUserInput, validateUsername, validatePassword };
