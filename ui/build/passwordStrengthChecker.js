@@ -1,28 +1,4 @@
-function calculatePasswordEntropy(password) {
-    const charsetSize = getCharsetSize(password);
-    const length = password.length;
-    return Math.log2(Math.pow(charsetSize, length));
-}
-
-function getCharsetSize(password) {
-    let size = 0;
-    if (/[a-z]/.test(password)) size += 26;
-    if (/[A-Z]/.test(password)) size += 26;
-    if (/[0-9]/.test(password)) size += 10;
-    if (/[^a-zA-Z0-9]/.test(password)) size += 32;
-    return size;
-}
-
-function evaluateStrength(password) {
-    const entropy = calculatePasswordEntropy(password);
-    if (entropy < 28) return 'Very Weak';
-    if (entropy < 36) return 'Weak';
-    if (entropy < 60) return 'Moderate';
-    if (entropy < 128) return 'Strong';
-    return 'Very Strong';
-}
-
-module.exports = { calculatePasswordEntropy, evaluateStrength };function checkPasswordStrength(password, options = {}) {
+function checkPasswordStrength(password, options = {}) {
     const defaults = {
         minLength: 8,
         requireUppercase: true,
@@ -61,27 +37,26 @@ module.exports = { calculatePasswordEntropy, evaluateStrength };function checkPa
     
     if (errors.length === 0) {
         const strengthScore = calculateStrengthScore(password);
-        
         if (strengthScore < 3) {
-            suggestions.push("Consider adding more character variety");
+            suggestions.push("Consider making your password longer for better security");
         }
         if (password.length < 12) {
-            suggestions.push("Consider using a longer password (12+ characters)");
+            suggestions.push("Use 12 or more characters for stronger security");
         }
-        if (/(.)\1{2,}/.test(password)) {
+        if (!/(.)\1{2,}/.test(password)) {
             suggestions.push("Avoid repeating characters multiple times");
         }
         
         return {
-            valid: true,
-            strength: strengthScore,
-            strengthLabel: getStrengthLabel(strengthScore),
+            isValid: true,
+            strength: getStrengthLabel(strengthScore),
+            score: strengthScore,
             suggestions: suggestions
         };
     }
     
     return {
-        valid: false,
+        isValid: false,
         errors: errors,
         suggestions: suggestions
     };
@@ -90,21 +65,23 @@ module.exports = { calculatePasswordEntropy, evaluateStrength };function checkPa
 function calculateStrengthScore(password) {
     let score = 0;
     
-    if (password.length >= 8) score++;
-    if (password.length >= 12) score++;
-    if (/[A-Z]/.test(password) && /[a-z]/.test(password)) score++;
-    if (/\d/.test(password)) score++;
-    if (/[^A-Za-z0-9]/.test(password)) score++;
+    if (password.length >= 8) score += 1;
+    if (password.length >= 12) score += 1;
+    if (password.length >= 16) score += 1;
+    
+    if (/[a-z]/.test(password) && /[A-Z]/.test(password)) score += 1;
+    if (/\d/.test(password)) score += 1;
+    if (/[^a-zA-Z0-9]/.test(password)) score += 1;
     
     const uniqueChars = new Set(password).size;
-    if (uniqueChars / password.length > 0.7) score++;
+    if (uniqueChars / password.length > 0.7) score += 1;
     
-    return Math.min(score, 5);
+    return Math.min(score, 6);
 }
 
 function getStrengthLabel(score) {
     const labels = ["Very Weak", "Weak", "Fair", "Good", "Strong", "Very Strong"];
-    return labels[score] || "Unknown";
+    return labels[Math.min(score, labels.length - 1)];
 }
 
 export { checkPasswordStrength, calculateStrengthScore };
