@@ -71,4 +71,58 @@ function getStrengthLevel(score) {
     return { level: "weak", color: "#F44336" };
 }
 
-export { validatePassword, calculatePasswordScore, getStrengthLevel };
+export { validatePassword, calculatePasswordScore, getStrengthLevel };function calculatePasswordEntropy(password) {
+    const charSets = {
+        lowercase: /[a-z]/.test(password),
+        uppercase: /[A-Z]/.test(password),
+        numbers: /\d/.test(password),
+        symbols: /[^a-zA-Z0-9]/.test(password)
+    };
+    
+    const charSetCount = Object.values(charSets).filter(Boolean).length;
+    let poolSize = 0;
+    
+    if (charSets.lowercase) poolSize += 26;
+    if (charSets.uppercase) poolSize += 26;
+    if (charSets.numbers) poolSize += 10;
+    if (charSets.symbols) poolSize += 32;
+    
+    const entropy = Math.log2(Math.pow(poolSize, password.length));
+    return {
+        entropy: entropy,
+        strength: getStrengthLevel(entropy),
+        hasLowercase: charSets.lowercase,
+        hasUppercase: charSets.uppercase,
+        hasNumbers: charSets.numbers,
+        hasSymbols: charSets.symbols
+    };
+}
+
+function getStrengthLevel(entropy) {
+    if (entropy < 40) return 'Very Weak';
+    if (entropy < 60) return 'Weak';
+    if (entropy < 80) return 'Moderate';
+    if (entropy < 100) return 'Strong';
+    return 'Very Strong';
+}
+
+function validatePasswordRequirements(password, minLength = 8) {
+    const requirements = {
+        minLength: password.length >= minLength,
+        hasLowercase: /[a-z]/.test(password),
+        hasUppercase: /[A-Z]/.test(password),
+        hasNumber: /\d/.test(password),
+        hasSymbol: /[^a-zA-Z0-9]/.test(password)
+    };
+    
+    const passed = Object.values(requirements).filter(Boolean).length;
+    const total = Object.keys(requirements).length;
+    
+    return {
+        requirements: requirements,
+        score: Math.round((passed / total) * 100),
+        isAcceptable: passed === total
+    };
+}
+
+export { calculatePasswordEntropy, validatePasswordRequirements };
