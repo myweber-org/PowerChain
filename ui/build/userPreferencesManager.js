@@ -1,20 +1,19 @@
 const UserPreferencesManager = (() => {
     const STORAGE_KEY = 'app_preferences';
-    const DEFAULT_PREFERENCES = {
+    const DEFAULTS = {
         theme: 'light',
-        language: 'en',
-        notifications: true,
         fontSize: 16,
-        autoSave: false
+        notifications: true,
+        language: 'en'
     };
 
     const loadPreferences = () => {
         try {
             const stored = localStorage.getItem(STORAGE_KEY);
-            return stored ? { ...DEFAULT_PREFERENCES, ...JSON.parse(stored) } : { ...DEFAULT_PREFERENCES };
+            return stored ? { ...DEFAULTS, ...JSON.parse(stored) } : { ...DEFAULTS };
         } catch (error) {
-            console.error('Failed to load preferences:', error);
-            return { ...DEFAULT_PREFERENCES };
+            console.warn('Failed to load preferences:', error);
+            return { ...DEFAULTS };
         }
     };
 
@@ -28,47 +27,35 @@ const UserPreferencesManager = (() => {
         }
     };
 
-    const resetPreferences = () => {
+    const resetToDefaults = () => {
         localStorage.removeItem(STORAGE_KEY);
-        return { ...DEFAULT_PREFERENCES };
+        return { ...DEFAULTS };
     };
 
     const validatePreference = (key, value) => {
         const validators = {
             theme: (v) => ['light', 'dark', 'auto'].includes(v),
-            language: (v) => /^[a-z]{2}$/.test(v),
-            notifications: (v) => typeof v === 'boolean',
             fontSize: (v) => Number.isInteger(v) && v >= 12 && v <= 24,
-            autoSave: (v) => typeof v === 'boolean'
+            notifications: (v) => typeof v === 'boolean',
+            language: (v) => ['en', 'es', 'fr', 'de'].includes(v)
         };
         return validators[key] ? validators[key](value) : false;
     };
 
     return {
-        get: () => loadPreferences(),
+        get: (key) => {
+            const prefs = loadPreferences();
+            return key ? prefs[key] : prefs;
+        },
         set: (key, value) => {
             if (!validatePreference(key, value)) {
-                throw new Error(`Invalid preference: ${key}=${value}`);
+                throw new Error(`Invalid value for preference "${key}"`);
             }
-            const current = loadPreferences();
-            const updated = { ...current, [key]: value };
-            savePreferences(updated);
-            return updated;
+            const prefs = loadPreferences();
+            prefs[key] = value;
+            return savePreferences(prefs);
         },
-        update: (updates) => {
-            const current = loadPreferences();
-            const updated = { ...current };
-            
-            Object.entries(updates).forEach(([key, value]) => {
-                if (validatePreference(key, value)) {
-                    updated[key] = value;
-                }
-            });
-            
-            savePreferences(updated);
-            return updated;
-        },
-        reset: () => resetPreferences(),
+        reset: resetToDefaults,
         subscribe: (callback) => {
             const handler = (event) => {
                 if (event.key === STORAGE_KEY) {
