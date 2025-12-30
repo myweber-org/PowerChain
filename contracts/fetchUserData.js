@@ -228,4 +228,16 @@ async function main() {
 // Export for module usage
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = { fetchUserData, isValidUserId };
+}async function fetchUserData(userId) {
+  const response = await fetch(`https://api.example.com/users/${userId}`);
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+  const data = await response.json();
+  return {
+    id: data.id,
+    name: data.name,
+    email: data.email,
+    createdAt: new Date(data.createdAt)
+  };
 }
