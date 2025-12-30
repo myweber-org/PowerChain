@@ -65,4 +65,60 @@ module.exports = {
     convertCurrency,
     getSupportedCurrencies,
     updateExchangeRate
-};
+};const exchangeRates = {};
+
+async function fetchExchangeRate(base, target) {
+    const cacheKey = `${base}_${target}`;
+    const cacheDuration = 5 * 60 * 1000; // 5 minutes
+
+    if (exchangeRates[cacheKey] && 
+        Date.now() - exchangeRates[cacheKey].timestamp < cacheDuration) {
+        return exchangeRates[cacheKey].rate;
+    }
+
+    try {
+        const response = await fetch(
+            `https://api.exchangerate-api.com/v4/latest/${base}`
+        );
+        const data = await response.json();
+        const rate = data.rates[target];
+        
+        if (rate) {
+            exchangeRates[cacheKey] = {
+                rate: rate,
+                timestamp: Date.now()
+            };
+            return rate;
+        } else {
+            throw new Error(`Target currency ${target} not found`);
+        }
+    } catch (error) {
+        console.error('Failed to fetch exchange rate:', error);
+        throw error;
+    }
+}
+
+function convertCurrency(amount, rate) {
+    if (typeof amount !== 'number' || amount < 0) {
+        throw new Error('Amount must be a positive number');
+    }
+    if (typeof rate !== 'number' || rate <= 0) {
+        throw new Error('Rate must be a positive number');
+    }
+    
+    const converted = amount * rate;
+    return Math.round(converted * 100) / 100;
+}
+
+async function convert(baseCurrency, targetCurrency, amount) {
+    const rate = await fetchExchangeRate(baseCurrency, targetCurrency);
+    return convertCurrency(amount, rate);
+}
+
+function clearCache() {
+    Object.keys(exchangeRates).forEach(key => {
+        delete exchangeRates[key];
+    });
+}
+
+export { convert, clearCache, fetchExchangeRate, convertCurrency };
