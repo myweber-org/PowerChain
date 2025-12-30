@@ -108,4 +108,52 @@ const userPreferencesManager = (() => {
     import: importPreferences,
     defaults: DEFAULT_PREFERENCES
   };
-})();
+})();class UserPreferencesManager {
+  constructor() {
+    this.prefs = this.loadPreferences();
+  }
+
+  loadPreferences() {
+    const stored = localStorage.getItem('userPreferences');
+    return stored ? JSON.parse(stored) : {
+      theme: 'light',
+      fontSize: 16,
+      notifications: true,
+      language: 'en'
+    };
+  }
+
+  savePreferences() {
+    localStorage.setItem('userPreferences', JSON.stringify(this.prefs));
+    return this;
+  }
+
+  setPreference(key, value) {
+    if (this.prefs.hasOwnProperty(key)) {
+      this.prefs[key] = value;
+      this.savePreferences();
+    }
+    return this;
+  }
+
+  getPreference(key) {
+    return this.prefs[key];
+  }
+
+  getAllPreferences() {
+    return { ...this.prefs };
+  }
+
+  resetToDefaults() {
+    this.prefs = {
+      theme: 'light',
+      fontSize: 16,
+      notifications: true,
+      language: 'en'
+    };
+    this.savePreferences();
+    return this;
+  }
+}
+
+export default UserPreferencesManager;
