@@ -56,4 +56,34 @@ function validateUserId(userId) {
            /^[a-zA-Z0-9_-]+$/.test(userId);
 }
 
-export { fetchUserData, validateUserId };
+export { fetchUserData, validateUserId };async function fetchUserData(userId) {
+  const cacheKey = `user_${userId}`;
+  const cache = localStorage.getItem(cacheKey);
+  
+  if (cache) {
+    const cachedData = JSON.parse(cache);
+    if (Date.now() - cachedData.timestamp < 300000) {
+      return cachedData.data;
+    }
+  }
+
+  try {
+    const response = await fetch(`https://api.example.com/users/${userId}`);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const userData = await response.json();
+    
+    localStorage.setItem(cacheKey, JSON.stringify({
+      data: userData,
+      timestamp: Date.now()
+    }));
+    
+    return userData;
+  } catch (error) {
+    console.error('Failed to fetch user data:', error);
+    throw new Error('Unable to retrieve user information');
+  }
+}
