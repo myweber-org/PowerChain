@@ -20,4 +20,38 @@ function validateUserInput(username, email) {
         valid: true,
         message: 'Input validation successful.'
     };
+}function validateUserInput(input, options = {}) {
+  const defaults = {
+    maxLength: 255,
+    allowHTML: false,
+    trim: true,
+    allowedPattern: null
+  };
+  
+  const config = { ...defaults, ...options };
+  
+  if (typeof input !== 'string') {
+    return '';
+  }
+  
+  let processed = input;
+  
+  if (config.trim) {
+    processed = processed.trim();
+  }
+  
+  if (processed.length > config.maxLength) {
+    processed = processed.substring(0, config.maxLength);
+  }
+  
+  if (!config.allowHTML) {
+    processed = processed.replace(/[<>]/g, '');
+  }
+  
+  if (config.allowedPattern && config.allowedPattern instanceof RegExp) {
+    const match = processed.match(config.allowedPattern);
+    processed = match ? match[0] : '';
+  }
+  
+  return processed;
 }
