@@ -156,4 +156,57 @@ const userPreferencesManager = (() => {
   }
 }
 
-export default UserPreferencesManager;
+export default UserPreferencesManager;const UserPreferencesManager = (function() {
+    const STORAGE_KEY = 'user_preferences';
+    
+    const defaultPreferences = {
+        theme: 'light',
+        language: 'en',
+        notifications: true,
+        fontSize: 16,
+        autoSave: false
+    };
+
+    function getPreferences() {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        return stored ? JSON.parse(stored) : { ...defaultPreferences };
+    }
+
+    function updatePreferences(newPreferences) {
+        const current = getPreferences();
+        const updated = { ...current, ...newPreferences };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+        return updated;
+    }
+
+    function resetPreferences() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultPreferences));
+        return { ...defaultPreferences };
+    }
+
+    function getPreference(key) {
+        const prefs = getPreferences();
+        return prefs[key] !== undefined ? prefs[key] : defaultPreferences[key];
+    }
+
+    function setPreference(key, value) {
+        return updatePreferences({ [key]: value });
+    }
+
+    function getAllPreferences() {
+        return getPreferences();
+    }
+
+    function clearPreferences() {
+        localStorage.removeItem(STORAGE_KEY);
+    }
+
+    return {
+        get: getPreference,
+        set: setPreference,
+        update: updatePreferences,
+        reset: resetPreferences,
+        getAll: getAllPreferences,
+        clear: clearPreferences
+    };
+})();
