@@ -40,4 +40,32 @@ function validateUserData(userData) {
     };
 }
 
-export { validateUserData, validateEmail, validatePassword, validateUsername };
+export { validateUserData, validateEmail, validatePassword, validateUsername };function validateUserData(user) {
+    const errors = [];
+
+    if (!user.username || user.username.trim().length < 3) {
+        errors.push('Username must be at least 3 characters long');
+    }
+
+    if (!user.email || !isValidEmail(user.email)) {
+        errors.push('Please provide a valid email address');
+    }
+
+    if (!user.password || user.password.length < 8) {
+        errors.push('Password must be at least 8 characters long');
+    }
+
+    if (user.password !== user.confirmPassword) {
+        errors.push('Passwords do not match');
+    }
+
+    return {
+        isValid: errors.length === 0,
+        errors: errors
+    };
+}
+
+function isValidEmail(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+}
