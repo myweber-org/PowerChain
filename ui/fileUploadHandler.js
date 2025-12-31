@@ -80,4 +80,69 @@ class FileUploadHandler {
   }
 }
 
-export default FileUploadHandler;
+export default FileUploadHandler;function validateFile(file, maxSize) {
+    if (!file) {
+        throw new Error('No file provided');
+    }
+
+    const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf'];
+    if (!allowedTypes.includes(file.type)) {
+        throw new Error('Invalid file type. Only JPEG, PNG, and PDF are allowed.');
+    }
+
+    if (file.size > maxSize) {
+        throw new Error(`File size exceeds the limit of ${maxSize} bytes.`);
+    }
+
+    return {
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        lastModified: file.lastModified
+    };
+}
+
+function handleFileUpload(event, maxSize = 5 * 1024 * 1024) {
+    try {
+        const file = event.target.files[0];
+        const validatedFile = validateFile(file, maxSize);
+        
+        console.log('File validated successfully:', validatedFile);
+        return validatedFile;
+    } catch (error) {
+        console.error('File validation failed:', error.message);
+        event.target.value = '';
+        throw error;
+    }
+}
+
+function createUploadForm() {
+    const form = document.createElement('form');
+    form.id = 'uploadForm';
+    
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.id = 'fileInput';
+    input.accept = '.jpg,.jpeg,.png,.pdf';
+    
+    const submitBtn = document.createElement('button');
+    submitBtn.type = 'button';
+    submitBtn.textContent = 'Upload File';
+    
+    submitBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        try {
+            const file = handleFileUpload({ target: { files: input.files } });
+            alert(`File "${file.name}" is ready for upload.`);
+        } catch (error) {
+            alert(error.message);
+        }
+    });
+    
+    form.appendChild(input);
+    form.appendChild(submitBtn);
+    
+    return form;
+}
+
+export { validateFile, handleFileUpload, createUploadForm };
