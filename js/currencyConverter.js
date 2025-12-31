@@ -1,34 +1,41 @@
-const exchangeRates = {
-    USD: 1.0,
-    EUR: 0.85,
-    GBP: 0.73,
-    JPY: 110.0,
-    CAD: 1.25,
-    AUD: 1.35
-};
+const exchangeRates = {};
 
-function convertCurrency(amount, fromCurrency, toCurrency) {
-    if (!exchangeRates[fromCurrency] || !exchangeRates[toCurrency]) {
-        throw new Error('Invalid currency code');
+async function fetchExchangeRate(base, target) {
+    const cacheKey = `${base}_${target}`;
+    const cachedRate = exchangeRates[cacheKey];
+    
+    if (cachedRate && Date.now() - cachedRate.timestamp < 3600000) {
+        return cachedRate.rate;
     }
     
-    const amountInUSD = amount / exchangeRates[fromCurrency];
-    const convertedAmount = amountInUSD * exchangeRates[toCurrency];
+    try {
+        const response = await fetch(`https://api.exchangerate-api.com/v4/latest/${base}`);
+        const data = await response.json();
+        const rate = data.rates[target];
+        
+        exchangeRates[cacheKey] = {
+            rate: rate,
+            timestamp: Date.now()
+        };
+        
+        return rate;
+    } catch (error) {
+        console.error('Failed to fetch exchange rate:', error);
+        throw new Error('Exchange rate service unavailable');
+    }
+}
+
+function convertCurrency(amount, rate) {
+    if (typeof amount !== 'number' || amount <= 0) {
+        throw new Error('Amount must be a positive number');
+    }
     
-    return parseFloat(convertedAmount.toFixed(2));
-}
-
-function formatCurrency(amount, currencyCode) {
-    const formatter = new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: currencyCode
-    });
+    if (typeof rate !== 'number' || rate <= 0) {
+        throw new Error('Rate must be a positive number');
+    }
     
-    return formatter.format(amount);
+    const converted = amount * rate;
+    return Math.round(converted * 100) / 100;
 }
 
-function getSupportedCurrencies() {
-    return Object.keys(exchangeRates);
-}
-
-export { convertCurrency, formatCurrency, getSupportedCurrencies };
+export { fetchExchangeRate, convertCurrency };
