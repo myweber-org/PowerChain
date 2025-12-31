@@ -3,71 +3,37 @@ const exchangeRates = {
     EUR: 0.85,
     GBP: 0.73,
     JPY: 110.0,
-    CAD: 1.25
+    CAD: 1.25,
+    AUD: 1.35,
+    CNY: 6.45
 };
 
-const rateCache = new Map();
-const CACHE_DURATION = 5 * 60 * 1000;
-
-function validateCurrencyCode(currencyCode) {
-    return typeof currencyCode === 'string' && 
-           currencyCode.length === 3 && 
-           exchangeRates.hasOwnProperty(currencyCode.toUpperCase());
-}
-
-function getExchangeRate(fromCurrency, toCurrency) {
-    const cacheKey = `${fromCurrency}_${toCurrency}`;
-    const cached = rateCache.get(cacheKey);
-    
-    if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-        return cached.rate;
-    }
-    
-    if (!validateCurrencyCode(fromCurrency) || !validateCurrencyCode(toCurrency)) {
+function convertCurrency(amount, fromCurrency, toCurrency) {
+    if (!exchangeRates[fromCurrency] || !exchangeRates[toCurrency]) {
         throw new Error('Invalid currency code');
     }
     
-    const fromRate = exchangeRates[fromCurrency.toUpperCase()];
-    const toRate = exchangeRates[toCurrency.toUpperCase()];
-    const rate = toRate / fromRate;
+    const amountInUSD = amount / exchangeRates[fromCurrency];
+    const convertedAmount = amountInUSD * exchangeRates[toCurrency];
     
-    rateCache.set(cacheKey, {
-        rate: rate,
-        timestamp: Date.now()
-    });
-    
-    return rate;
-}
-
-function convertCurrency(amount, fromCurrency, toCurrency) {
-    if (typeof amount !== 'number' || amount <= 0) {
-        throw new Error('Amount must be a positive number');
-    }
-    
-    const rate = getExchangeRate(fromCurrency, toCurrency);
-    const convertedAmount = amount * rate;
-    
-    return {
-        originalAmount: amount,
-        fromCurrency: fromCurrency.toUpperCase(),
-        toCurrency: toCurrency.toUpperCase(),
-        exchangeRate: rate,
-        convertedAmount: parseFloat(convertedAmount.toFixed(2))
-    };
-}
-
-function clearRateCache() {
-    rateCache.clear();
+    return parseFloat(convertedAmount.toFixed(2));
 }
 
 function getSupportedCurrencies() {
-    return Object.keys(exchangeRates).sort();
+    return Object.keys(exchangeRates);
 }
 
-export {
+function updateExchangeRate(currency, rate) {
+    if (typeof rate !== 'number' || rate <= 0) {
+        throw new Error('Invalid exchange rate');
+    }
+    
+    exchangeRates[currency] = rate;
+    return true;
+}
+
+module.exports = {
     convertCurrency,
-    getExchangeRate,
-    clearRateCache,
     getSupportedCurrencies,
-    validateCurrencyCode
+    updateExchangeRate
 };
