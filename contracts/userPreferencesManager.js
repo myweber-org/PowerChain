@@ -134,4 +134,87 @@ export default UserPreferencesManager;const UserPreferencesManager = (() => {
   };
 })();
 
+export default UserPreferencesManager;const UserPreferencesManager = (() => {
+    const STORAGE_KEY = 'app_preferences';
+    
+    const defaultPreferences = {
+        theme: 'light',
+        language: 'en',
+        notifications: true,
+        fontSize: 16,
+        autoSave: false,
+        lastUpdated: null
+    };
+
+    let currentPreferences = { ...defaultPreferences };
+
+    const loadPreferences = () => {
+        try {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            if (stored) {
+                const parsed = JSON.parse(stored);
+                currentPreferences = { ...defaultPreferences, ...parsed };
+                currentPreferences.lastUpdated = new Date().toISOString();
+            }
+        } catch (error) {
+            console.warn('Failed to load preferences:', error);
+            resetToDefaults();
+        }
+        return currentPreferences;
+    };
+
+    const savePreferences = (updates) => {
+        try {
+            currentPreferences = { ...currentPreferences, ...updates };
+            currentPreferences.lastUpdated = new Date().toISOString();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(currentPreferences));
+            return true;
+        } catch (error) {
+            console.error('Failed to save preferences:', error);
+            return false;
+        }
+    };
+
+    const getPreference = (key) => {
+        return currentPreferences[key] !== undefined 
+            ? currentPreferences[key] 
+            : defaultPreferences[key];
+    };
+
+    const resetToDefaults = () => {
+        currentPreferences = { ...defaultPreferences };
+        localStorage.removeItem(STORAGE_KEY);
+        return currentPreferences;
+    };
+
+    const exportPreferences = () => {
+        return JSON.stringify(currentPreferences, null, 2);
+    };
+
+    const importPreferences = (jsonString) => {
+        try {
+            const imported = JSON.parse(jsonString);
+            return savePreferences(imported);
+        } catch (error) {
+            console.error('Invalid preferences format:', error);
+            return false;
+        }
+    };
+
+    const getAllPreferences = () => {
+        return { ...currentPreferences };
+    };
+
+    loadPreferences();
+
+    return {
+        save: savePreferences,
+        get: getPreference,
+        getAll: getAllPreferences,
+        reset: resetToDefaults,
+        export: exportPreferences,
+        import: importPreferences
+    };
+})();
+
 export default UserPreferencesManager;
