@@ -32,23 +32,22 @@ function convertTemperature(value, fromUnit, toUnit) {
         return value;
     }
 
-    if (fromUnit === 'C' && toUnit === 'F') {
-        return celsiusToFahrenheit(value);
-    }
-    if (fromUnit === 'C' && toUnit === 'K') {
-        return celsiusToKelvin(value);
-    }
-    if (fromUnit === 'F' && toUnit === 'C') {
-        return fahrenheitToCelsius(value);
-    }
-    if (fromUnit === 'F' && toUnit === 'K') {
-        return fahrenheitToKelvin(value);
-    }
-    if (fromUnit === 'K' && toUnit === 'C') {
-        return kelvinToCelsius(value);
-    }
-    if (fromUnit === 'K' && toUnit === 'F') {
-        return kelvinToFahrenheit(value);
+    const conversionMap = {
+        'C_F': celsiusToFahrenheit,
+        'C_K': celsiusToKelvin,
+        'F_C': fahrenheitToCelsius,
+        'F_K': fahrenheitToKelvin,
+        'K_C': kelvinToCelsius,
+        'K_F': kelvinToFahrenheit
+    };
+
+    const conversionKey = `${fromUnit}_${toUnit}`;
+    const conversionFunction = conversionMap[conversionKey];
+    
+    if (conversionFunction) {
+        return conversionFunction(value);
+    } else {
+        throw new Error(`Conversion from ${fromUnit} to ${toUnit} not supported`);
     }
 }
 
@@ -59,27 +58,5 @@ module.exports = {
     fahrenheitToKelvin,
     kelvinToCelsius,
     kelvinToFahrenheit,
-    convertTemperature
-};function celsiusToFahrenheit(celsius) {
-    return (celsius * 9/5) + 32;
-}
-
-function fahrenheitToCelsius(fahrenheit) {
-    return (fahrenheit - 32) * 5/9;
-}
-
-function convertTemperature(value, unit) {
-    if (unit === 'C') {
-        return celsiusToFahrenheit(value);
-    } else if (unit === 'F') {
-        return fahrenheitToCelsius(value);
-    } else {
-        throw new Error('Invalid unit. Use "C" for Celsius or "F" for Fahrenheit');
-    }
-}
-
-module.exports = {
-    celsiusToFahrenheit,
-    fahrenheitToCelsius,
     convertTemperature
 };
