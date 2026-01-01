@@ -183,4 +183,59 @@ const UserPreferencesManager = {
 
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = UserPreferencesManager;
-}
+}const UserPreferences = {
+  storageKey: 'app_preferences',
+
+  defaultPreferences: {
+    theme: 'light',
+    language: 'en',
+    notifications: true,
+    fontSize: 16
+  },
+
+  getPreferences() {
+    const stored = localStorage.getItem(this.storageKey);
+    if (stored) {
+      return { ...this.defaultPreferences, ...JSON.parse(stored) };
+    }
+    return this.defaultPreferences;
+  },
+
+  updatePreferences(newPreferences) {
+    const current = this.getPreferences();
+    const updated = { ...current, ...newPreferences };
+    localStorage.setItem(this.storageKey, JSON.stringify(updated));
+    this.applyPreferences(updated);
+    return updated;
+  },
+
+  applyPreferences(prefs) {
+    document.documentElement.setAttribute('data-theme', prefs.theme);
+    document.documentElement.lang = prefs.language;
+    document.documentElement.style.fontSize = `${prefs.fontSize}px`;
+    
+    if (prefs.notifications) {
+      this.enableNotifications();
+    } else {
+      this.disableNotifications();
+    }
+  },
+
+  enableNotifications() {
+    if ('Notification' in window && Notification.permission === 'granted') {
+      console.log('Notifications enabled');
+    }
+  },
+
+  disableNotifications() {
+    console.log('Notifications disabled');
+  },
+
+  resetToDefaults() {
+    localStorage.removeItem(this.storageKey);
+    this.applyPreferences(this.defaultPreferences);
+    return this.defaultPreferences;
+  }
+};
+
+export default UserPreferences;
