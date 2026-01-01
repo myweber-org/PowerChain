@@ -4,42 +4,37 @@ function validateEmail(email) {
 }
 
 function validatePassword(password) {
-    const minLength = 8;
-    const hasUpperCase = /[A-Z]/.test(password);
-    const hasLowerCase = /[a-z]/.test(password);
-    const hasNumbers = /\d/.test(password);
-    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
-    
-    return password.length >= minLength && 
-           hasUpperCase && 
-           hasLowerCase && 
-           hasNumbers && 
-           hasSpecialChar;
+    if (password.length < 8) return false;
+    if (!/[A-Z]/.test(password)) return false;
+    if (!/[a-z]/.test(password)) return false;
+    if (!/\d/.test(password)) return false;
+    if (!/[!@#$%^&*]/.test(password)) return false;
+    return true;
 }
 
-function validateRegistrationForm(userData) {
-    const errors = {};
+function validateRegistration(userData) {
+    const errors = [];
     
     if (!validateEmail(userData.email)) {
-        errors.email = 'Invalid email format';
+        errors.push('Invalid email format');
     }
     
     if (!validatePassword(userData.password)) {
-        errors.password = 'Password must be at least 8 characters with uppercase, lowercase, number and special character';
+        errors.push('Password must be at least 8 characters with uppercase, lowercase, number, and special character');
     }
     
     if (userData.password !== userData.confirmPassword) {
-        errors.confirmPassword = 'Passwords do not match';
+        errors.push('Passwords do not match');
     }
     
-    if (!userData.username || userData.username.trim().length < 3) {
-        errors.username = 'Username must be at least 3 characters';
+    if (userData.age && (userData.age < 13 || userData.age > 120)) {
+        errors.push('Age must be between 13 and 120');
     }
     
     return {
-        isValid: Object.keys(errors).length === 0,
+        isValid: errors.length === 0,
         errors: errors
     };
 }
 
-export { validateRegistrationForm, validateEmail, validatePassword };
+export { validateRegistration, validateEmail, validatePassword };
