@@ -6,7 +6,4 @@ function fahrenheitToCelsius(fahrenheit) {
     return (fahrenheit - 32) * 5/9;
 }
 
-module.exports = {
-    celsiusToFahrenheit,
-    fahrenheitToCelsius
-};
+export { celsiusToFahrenheit, fahrenheitToCelsius };
