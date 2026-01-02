@@ -1,47 +1,32 @@
-async function fetchUserData(userId) {
-  const cacheKey = `user_${userId}`;
-  const cacheExpiry = 5 * 60 * 1000; // 5 minutes
+function fetchUserData(userId) {
+    const apiUrl = `https://jsonplaceholder.typicode.com/users/${userId}`;
+    
+    fetch(apiUrl)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('User Data:', data);
+            displayUserData(data);
+        })
+        .catch(error => {
+            console.error('Error fetching user data:', error);
+        });
+}
 
-  // Check cache first
-  const cached = localStorage.getItem(cacheKey);
-  if (cached) {
-    const { data, timestamp } = JSON.parse(cached);
-    if (Date.now() - timestamp < cacheExpiry) {
-      return data;
-    }
-  }
-
-  try {
-    const response = await fetch(`https://api.example.com/users/${userId}`);
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    const userData = await response.json();
-
-    // Cache the response
-    const cacheData = {
-      data: userData,
-      timestamp: Date.now()
-    };
-    localStorage.setItem(cacheKey, JSON.stringify(cacheData));
-
-    return userData;
-  } catch (error) {
-    console.error('Failed to fetch user data:', error);
-    throw error;
-  }
-}async function fetchUserData(userId) {
-    try {
-        const response = await fetch(`https://jsonplaceholder.typicode.com/users/${userId}`);
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const userData = await response.json();
-        console.log('User Data:', userData);
-        return userData;
-    } catch (error) {
-        console.error('Error fetching user data:', error);
-        return null;
+function displayUserData(user) {
+    const outputDiv = document.getElementById('userData');
+    if (outputDiv) {
+        outputDiv.innerHTML = `
+            <h2>${user.name}</h2>
+            <p><strong>Email:</strong> ${user.email}</p>
+            <p><strong>Phone:</strong> ${user.phone}</p>
+            <p><strong>Website:</strong> ${user.website}</p>
+            <p><strong>Company:</strong> ${user.company.name}</p>
+        `;
     }
 }
 
