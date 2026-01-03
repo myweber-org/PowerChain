@@ -16,9 +16,3 @@ function validateForm() {
 
     return true;
 }
-
-document.getElementById('submitBtn').addEventListener('click', function(event) {
-    if (!validateForm()) {
-        event.preventDefault();
-    }
-});
