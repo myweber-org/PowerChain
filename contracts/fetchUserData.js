@@ -21,4 +21,42 @@ function fetchUserData(userId) {
             console.error('Failed to fetch user data:', error);
             throw error;
         });
+}function fetchUserData() {
+    fetch('https://jsonplaceholder.typicode.com/users')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Fetched user data:', data);
+            displayUserData(data);
+        })
+        .catch(error => {
+            console.error('There was a problem with the fetch operation:', error);
+        });
 }
+
+function displayUserData(users) {
+    const container = document.getElementById('userContainer');
+    if (!container) {
+        console.error('Container element not found');
+        return;
+    }
+
+    container.innerHTML = '';
+    users.forEach(user => {
+        const userElement = document.createElement('div');
+        userElement.className = 'user-card';
+        userElement.innerHTML = `
+            <h3>${user.name}</h3>
+            <p>Email: ${user.email}</p>
+            <p>Phone: ${user.phone}</p>
+            <p>Company: ${user.company.name}</p>
+        `;
+        container.appendChild(userElement);
+    });
+}
+
+document.addEventListener('DOMContentLoaded', fetchUserData);
