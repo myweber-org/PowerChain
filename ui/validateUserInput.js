@@ -1,68 +1,30 @@
-function validateUserInput(username, email) {
-    const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    const errors = [];
-
-    if (!usernameRegex.test(username)) {
-        errors.push('Username must be 3-20 characters and contain only letters, numbers, and underscores.');
-    }
-
-    if (!emailRegex.test(email)) {
-        errors.push('Please enter a valid email address.');
-    }
-
-    return {
-        isValid: errors.length === 0,
-        errors: errors
-    };
-}function validateUserInput(username, email) {
-    const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    if (!usernameRegex.test(username)) {
-        return {
-            isValid: false,
-            message: "Username must be 3-20 characters and contain only letters, numbers, and underscores."
-        };
-    }
-
-    if (!emailRegex.test(email)) {
-        return {
-            isValid: false,
-            message: "Please provide a valid email address."
-        };
-    }
-
-    return {
-        isValid: true,
-        message: "Input validation successful."
-    };
-}function validateUsername(username) {
+function validateUsername(username) {
     const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
     return usernameRegex.test(username);
 }
 
 function validatePassword(password) {
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d@$!%*?&]{8,}$/;
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
     return passwordRegex.test(password);
 }
 
 function validateUserInput(username, password) {
-    const errors = [];
+    const usernameValid = validateUsername(username);
+    const passwordValid = validatePassword(password);
     
-    if (!validateUsername(username)) {
-        errors.push("Username must be 3-20 characters and contain only letters, numbers, and underscores.");
+    if (!usernameValid && !passwordValid) {
+        return 'Invalid username and password';
+    } else if (!usernameValid) {
+        return 'Invalid username';
+    } else if (!passwordValid) {
+        return 'Invalid password';
+    } else {
+        return 'Valid input';
     }
-    
-    if (!validatePassword(password)) {
-        errors.push("Password must be at least 8 characters, contain one uppercase letter, one lowercase letter, and one number.");
-    }
-    
-    return {
-        isValid: errors.length === 0,
-        errors: errors
-    };
 }
 
-module.exports = validateUserInput;
+module.exports = {
+    validateUsername,
+    validatePassword,
+    validateUserInput
+};
