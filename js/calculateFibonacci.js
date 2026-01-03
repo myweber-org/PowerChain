@@ -28,4 +28,26 @@ document.addEventListener('DOMContentLoaded', function() {
     if (button) {
         button.addEventListener('click', displayFibonacci);
     }
-});
+});function calculateFibonacci(n) {
+    if (n <= 0) return [];
+    if (n === 1) return [0];
+    
+    let sequence = [0, 1];
+    while (sequence[sequence.length - 1] + sequence[sequence.length - 2] <= n) {
+        sequence.push(sequence[sequence.length - 1] + sequence[sequence.length - 2]);
+    }
+    return sequence;
+}
+
+function isFibonacciNumber(num) {
+    if (num < 0) return false;
+    let a = 0, b = 1;
+    while (b < num) {
+        let temp = b;
+        b = a + b;
+        a = temp;
+    }
+    return b === num || num === 0;
+}
+
+module.exports = { calculateFibonacci, isFibonacciNumber };
