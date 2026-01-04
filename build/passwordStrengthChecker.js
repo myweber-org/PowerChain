@@ -41,19 +41,33 @@ function checkPasswordStrength(password, options = {}) {
         if (strengthScore < 3) {
             suggestions.push("Consider adding more character variety");
         }
-        if (password.length < 12) {
-            suggestions.push("Consider using a longer password (12+ characters)");
-        }
-        if (isCommonPassword(password)) {
-            suggestions.push("Avoid using commonly used passwords");
+        
+        if (/(.)\1{2,}/.test(password)) {
+            suggestions.push("Avoid repeating characters consecutively");
         }
         
-        return {
-            valid: true,
-            strength: strengthScore,
-            message: "Password meets all requirements",
-            suggestions: suggestions
-        };
+        if (/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{12,}$/.test(password)) {
+            return {
+                valid: true,
+                strength: "strong",
+                score: strengthScore,
+                suggestions: suggestions
+            };
+        } else if (/^(?=.*[a-z])(?=.*[A-Z]).{10,}$/.test(password)) {
+            return {
+                valid: true,
+                strength: "medium",
+                score: strengthScore,
+                suggestions: suggestions
+            };
+        } else {
+            return {
+                valid: true,
+                strength: "weak",
+                score: strengthScore,
+                suggestions: suggestions
+            };
+        }
     }
     
     return {
@@ -68,22 +82,14 @@ function calculateStrengthScore(password) {
     
     if (password.length >= 8) score++;
     if (password.length >= 12) score++;
-    if (/[A-Z]/.test(password) && /[a-z]/.test(password)) score++;
+    if (/[a-z]/.test(password) && /[A-Z]/.test(password)) score++;
     if (/\d/.test(password)) score++;
-    if (/[^A-Za-z0-9]/.test(password)) score++;
+    if (/[^a-zA-Z0-9]/.test(password)) score++;
     
     const uniqueChars = new Set(password).size;
     if (uniqueChars / password.length > 0.7) score++;
     
-    return Math.min(score, 5);
-}
-
-function isCommonPassword(password) {
-    const commonPasswords = [
-        "password", "123456", "qwerty", "admin", "welcome",
-        "password123", "12345678", "123456789", "123123"
-    ];
-    return commonPasswords.includes(password.toLowerCase());
+    return Math.min(score, 6);
 }
 
 export { checkPasswordStrength, calculateStrengthScore };
