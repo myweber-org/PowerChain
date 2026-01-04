@@ -107,4 +107,51 @@ document.addEventListener('DOMContentLoaded', function() {
             fetchUserData(userId);
         });
     }
-});
+});const fetchUserData = async (userId, maxRetries = 3) => {
+  const fetchWithRetry = async (attempt) => {
+    try {
+      const response = await fetch(`https://api.example.com/users/${userId}`);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      return {
+        success: true,
+        data: data,
+        attempts: attempt
+      };
+    } catch (error) {
+      if (attempt < maxRetries) {
+        console.log(`Attempt ${attempt} failed, retrying...`);
+        await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+        return fetchWithRetry(attempt + 1);
+      }
+      
+      return {
+        success: false,
+        error: error.message,
+        attempts: attempt
+      };
+    }
+  };
+  
+  return fetchWithRetry(1);
+};
+
+const displayUserData = async (userId) => {
+  const result = await fetchUserData(userId);
+  
+  if (result.success) {
+    console.log('User data retrieved successfully:', result.data);
+    console.log(`Total attempts: ${result.attempts}`);
+    return result.data;
+  } else {
+    console.error('Failed to fetch user data:', result.error);
+    console.log(`Total attempts: ${result.attempts}`);
+    return null;
+  }
+};
+
+export { fetchUserData, displayUserData };
