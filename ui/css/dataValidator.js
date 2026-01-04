@@ -170,3 +170,47 @@ module.exports = {
     validatePhone,
     sanitizeInput
 };
+function sanitizeInput(input) {
+  if (typeof input !== 'string') {
+    throw new TypeError('Input must be a string');
+  }
+  
+  const trimmed = input.trim();
+  
+  if (trimmed.length === 0) {
+    throw new Error('Input cannot be empty after trimming');
+  }
+  
+  const sanitized = trimmed
+    .replace(/[<>]/g, '')
+    .replace(/\s+/g, ' ')
+    .substring(0, 255);
+  
+  return sanitized;
+}
+
+function validateEmail(email) {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+}
+
+function validatePassword(password) {
+  const minLength = 8;
+  const hasUpperCase = /[A-Z]/.test(password);
+  const hasLowerCase = /[a-z]/.test(password);
+  const hasNumbers = /\d/.test(password);
+  const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+  
+  return password.length >= minLength && 
+         hasUpperCase && 
+         hasLowerCase && 
+         hasNumbers && 
+         hasSpecialChar;
+}
+
+function validateAge(age) {
+  const numAge = Number(age);
+  return Number.isInteger(numAge) && numAge >= 0 && numAge <= 150;
+}
+
+export { sanitizeInput, validateEmail, validatePassword, validateAge };
