@@ -33,4 +33,30 @@ function validateFileUpload(file, options = {}) {
     }
 
     return { valid: true, file };
+}function validateFileUpload(file, allowedTypes, maxSize) {
+    if (!file || !allowedTypes.includes(file.type)) {
+        return { valid: false, error: 'Invalid file type' };
+    }
+    
+    if (file.size > maxSize) {
+        return { valid: false, error: 'File size exceeds limit' };
+    }
+    
+    return { valid: true, error: null };
 }
+
+function handleFileSelect(event, callback) {
+    const file = event.target.files[0];
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    
+    const validation = validateFileUpload(file, allowedTypes, maxSize);
+    
+    if (validation.valid) {
+        callback(null, file);
+    } else {
+        callback(validation.error, null);
+    }
+}
+
+export { validateFileUpload, handleFileSelect };
