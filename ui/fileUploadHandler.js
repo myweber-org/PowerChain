@@ -145,4 +145,83 @@ function createUploadForm() {
     return form;
 }
 
-export { validateFile, handleFileUpload, createUploadForm };
+export { validateFile, handleFileUpload, createUploadForm };function validateFile(file, maxSize) {
+    const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf'];
+    
+    if (!allowedTypes.includes(file.type)) {
+        throw new Error('Invalid file type. Only JPEG, PNG, and PDF are allowed.');
+    }
+    
+    if (file.size > maxSize) {
+        throw new Error(`File size exceeds limit of ${maxSize / 1024 / 1024}MB`);
+    }
+    
+    return {
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        lastModified: file.lastModified
+    };
+}
+
+function createUploadForm() {
+    const form = document.createElement('form');
+    form.id = 'uploadForm';
+    form.enctype = 'multipart/form-data';
+    
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.name = 'fileUpload';
+    fileInput.multiple = true;
+    fileInput.accept = '.jpg,.jpeg,.png,.pdf';
+    
+    const submitButton = document.createElement('button');
+    submitButton.type = 'submit';
+    submitButton.textContent = 'Upload Files';
+    
+    form.appendChild(fileInput);
+    form.appendChild(submitButton);
+    
+    form.addEventListener('submit', async function(event) {
+        event.preventDefault();
+        const files = fileInput.files;
+        const MAX_SIZE = 5 * 1024 * 1024;
+        
+        try {
+            for (let file of files) {
+                const validatedFile = validateFile(file, MAX_SIZE);
+                console.log('Validated file:', validatedFile);
+                await uploadFile(file);
+            }
+            alert('All files uploaded successfully!');
+        } catch (error) {
+            console.error('Upload failed:', error);
+            alert(`Upload failed: ${error.message}`);
+        }
+    });
+    
+    return form;
+}
+
+async function uploadFile(file) {
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+    });
+    
+    if (!response.ok) {
+        throw new Error(`Upload failed with status: ${response.status}`);
+    }
+    
+    return response.json();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const container = document.getElementById('uploadContainer');
+    if (container) {
+        container.appendChild(createUploadForm());
+    }
+});
