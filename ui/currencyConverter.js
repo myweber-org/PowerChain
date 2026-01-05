@@ -3,9 +3,11 @@ const exchangeRates = {
     EUR: 0.85,
     GBP: 0.73,
     JPY: 110.0,
-    CAD: 1.25,
     AUD: 1.35,
-    CNY: 6.45
+    CAD: 1.25,
+    CHF: 0.92,
+    CNY: 6.45,
+    INR: 74.0
 };
 
 function convertCurrency(amount, fromCurrency, toCurrency) {
