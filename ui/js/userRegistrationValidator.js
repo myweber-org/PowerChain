@@ -1,24 +1,34 @@
-function validateRegistrationForm(formData) {
+function validateEmail(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+}
+
+function validatePassword(password) {
+    if (password.length < 8) return false;
+    if (!/[A-Z]/.test(password)) return false;
+    if (!/[a-z]/.test(password)) return false;
+    if (!/\d/.test(password)) return false;
+    if (!/[!@#$%^&*]/.test(password)) return false;
+    return true;
+}
+
+function validateRegistration(userData) {
     const errors = {};
     
-    if (!formData.username || formData.username.trim().length < 3) {
-        errors.username = 'Username must be at least 3 characters long';
+    if (!userData.username || userData.username.trim().length < 3) {
+        errors.username = 'Username must be at least 3 characters';
     }
     
-    if (!formData.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-        errors.email = 'Please enter a valid email address';
+    if (!validateEmail(userData.email)) {
+        errors.email = 'Invalid email format';
     }
     
-    if (!formData.password || formData.password.length < 8) {
-        errors.password = 'Password must be at least 8 characters long';
+    if (!validatePassword(userData.password)) {
+        errors.password = 'Password must be 8+ chars with uppercase, lowercase, number, and special character';
     }
     
-    if (formData.password !== formData.confirmPassword) {
+    if (userData.password !== userData.confirmPassword) {
         errors.confirmPassword = 'Passwords do not match';
-    }
-    
-    if (formData.age && (isNaN(formData.age) || formData.age < 18)) {
-        errors.age = 'You must be at least 18 years old';
     }
     
     return {
@@ -26,3 +36,5 @@ function validateRegistrationForm(formData) {
         errors: errors
     };
 }
+
+module.exports = { validateRegistration, validateEmail, validatePassword };
