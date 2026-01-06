@@ -1,16 +1,19 @@
 function validateUserProfile(profile) {
+    const requiredFields = ['username', 'email', 'age'];
     const errors = [];
 
-    if (!profile.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(profile.email)) {
+    requiredFields.forEach(field => {
+        if (!profile[field]) {
+            errors.push(`${field} is required`);
+        }
+    });
+
+    if (profile.email && !isValidEmail(profile.email)) {
         errors.push('Invalid email format');
     }
 
-    if (typeof profile.age !== 'number' || profile.age < 18 || profile.age > 120) {
-        errors.push('Age must be between 18 and 120');
-    }
-
-    if (!profile.username || profile.username.trim().length < 3) {
-        errors.push('Username must be at least 3 characters');
+    if (profile.age && (profile.age < 0 || profile.age > 150)) {
+        errors.push('Age must be between 0 and 150');
     }
 
     return {
@@ -19,4 +22,7 @@ function validateUserProfile(profile) {
     };
 }
 
-module.exports = { validateUserProfile };
+function isValidEmail(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+}
