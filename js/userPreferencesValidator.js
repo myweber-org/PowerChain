@@ -35,4 +35,44 @@ function validatePreferences(preferences) {
   }
   
   return true;
+}function validatePreferences(prefs, rules) {
+  const errors = {};
+
+  for (const [key, rule] of Object.entries(rules)) {
+    const value = prefs[key];
+    
+    if (rule.required && (value === undefined || value === null || value === '')) {
+      errors[key] = rule.message || `${key} is required`;
+      continue;
+    }
+
+    if (value !== undefined && value !== null) {
+      if (rule.type && typeof value !== rule.type) {
+        errors[key] = rule.message || `${key} must be of type ${rule.type}`;
+      }
+      
+      if (rule.min && value < rule.min) {
+        errors[key] = rule.message || `${key} must be at least ${rule.min}`;
+      }
+      
+      if (rule.max && value > rule.max) {
+        errors[key] = rule.message || `${key} must be at most ${rule.max}`;
+      }
+      
+      if (rule.pattern && !rule.pattern.test(value)) {
+        errors[key] = rule.message || `${key} format is invalid`;
+      }
+      
+      if (rule.custom && !rule.custom(value)) {
+        errors[key] = rule.message || `${key} failed custom validation`;
+      }
+    }
+  }
+
+  return {
+    isValid: Object.keys(errors).length === 0,
+    errors
+  };
 }
+
+module.exports = { validatePreferences };
