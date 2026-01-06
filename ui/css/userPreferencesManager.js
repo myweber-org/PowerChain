@@ -134,4 +134,85 @@ const UserPreferencesManager = (function() {
     }
 };
 
-export default UserPreferences.init();
+export default UserPreferences.init();const userPreferencesManager = (() => {
+    const STORAGE_KEY = 'app_preferences';
+    const defaultPreferences = {
+        theme: 'light',
+        language: 'en',
+        notifications: true,
+        fontSize: 16,
+        autoSave: true
+    };
+
+    const loadPreferences = () => {
+        try {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            if (stored) {
+                return { ...defaultPreferences, ...JSON.parse(stored) };
+            }
+        } catch (error) {
+            console.error('Failed to load preferences:', error);
+        }
+        return { ...defaultPreferences };
+    };
+
+    const savePreferences = (preferences) => {
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(preferences));
+            return true;
+        } catch (error) {
+            console.error('Failed to save preferences:', error);
+            return false;
+        }
+    };
+
+    const updatePreference = (key, value) => {
+        if (!(key in defaultPreferences)) {
+            throw new Error(`Invalid preference key: ${key}`);
+        }
+
+        const current = loadPreferences();
+        const updated = { ...current, [key]: value };
+        
+        if (savePreferences(updated)) {
+            dispatchEvent(new CustomEvent('preferencesUpdated', { 
+                detail: { key, value, preferences: updated }
+            }));
+            return true;
+        }
+        return false;
+    };
+
+    const resetPreferences = () => {
+        if (savePreferences(defaultPreferences)) {
+            dispatchEvent(new CustomEvent('preferencesReset', { 
+                detail: { preferences: defaultPreferences }
+            }));
+            return true;
+        }
+        return false;
+    };
+
+    const getPreference = (key) => {
+        const preferences = loadPreferences();
+        return preferences[key];
+    };
+
+    const getAllPreferences = () => {
+        return loadPreferences();
+    };
+
+    const subscribe = (eventName, callback) => {
+        addEventListener(eventName, callback);
+        return () => removeEventListener(eventName, callback);
+    };
+
+    return {
+        updatePreference,
+        getPreference,
+        getAllPreferences,
+        resetPreferences,
+        subscribe,
+        defaultPreferences
+    };
+})();
