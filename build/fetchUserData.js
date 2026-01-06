@@ -1,39 +1,37 @@
-function fetchUserData(userId) {
-    const apiUrl = `https://jsonplaceholder.typicode.com/users/${userId}`;
-    
-    fetch(apiUrl)
+function fetchUserData(userId, cacheDuration = 300000) {
+    const cacheKey = `user_${userId}`;
+    const cachedData = localStorage.getItem(cacheKey);
+    const now = Date.now();
+
+    if (cachedData) {
+        const { data, timestamp } = JSON.parse(cachedData);
+        if (now - timestamp < cacheDuration) {
+            console.log(`Returning cached data for user ${userId}`);
+            return Promise.resolve(data);
+        }
+    }
+
+    return fetch(`https://api.example.com/users/${userId}`)
         .then(response => {
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             return response.json();
         })
-        .then(data => {
-            console.log('User Data:', data);
-            displayUserData(data);
+        .then(userData => {
+            const cacheItem = {
+                data: userData,
+                timestamp: now
+            };
+            localStorage.setItem(cacheKey, JSON.stringify(cacheItem));
+            return userData;
         })
         .catch(error => {
-            console.error('Error fetching user data:', error);
-            displayErrorMessage(error.message);
+            console.error('Failed to fetch user data:', error);
+            if (cachedData) {
+                console.log('Falling back to expired cached data');
+                return JSON.parse(cachedData).data;
+            }
+            throw error;
         });
-}
-
-function displayUserData(user) {
-    const outputDiv = document.getElementById('userOutput');
-    if (outputDiv) {
-        outputDiv.innerHTML = `
-            <h3>${user.name}</h3>
-            <p>Email: ${user.email}</p>
-            <p>Username: ${user.username}</p>
-            <p>Phone: ${user.phone}</p>
-            <p>Website: ${user.website}</p>
-        `;
-    }
-}
-
-function displayErrorMessage(message) {
-    const outputDiv = document.getElementById('userOutput');
-    if (outputDiv) {
-        outputDiv.innerHTML = `<p class="error">Error: ${message}</p>`;
-    }
 }
