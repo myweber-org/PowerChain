@@ -1,6 +1,6 @@
-function validateUserInput(username, password) {
+function validateUserInput(username, email) {
     const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
-    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{8,}$/;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     if (!usernameRegex.test(username)) {
         return {
@@ -9,15 +9,15 @@ function validateUserInput(username, password) {
         };
     }
 
-    if (!passwordRegex.test(password)) {
+    if (!emailRegex.test(email)) {
         return {
             isValid: false,
-            message: "Password must be at least 8 characters with at least one letter and one number."
+            message: "Please provide a valid email address."
         };
     }
 
     return {
         isValid: true,
-        message: "Input validation passed."
+        message: "Input validation successful."
     };
 }
