@@ -1,53 +1,32 @@
-function validateEmail(email) {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
+function validateUsername(username) {
+    const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
+    return usernameRegex.test(username);
 }
 
 function validatePassword(password) {
-    return password.length >= 8 && /[A-Z]/.test(password) && /[0-9]/.test(password);
+    if (password.length < 8) {
+        return false;
+    }
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasNumber = /\d/.test(password);
+    const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
+    return hasUpperCase && hasLowerCase && hasNumber && hasSpecialChar;
 }
 
-function validateUserInput(email, password) {
-    const errors = [];
+function validateUserInput(username, password) {
+    const usernameValid = validateUsername(username);
+    const passwordValid = validatePassword(password);
     
-    if (!validateEmail(email)) {
-        errors.push('Invalid email format');
+    if (!usernameValid && !passwordValid) {
+        return 'Username and password are invalid';
+    } else if (!usernameValid) {
+        return 'Username is invalid';
+    } else if (!passwordValid) {
+        return 'Password is invalid';
+    } else {
+        return 'User input is valid';
     }
-    
-    if (!validatePassword(password)) {
-        errors.push('Password must be at least 8 characters with one uppercase letter and one number');
-    }
-    
-    return {
-        isValid: errors.length === 0,
-        errors: errors
-    };
 }
 
-export { validateUserInput, validateEmail, validatePassword };function validateUserInput(username, email) {
-    const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    if (!usernameRegex.test(username)) {
-        return { valid: false, message: 'Username must be 3-20 characters and contain only letters, numbers, and underscores.' };
-    }
-
-    if (!emailRegex.test(email)) {
-        return { valid: false, message: 'Please provide a valid email address.' };
-    }
-
-    return { valid: true, message: 'Input validation successful.' };
-}function validateUserInput(username, email) {
-    const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    if (!usernameRegex.test(username)) {
-        throw new Error('Invalid username format');
-    }
-
-    if (!emailRegex.test(email)) {
-        throw new Error('Invalid email format');
-    }
-
-    return { username, email, isValid: true };
-}
+module.exports = { validateUserInput, validateUsername, validatePassword };
