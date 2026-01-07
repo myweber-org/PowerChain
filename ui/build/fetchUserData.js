@@ -1,154 +1,37 @@
 async function fetchUserData(userId) {
-    const apiUrl = `https://api.example.com/users/${userId}`;
-    
-    try {
-        const response = await fetch(apiUrl);
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const userData = await response.json();
-        
-        // Process the data
-        const processedData = {
-            id: userData.id,
-            name: userData.name,
-            email: userData.email,
-            isActive: userData.status === 'active',
-            lastLogin: new Date(userData.last_login)
-        };
-        
-        return processedData;
-    } catch (error) {
-        console.error('Failed to fetch user data:', error);
-        throw error;
-    }
-}
+  const cacheKey = `user_${userId}`;
+  const cacheExpiry = 5 * 60 * 1000; // 5 minutes
 
-// Example usage
-fetchUserData(123)
-    .then(data => console.log('User data:', data))
-    .catch(error => console.error('Error:', error));async function fetchUserData(userId, maxRetries = 3) {
-    const url = `https://api.example.com/users/${userId}`;
-    
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-        try {
-            const response = await fetch(url);
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            const data = await response.json();
-            console.log(`Successfully fetched data for user ${userId}`);
-            return data;
-            
-        } catch (error) {
-            console.error(`Attempt ${attempt} failed: ${error.message}`);
-            
-            if (attempt === maxRetries) {
-                throw new Error(`Failed to fetch user data after ${maxRetries} attempts`);
-            }
-            
-            await new Promise(resolve => 
-                setTimeout(resolve, Math.pow(2, attempt) * 1000)
-            );
-        }
+  try {
+    // Check cache first
+    const cached = localStorage.getItem(cacheKey);
+    if (cached) {
+      const { data, timestamp } = JSON.parse(cached);
+      if (Date.now() - timestamp < cacheExpiry) {
+        console.log('Returning cached user data');
+        return data;
+      }
     }
-}
 
-function validateUserData(userData) {
-    const requiredFields = ['id', 'name', 'email'];
-    
-    for (const field of requiredFields) {
-        if (!userData[field]) {
-            throw new Error(`Missing required field: ${field}`);
-        }
+    // Fetch from API
+    const response = await fetch(`https://api.example.com/users/${userId}`);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
     
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(userData.email)) {
-        throw new Error('Invalid email format');
-    }
+    const userData = await response.json();
     
-    return true;
-}
-
-async function getUserProfile(userId) {
-    try {
-        const userData = await fetchUserData(userId);
-        validateUserData(userData);
-        
-        return {
-            success: true,
-            data: userData,
-            timestamp: new Date().toISOString()
-        };
-        
-    } catch (error) {
-        console.error('Failed to get user profile:', error.message);
-        return {
-            success: false,
-            error: error.message,
-            userId: userId
-        };
-    }
-}
-
-export { fetchUserData, validateUserData, getUserProfile };async function fetchUserData(userId, maxRetries = 3) {
-    const url = `https://api.example.com/users/${userId}`;
+    // Cache the result
+    const cacheData = {
+      data: userData,
+      timestamp: Date.now()
+    };
+    localStorage.setItem(cacheKey, JSON.stringify(cacheData));
     
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-        try {
-            const response = await fetch(url);
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            const data = await response.json();
-            console.log(`Successfully fetched data for user ${userId}`);
-            return data;
-            
-        } catch (error) {
-            console.error(`Attempt ${attempt} failed: ${error.message}`);
-            
-            if (attempt === maxRetries) {
-                throw new Error(`Failed to fetch user data after ${maxRetries} attempts`);
-            }
-            
-            // Exponential backoff delay
-            const delay = Math.min(1000 * Math.pow(2, attempt - 1), 10000);
-            console.log(`Retrying in ${delay}ms...`);
-            await new Promise(resolve => setTimeout(resolve, delay));
-        }
-    }
-}
-
-// Utility function to validate user ID format
-function isValidUserId(userId) {
-    return typeof userId === 'string' && /^[a-zA-Z0-9-_]+$/.test(userId);
-}
-
-// Example usage
-async function main() {
-    const testUserId = 'user123';
-    
-    if (!isValidUserId(testUserId)) {
-        console.error('Invalid user ID format');
-        return;
-    }
-    
-    try {
-        const userData = await fetchUserData(testUserId);
-        console.log('User data:', userData);
-    } catch (error) {
-        console.error('Final error:', error.message);
-    }
-}
-
-// Export for module usage
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { fetchUserData, isValidUserId };
+    return userData;
+  } catch (error) {
+    console.error('Failed to fetch user data:', error);
+    // Return fallback or rethrow based on requirements
+    throw error;
+  }
 }
