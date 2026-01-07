@@ -4,31 +4,47 @@ function validateEmail(email) {
 }
 
 function validatePassword(password) {
-    if (password.length < 8) return false;
-    if (!/[A-Z]/.test(password)) return false;
-    if (!/[a-z]/.test(password)) return false;
-    if (!/\d/.test(password)) return false;
-    if (!/[!@#$%^&*]/.test(password)) return false;
-    return true;
+    if (password.length < 8) {
+        return { valid: false, message: "Password must be at least 8 characters long" };
+    }
+    
+    if (!/[A-Z]/.test(password)) {
+        return { valid: false, message: "Password must contain at least one uppercase letter" };
+    }
+    
+    if (!/[a-z]/.test(password)) {
+        return { valid: false, message: "Password must contain at least one lowercase letter" };
+    }
+    
+    if (!/\d/.test(password)) {
+        return { valid: false, message: "Password must contain at least one number" };
+    }
+    
+    if (!/[!@#$%^&*]/.test(password)) {
+        return { valid: false, message: "Password must contain at least one special character (!@#$%^&*)" };
+    }
+    
+    return { valid: true, message: "Password is valid" };
 }
 
 function validateRegistration(userData) {
     const errors = [];
     
     if (!validateEmail(userData.email)) {
-        errors.push('Invalid email format');
+        errors.push("Invalid email format");
     }
     
-    if (!validatePassword(userData.password)) {
-        errors.push('Password must be at least 8 characters with uppercase, lowercase, number, and special character');
+    const passwordValidation = validatePassword(userData.password);
+    if (!passwordValidation.valid) {
+        errors.push(passwordValidation.message);
     }
     
     if (userData.password !== userData.confirmPassword) {
-        errors.push('Passwords do not match');
+        errors.push("Passwords do not match");
     }
     
     if (userData.age && (userData.age < 13 || userData.age > 120)) {
-        errors.push('Age must be between 13 and 120');
+        errors.push("Age must be between 13 and 120");
     }
     
     return {
@@ -37,4 +53,4 @@ function validateRegistration(userData) {
     };
 }
 
-export { validateRegistration, validateEmail, validatePassword };
+module.exports = { validateRegistration, validateEmail, validatePassword };
