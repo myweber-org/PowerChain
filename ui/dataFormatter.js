@@ -74,4 +74,21 @@ export { formatDate, calculateTimeAgo };function formatDateWithTimezone(date) {
     return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}${formattedOffset}`;
 }
 
-export { formatDateWithTimezone };
+export { formatDateWithTimezone };function formatDateToISO(date) {
+    if (!(date instanceof Date)) {
+        throw new TypeError('Input must be a Date object');
+    }
+    const pad = (num) => String(num).padStart(2, '0');
+    const year = date.getFullYear();
+    const month = pad(date.getMonth() + 1);
+    const day = pad(date.getDate());
+    const hours = pad(date.getHours());
+    const minutes = pad(date.getMinutes());
+    const seconds = pad(date.getSeconds());
+    const tzOffset = -date.getTimezoneOffset();
+    const sign = tzOffset >= 0 ? '+' : '-';
+    const absOffset = Math.abs(tzOffset);
+    const offsetHours = pad(Math.floor(absOffset / 60));
+    const offsetMinutes = pad(absOffset % 60);
+    return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}${sign}${offsetHours}:${offsetMinutes}`;
+}
