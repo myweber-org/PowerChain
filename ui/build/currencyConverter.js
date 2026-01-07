@@ -27,18 +27,11 @@ function updateExchangeRate(currency, rate) {
     if (typeof rate !== 'number' || rate <= 0) {
         throw new Error('Invalid exchange rate');
     }
-    
     exchangeRates[currency] = rate;
-    return true;
 }
 
-function formatCurrency(amount, currencyCode) {
-    const formatter = new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: currencyCode
-    });
-    
-    return formatter.format(amount);
-}
-
-export { convertCurrency, getAvailableCurrencies, updateExchangeRate, formatCurrency };
+module.exports = {
+    convertCurrency,
+    getAvailableCurrencies,
+    updateExchangeRate
+};
