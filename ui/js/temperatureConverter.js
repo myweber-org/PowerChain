@@ -74,4 +74,19 @@ module.exports = {
     fahrenheitToCelsius,
     convertTemperature,
     formatTemperature
-};
+};function convertTemperature(value, unit) {
+    if (unit.toLowerCase() === 'c') {
+        return (value * 9/5) + 32;
+    } else if (unit.toLowerCase() === 'f') {
+        return (value - 32) * 5/9;
+    } else {
+        throw new Error('Invalid unit. Use "C" for Celsius or "F" for Fahrenheit.');
+    }
+}
+
+function formatTemperature(value, unit) {
+    const symbol = unit.toLowerCase() === 'c' ? '°C' : '°F';
+    return `${value.toFixed(2)} ${symbol}`;
+}
+
+module.exports = { convertTemperature, formatTemperature };
