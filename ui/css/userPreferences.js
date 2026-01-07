@@ -1,45 +1,49 @@
-const defaultPreferences = {
-  theme: 'light',
-  language: 'en',
-  notifications: true,
-  fontSize: 16
-};
+function validateUserPreferences(preferences) {
+    const defaults = {
+        theme: 'light',
+        language: 'en',
+        notifications: true,
+        fontSize: 16
+    };
 
-function validatePreferences(userPrefs) {
-  const validPrefs = {};
-  
-  if (userPrefs.theme && ['light', 'dark', 'auto'].includes(userPrefs.theme)) {
-    validPrefs.theme = userPrefs.theme;
-  } else {
-    validPrefs.theme = defaultPreferences.theme;
-  }
-  
-  if (userPrefs.language && ['en', 'es', 'fr', 'de'].includes(userPrefs.language)) {
-    validPrefs.language = userPrefs.language;
-  } else {
-    validPrefs.language = defaultPreferences.language;
-  }
-  
-  if (typeof userPrefs.notifications === 'boolean') {
-    validPrefs.notifications = userPrefs.notifications;
-  } else {
-    validPrefs.notifications = defaultPreferences.notifications;
-  }
-  
-  if (typeof userPrefs.fontSize === 'number' && userPrefs.fontSize >= 12 && userPrefs.fontSize <= 24) {
-    validPrefs.fontSize = userPrefs.fontSize;
-  } else {
-    validPrefs.fontSize = defaultPreferences.fontSize;
-  }
-  
-  return validPrefs;
+    const validated = { ...defaults, ...preferences };
+
+    if (!['light', 'dark'].includes(validated.theme)) {
+        validated.theme = defaults.theme;
+    }
+
+    if (!['en', 'es', 'fr'].includes(validated.language)) {
+        validated.language = defaults.language;
+    }
+
+    if (typeof validated.notifications !== 'boolean') {
+        validated.notifications = defaults.notifications;
+    }
+
+    if (typeof validated.fontSize !== 'number' || validated.fontSize < 12 || validated.fontSize > 24) {
+        validated.fontSize = defaults.fontSize;
+    }
+
+    return validated;
 }
 
-function mergeWithDefaults(userPrefs) {
-  return {
-    ...defaultPreferences,
-    ...validatePreferences(userPrefs)
-  };
+function initializeUserSettings() {
+    const stored = localStorage.getItem('userPreferences');
+    let preferences = defaults;
+
+    if (stored) {
+        try {
+            preferences = JSON.parse(stored);
+        } catch (error) {
+            console.warn('Failed to parse stored preferences, using defaults');
+        }
+    }
+
+    return validateUserPreferences(preferences);
 }
 
-export { validatePreferences, mergeWithDefaults, defaultPreferences };
+function saveUserPreferences(preferences) {
+    const validated = validateUserPreferences(preferences);
+    localStorage.setItem('userPreferences', JSON.stringify(validated));
+    return validated;
+}
