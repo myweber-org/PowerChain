@@ -49,4 +49,28 @@ function saveUserPreferences(userId, preferences) {
     success: true,
     message: 'Preferences saved successfully'
   };
+}function validateUserPreferences(preferences) {
+    const validations = {
+        theme: (value) => ['light', 'dark', 'auto'].includes(value),
+        notifications: (value) => typeof value === 'boolean',
+        fontSize: (value) => Number.isInteger(value) && value >= 10 && value <= 24,
+        language: (value) => /^[a-z]{2}(-[A-Z]{2})?$/.test(value)
+    };
+
+    const errors = [];
+
+    Object.keys(validations).forEach(key => {
+        if (preferences[key] === undefined) {
+            errors.push(`Missing required preference: ${key}`);
+        } else if (!validations[key](preferences[key])) {
+            errors.push(`Invalid value for ${key}: ${preferences[key]}`);
+        }
+    });
+
+    return {
+        isValid: errors.length === 0,
+        errors: errors
+    };
 }
+
+export { validateUserPreferences };
