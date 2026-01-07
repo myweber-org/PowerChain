@@ -25,4 +25,64 @@ function validateUserInput(username, email) {
     };
 }
 
-export { validateUserInput, validateUsername, validateEmail };
+export { validateUserInput, validateUsername, validateEmail };function validateUserInput(input, options = {}) {
+    const defaults = {
+        minLength: 1,
+        maxLength: 255,
+        allowEmpty: false,
+        trim: true,
+        allowedChars: null,
+        regexPattern: null
+    };
+    
+    const config = { ...defaults, ...options };
+    
+    if (typeof input !== 'string') {
+        return { isValid: false, error: 'Input must be a string' };
+    }
+    
+    let processedInput = input;
+    
+    if (config.trim) {
+        processedInput = processedInput.trim();
+    }
+    
+    if (!config.allowEmpty && processedInput.length === 0) {
+        return { isValid: false, error: 'Input cannot be empty' };
+    }
+    
+    if (processedInput.length < config.minLength) {
+        return { 
+            isValid: false, 
+            error: `Input must be at least ${config.minLength} characters long` 
+        };
+    }
+    
+    if (processedInput.length > config.maxLength) {
+        return { 
+            isValid: false, 
+            error: `Input cannot exceed ${config.maxLength} characters` 
+        };
+    }
+    
+    if (config.allowedChars && !config.allowedChars.test(processedInput)) {
+        return { 
+            isValid: false, 
+            error: 'Input contains invalid characters' 
+        };
+    }
+    
+    if (config.regexPattern && !config.regexPattern.test(processedInput)) {
+        return { 
+            isValid: false, 
+            error: 'Input does not match required pattern' 
+        };
+    }
+    
+    return { 
+        isValid: true, 
+        value: processedInput,
+        originalLength: input.length,
+        processedLength: processedInput.length
+    };
+}
