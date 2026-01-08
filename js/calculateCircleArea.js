@@ -1,12 +1,6 @@
 function calculateCircleArea(radius) {
-    if (radius < 0) {
-        throw new Error('Radius must be non-negative');
+    if (typeof radius !== 'number' || radius < 0) {
+        throw new Error('Radius must be a non-negative number');
     }
     return Math.PI * radius * radius;
 }
-
-function formatArea(area) {
-    return area.toFixed(2);
-}
-
-module.exports = { calculateCircleArea, formatArea };
