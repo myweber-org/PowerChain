@@ -1,20 +1,26 @@
-function validateUserProfile(name, email, age) {
-    const errors = [];
-
-    if (!name || name.trim().length === 0) {
-        errors.push('Name is required');
-    }
-
-    if (!email || !email.includes('@')) {
-        errors.push('Valid email is required');
-    }
-
-    if (age && (isNaN(age) || age < 0 || age > 120)) {
-        errors.push('Age must be a number between 0 and 120');
-    }
-
-    return {
-        isValid: errors.length === 0,
-        errors: errors
-    };
+function validateUserProfile(formData) {
+  const errors = {};
+  
+  if (!formData.username || formData.username.trim().length < 3) {
+    errors.username = 'Username must be at least 3 characters';
+  }
+  
+  if (!formData.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+    errors.email = 'Valid email address is required';
+  }
+  
+  if (formData.age && (formData.age < 0 || formData.age > 150)) {
+    errors.age = 'Age must be between 0 and 150';
+  }
+  
+  if (formData.website && !/^https?:\/\/.+/.test(formData.website)) {
+    errors.website = 'Website must be a valid URL';
+  }
+  
+  return {
+    isValid: Object.keys(errors).length === 0,
+    errors: errors
+  };
 }
+
+export default validateUserProfile;
