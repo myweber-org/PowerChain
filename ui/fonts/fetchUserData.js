@@ -227,4 +227,43 @@ function displayErrorMessage(message) {
 document.addEventListener('DOMContentLoaded', function() {
     const userId = 1;
     fetchUserData(userId);
-});
+});async function fetchUserData(userId, maxRetries = 3) {
+    const baseUrl = 'https://api.example.com/users';
+    
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+            const response = await fetch(`${baseUrl}/${userId}`);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            if (data && data.user) {
+                return {
+                    success: true,
+                    data: data.user,
+                    attempts: attempt
+                };
+            } else {
+                throw new Error('Invalid data structure received');
+            }
+            
+        } catch (error) {
+            console.warn(`Attempt ${attempt} failed: ${error.message}`);
+            
+            if (attempt === maxRetries) {
+                return {
+                    success: false,
+                    error: `Failed after ${maxRetries} attempts: ${error.message}`,
+                    attempts: attempt
+                };
+            }
+            
+            await new Promise(resolve => 
+                setTimeout(resolve, Math.pow(2, attempt) * 100)
+            );
+        }
+    }
+}
