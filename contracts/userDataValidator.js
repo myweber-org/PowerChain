@@ -4,8 +4,11 @@ function validateEmail(email) {
 }
 
 function validatePassword(password) {
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-    return passwordRegex.test(password);
+    if (password.length < 8) return false;
+    if (!/[A-Z]/.test(password)) return false;
+    if (!/[a-z]/.test(password)) return false;
+    if (!/\d/.test(password)) return false;
+    return true;
 }
 
 function validateUserInput(email, password) {
@@ -16,7 +19,7 @@ function validateUserInput(email, password) {
     }
     
     if (!validatePassword(password)) {
-        errors.push('Password must be at least 8 characters with uppercase, lowercase, number and special character');
+        errors.push('Password must be at least 8 characters with uppercase, lowercase and number');
     }
     
     return {
@@ -25,27 +28,4 @@ function validateUserInput(email, password) {
     };
 }
 
-module.exports = { validateUserInput, validateEmail, validatePassword };function validateUserData(user) {
-  const errors = [];
-
-  if (!user.username || user.username.trim().length < 3) {
-    errors.push('Username must be at least 3 characters long');
-  }
-
-  if (!user.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(user.email)) {
-    errors.push('Please provide a valid email address');
-  }
-
-  if (!user.password || user.password.length < 8) {
-    errors.push('Password must be at least 8 characters long');
-  }
-
-  if (user.password && user.password === user.username) {
-    errors.push('Password cannot be the same as username');
-  }
-
-  return {
-    isValid: errors.length === 0,
-    errors: errors
-  };
-}
+export { validateEmail, validatePassword, validateUserInput };
