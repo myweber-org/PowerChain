@@ -1,31 +1,31 @@
-function validateEmail(email) {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
+function validateUsername(username) {
+    const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
+    return usernameRegex.test(username);
 }
 
 function validatePassword(password) {
-    return password.length >= 8;
+    if (password.length < 8) {
+        return false;
+    }
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasNumbers = /\d/.test(password);
+    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+    return hasUpperCase && hasLowerCase && hasNumbers && hasSpecialChar;
 }
 
-function validateUserCredentials(email, password) {
-    const errors = [];
+function validateUserInput(username, password) {
+    const usernameValid = validateUsername(username);
+    const passwordValid = validatePassword(password);
     
-    if (!validateEmail(email)) {
-        errors.push('Invalid email format');
+    if (!usernameValid && !passwordValid) {
+        return 'Username and password are invalid';
+    } else if (!usernameValid) {
+        return 'Username is invalid';
+    } else if (!passwordValid) {
+        return 'Password is invalid';
     }
-    
-    if (!validatePassword(password)) {
-        errors.push('Password must be at least 8 characters long');
-    }
-    
-    return {
-        isValid: errors.length === 0,
-        errors: errors
-    };
+    return 'User input is valid';
 }
 
-module.exports = {
-    validateEmail,
-    validatePassword,
-    validateUserCredentials
-};
+module.exports = { validateUserInput, validateUsername, validatePassword };
