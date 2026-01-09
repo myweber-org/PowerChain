@@ -28,4 +28,31 @@ function validatePassword(password) {
   return true;
 }
 
-export { sanitizeInput, validateEmail, validatePassword };
+export { sanitizeInput, validateEmail, validatePassword };function validateEmail(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+}
+
+function validatePhoneNumber(phone) {
+    const phoneRegex = /^\+?[\d\s\-\(\)]{10,}$/;
+    return phoneRegex.test(phone);
+}
+
+function validateInput(input, type) {
+    if (!input || typeof input !== 'string') {
+        return false;
+    }
+    
+    const trimmedInput = input.trim();
+    
+    switch(type) {
+        case 'email':
+            return validateEmail(trimmedInput);
+        case 'phone':
+            return validatePhoneNumber(trimmedInput);
+        default:
+            return trimmedInput.length > 0;
+    }
+}
+
+export { validateEmail, validatePhoneNumber, validateInput };
