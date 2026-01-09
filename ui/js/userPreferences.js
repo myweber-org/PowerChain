@@ -141,4 +141,53 @@ function loadPreferences() {
         return validateUserPreferences(JSON.parse(stored));
     }
     return validateUserPreferences({});
+}function validateUserPreferences(preferences) {
+    const defaults = {
+        theme: 'light',
+        language: 'en',
+        notifications: true,
+        fontSize: 16
+    };
+
+    return {
+        theme: preferences.theme && ['light', 'dark', 'auto'].includes(preferences.theme) 
+            ? preferences.theme 
+            : defaults.theme,
+        language: preferences.language && ['en', 'es', 'fr', 'de'].includes(preferences.language)
+            ? preferences.language
+            : defaults.language,
+        notifications: typeof preferences.notifications === 'boolean'
+            ? preferences.notifications
+            : defaults.notifications,
+        fontSize: typeof preferences.fontSize === 'number' 
+            && preferences.fontSize >= 12 
+            && preferences.fontSize <= 24
+            ? preferences.fontSize
+            : defaults.fontSize
+    };
 }
+
+function initializeUserPreferences() {
+    const storedPreferences = JSON.parse(localStorage.getItem('userPreferences')) || {};
+    const validatedPreferences = validateUserPreferences(storedPreferences);
+    
+    localStorage.setItem('userPreferences', JSON.stringify(validatedPreferences));
+    return validatedPreferences;
+}
+
+function updateUserPreference(key, value) {
+    const currentPreferences = JSON.parse(localStorage.getItem('userPreferences')) || {};
+    const updatedPreferences = { ...currentPreferences, [key]: value };
+    const validatedPreferences = validateUserPreferences(updatedPreferences);
+    
+    localStorage.setItem('userPreferences', JSON.stringify(validatedPreferences));
+    return validatedPreferences;
+}
+
+function resetUserPreferences() {
+    const defaultPreferences = validateUserPreferences({});
+    localStorage.setItem('userPreferences', JSON.stringify(defaultPreferences));
+    return defaultPreferences;
+}
+
+export { validateUserPreferences, initializeUserPreferences, updateUserPreference, resetUserPreferences };
