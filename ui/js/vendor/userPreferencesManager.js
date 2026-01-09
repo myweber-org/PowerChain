@@ -318,4 +318,56 @@ if (typeof module !== 'undefined' && module.exports) {
     getPreference,
     setPreference
   };
-})();
+})();const UserPreferences = {
+  preferences: {
+    theme: 'light',
+    language: 'en',
+    notifications: true,
+    fontSize: 16
+  },
+
+  init() {
+    const saved = localStorage.getItem('userPreferences');
+    if (saved) {
+      this.preferences = JSON.parse(saved);
+    }
+    this.applyPreferences();
+  },
+
+  save() {
+    localStorage.setItem('userPreferences', JSON.stringify(this.preferences));
+    this.applyPreferences();
+  },
+
+  get(key) {
+    return this.preferences[key];
+  },
+
+  set(key, value) {
+    this.preferences[key] = value;
+    this.save();
+  },
+
+  applyPreferences() {
+    document.documentElement.setAttribute('data-theme', this.preferences.theme);
+    document.documentElement.lang = this.preferences.language;
+    document.documentElement.style.fontSize = `${this.preferences.fontSize}px`;
+    
+    if (this.preferences.notifications) {
+      Notification.requestPermission();
+    }
+  },
+
+  reset() {
+    this.preferences = {
+      theme: 'light',
+      language: 'en',
+      notifications: true,
+      fontSize: 16
+    };
+    this.save();
+  }
+};
+
+Object.freeze(UserPreferences);
+UserPreferences.init();
