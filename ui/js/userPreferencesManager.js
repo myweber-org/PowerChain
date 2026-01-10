@@ -71,4 +71,62 @@ const UserPreferencesManager = (() => {
 
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = UserPreferencesManager;
-}
+}const UserPreferencesManager = (() => {
+  const STORAGE_KEY = 'app_user_preferences';
+  const DEFAULT_PREFERENCES = {
+    theme: 'light',
+    language: 'en',
+    notifications: true,
+    fontSize: 16,
+    autoSave: true
+  };
+
+  let preferences = { ...DEFAULT_PREFERENCES };
+
+  const loadPreferences = () => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        preferences = { ...DEFAULT_PREFERENCES, ...parsed };
+      }
+    } catch (error) {
+      console.warn('Failed to load preferences:', error);
+    }
+    return preferences;
+  };
+
+  const savePreferences = (newPreferences) => {
+    preferences = { ...preferences, ...newPreferences };
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(preferences));
+      return true;
+    } catch (error) {
+      console.error('Failed to save preferences:', error);
+      return false;
+    }
+  };
+
+  const resetPreferences = () => {
+    preferences = { ...DEFAULT_PREFERENCES };
+    localStorage.removeItem(STORAGE_KEY);
+    return preferences;
+  };
+
+  const getPreference = (key) => {
+    return preferences[key];
+  };
+
+  const getAllPreferences = () => {
+    return { ...preferences };
+  };
+
+  loadPreferences();
+
+  return {
+    get: getPreference,
+    getAll: getAllPreferences,
+    set: savePreferences,
+    reset: resetPreferences
+  };
+})();
