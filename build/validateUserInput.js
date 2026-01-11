@@ -1,75 +1,14 @@
-function sanitizeInput(input) {
-    if (typeof input !== 'string') {
-        return '';
-    }
-    return input.trim()
-        .replace(/[<>]/g, '')
-        .substring(0, 255);
-}
-
-function validateEmail(email) {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-}
-
-function validatePassword(password) {
-    return password.length >= 8 &&
-           /[A-Z]/.test(password) &&
-           /[a-z]/.test(password) &&
-           /\d/.test(password);
-}
-
-module.exports = { sanitizeInput, validateEmail, validatePassword };function validateUserInput(username, password) {
+function validateUserInput(username, email) {
     const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
-    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{8,}$/;
-
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    
     if (!usernameRegex.test(username)) {
-        return {
-            isValid: false,
-            message: "Username must be 3-20 characters and contain only letters, numbers, and underscores."
-        };
+        return { valid: false, message: 'Username must be 3-20 characters and contain only letters, numbers, and underscores.' };
     }
-
-    if (!passwordRegex.test(password)) {
-        return {
-            isValid: false,
-            message: "Password must be at least 8 characters and contain at least one letter and one number."
-        };
+    
+    if (!emailRegex.test(email)) {
+        return { valid: false, message: 'Please enter a valid email address.' };
     }
-
-    return {
-        isValid: true,
-        message: "Input validation passed."
-    };
-}function validateUsername(username) {
-    const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
-    return usernameRegex.test(username);
+    
+    return { valid: true, message: 'Input validation passed.' };
 }
-
-function validateEmail(email) {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-}
-
-function validateUserInput(userData) {
-    const errors = [];
-
-    if (!validateUsername(userData.username)) {
-        errors.push('Username must be 3-20 characters and contain only letters, numbers, and underscores');
-    }
-
-    if (!validateEmail(userData.email)) {
-        errors.push('Please enter a valid email address');
-    }
-
-    if (userData.password && userData.password.length < 8) {
-        errors.push('Password must be at least 8 characters long');
-    }
-
-    return {
-        isValid: errors.length === 0,
-        errors: errors
-    };
-}
-
-export { validateUserInput, validateUsername, validateEmail };
