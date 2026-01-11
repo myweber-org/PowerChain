@@ -68,4 +68,102 @@ const UserPreferencesManager = (() => {
   };
 })();
 
-export default UserPreferencesManager;
+export default UserPreferencesManager;const UserPreferencesManager = (() => {
+    const PREFERENCE_KEYS = {
+        THEME: 'app_theme',
+        LANGUAGE: 'app_language',
+        NOTIFICATIONS: 'notifications_enabled',
+        VOLUME: 'audio_volume'
+    };
+
+    const DEFAULT_PREFERENCES = {
+        [PREFERENCE_KEYS.THEME]: 'light',
+        [PREFERENCE_KEYS.LANGUAGE]: 'en',
+        [PREFERENCE_KEYS.NOTIFICATIONS]: true,
+        [PREFERENCE_KEYS.VOLUME]: 80
+    };
+
+    const validatePreference = (key, value) => {
+        switch(key) {
+            case PREFERENCE_KEYS.THEME:
+                return ['light', 'dark', 'auto'].includes(value) ? value : DEFAULT_PREFERENCES[key];
+            case PREFERENCE_KEYS.LANGUAGE:
+                return ['en', 'es', 'fr', 'de'].includes(value) ? value : DEFAULT_PREFERENCES[key];
+            case PREFERENCE_KEYS.NOTIFICATIONS:
+                return typeof value === 'boolean' ? value : DEFAULT_PREFERENCES[key];
+            case PREFERENCE_KEYS.VOLUME:
+                const numValue = Number(value);
+                return !isNaN(numValue) && numValue >= 0 && numValue <= 100 ? numValue : DEFAULT_PREFERENCES[key];
+            default:
+                return value;
+        }
+    };
+
+    const getAllPreferences = () => {
+        const preferences = {};
+        Object.keys(PREFERENCE_KEYS).forEach(key => {
+            const storageKey = PREFERENCE_KEYS[key];
+            const storedValue = localStorage.getItem(storageKey);
+            preferences[storageKey] = storedValue !== null 
+                ? validatePreference(storageKey, storedValue)
+                : DEFAULT_PREFERENCES[storageKey];
+        });
+        return preferences;
+    };
+
+    const setPreference = (key, value) => {
+        if (!Object.values(PREFERENCE_KEYS).includes(key)) {
+            console.warn(`Invalid preference key: ${key}`);
+            return false;
+        }
+
+        const validatedValue = validatePreference(key, value);
+        try {
+            localStorage.setItem(key, validatedValue);
+            return true;
+        } catch (error) {
+            console.error('Failed to save preference:', error);
+            return false;
+        }
+    };
+
+    const resetToDefaults = () => {
+        Object.entries(DEFAULT_PREFERENCES).forEach(([key, value]) => {
+            localStorage.setItem(key, value);
+        });
+        return getAllPreferences();
+    };
+
+    const exportPreferences = () => {
+        const prefs = getAllPreferences();
+        return JSON.stringify(prefs, null, 2);
+    };
+
+    const importPreferences = (jsonString) => {
+        try {
+            const importedPrefs = JSON.parse(jsonString);
+            Object.entries(importedPrefs).forEach(([key, value]) => {
+                if (Object.values(PREFERENCE_KEYS).includes(key)) {
+                    setPreference(key, value);
+                }
+            });
+            return true;
+        } catch (error) {
+            console.error('Failed to import preferences:', error);
+            return false;
+        }
+    };
+
+    return {
+        KEYS: PREFERENCE_KEYS,
+        get: (key) => {
+            const allPrefs = getAllPreferences();
+            return allPrefs[key];
+        },
+        set: setPreference,
+        getAll: getAllPreferences,
+        reset: resetToDefaults,
+        export: exportPreferences,
+        import: importPreferences
+    };
+})();
