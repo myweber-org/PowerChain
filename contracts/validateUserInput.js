@@ -5,21 +5,19 @@ function validateUserInput(username, password) {
     if (!usernameRegex.test(username)) {
         return {
             isValid: false,
-            message: "Username must be 3-20 characters and contain only letters, numbers, and underscores."
+            message: "Username must be 3-20 characters long and contain only letters, numbers, and underscores."
         };
     }
 
     if (!passwordRegex.test(password)) {
         return {
             isValid: false,
-            message: "Password must be at least 8 characters with at least one letter and one number."
+            message: "Password must be at least 8 characters long and contain at least one letter and one number."
         };
     }
 
     return {
         isValid: true,
-        message: "Input validation successful."
+        message: "Input validation passed."
     };
 }
-
-module.exports = validateUserInput;
