@@ -442,4 +442,65 @@ UserPreferences.init();const UserPreferencesManager = (() => {
   };
 })();
 
+export default UserPreferencesManager;const UserPreferencesManager = (() => {
+  const STORAGE_KEY = 'app_preferences';
+  const DEFAULT_PREFERENCES = {
+    theme: 'light',
+    fontSize: 16,
+    notifications: true,
+    language: 'en'
+  };
+
+  const getPreferences = () => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        return { ...DEFAULT_PREFERENCES, ...JSON.parse(stored) };
+      }
+    } catch (error) {
+      console.warn('Failed to read preferences from localStorage:', error);
+    }
+    return { ...DEFAULT_PREFERENCES };
+  };
+
+  const savePreferences = (preferences) => {
+    try {
+      const current = getPreferences();
+      const updated = { ...current, ...preferences };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      return updated;
+    } catch (error) {
+      console.warn('Failed to save preferences to localStorage:', error);
+      return null;
+    }
+  };
+
+  const resetPreferences = () => {
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+      return { ...DEFAULT_PREFERENCES };
+    } catch (error) {
+      console.warn('Failed to reset preferences:', error);
+      return getPreferences();
+    }
+  };
+
+  const subscribe = (callback) => {
+    const handler = (event) => {
+      if (event.key === STORAGE_KEY) {
+        callback(getPreferences());
+      }
+    };
+    window.addEventListener('storage', handler);
+    return () => window.removeEventListener('storage', handler);
+  };
+
+  return {
+    getPreferences,
+    savePreferences,
+    resetPreferences,
+    subscribe
+  };
+})();
+
 export default UserPreferencesManager;
