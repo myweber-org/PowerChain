@@ -1,45 +1,64 @@
-const userPreferencesManager = {
-    preferences: {
+const UserPreferencesManager = (() => {
+    const STORAGE_KEY = 'app_preferences';
+    
+    const defaultPreferences = {
         theme: 'light',
-        language: 'en',
+        fontSize: 16,
         notifications: true,
-        fontSize: 16
-    },
+        language: 'en',
+        autoSave: false,
+        sidebarCollapsed: false
+    };
 
-    init: function() {
-        const stored = localStorage.getItem('userPreferences');
-        if (stored) {
-            this.preferences = JSON.parse(stored);
+    const getPreferences = () => {
+        try {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            if (stored) {
+                return { ...defaultPreferences, ...JSON.parse(stored) };
+            }
+        } catch (error) {
+            console.warn('Failed to load preferences:', error);
         }
-        return this.preferences;
-    },
+        return { ...defaultPreferences };
+    };
 
-    update: function(key, value) {
-        if (this.preferences.hasOwnProperty(key)) {
-            this.preferences[key] = value;
-            this.save();
-            return true;
+    const savePreferences = (updates) => {
+        try {
+            const current = getPreferences();
+            const updated = { ...current, ...updates };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+            return updated;
+        } catch (error) {
+            console.error('Failed to save preferences:', error);
+            return null;
         }
-        return false;
-    },
+    };
 
-    save: function() {
-        localStorage.setItem('userPreferences', JSON.stringify(this.preferences));
-    },
+    const resetPreferences = () => {
+        try {
+            localStorage.removeItem(STORAGE_KEY);
+            return { ...defaultPreferences };
+        } catch (error) {
+            console.error('Failed to reset preferences:', error);
+            return null;
+        }
+    };
 
-    reset: function() {
-        this.preferences = {
-            theme: 'light',
-            language: 'en',
-            notifications: true,
-            fontSize: 16
+    const subscribe = (callback) => {
+        const handler = (event) => {
+            if (event.key === STORAGE_KEY) {
+                callback(getPreferences());
+            }
         };
-        this.save();
-    },
+        window.addEventListener('storage', handler);
+        return () => window.removeEventListener('storage', handler);
+    };
 
-    getAll: function() {
-        return {...this.preferences};
-    }
-};
-
-export default userPreferencesManager;
+    return {
+        get: getPreferences,
+        set: savePreferences,
+        reset: resetPreferences,
+        subscribe,
+        defaults: { ...defaultPreferences }
+    };
+})();
