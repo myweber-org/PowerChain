@@ -4,29 +4,20 @@ function validateUsername(username) {
 }
 
 function validatePassword(password) {
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;
     return passwordRegex.test(password);
 }
 
 function validateUserInput(username, password) {
     if (!validateUsername(username)) {
-        return {
-            isValid: false,
-            message: "Username must be 3-20 characters long and contain only letters, numbers, and underscores."
-        };
+        throw new Error('Invalid username. Username must be 3-20 characters long and contain only letters, numbers, and underscores.');
     }
-
+    
     if (!validatePassword(password)) {
-        return {
-            isValid: false,
-            message: "Password must be at least 8 characters long and include uppercase, lowercase, number, and special character."
-        };
+        throw new Error('Invalid password. Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, and one number.');
     }
-
-    return {
-        isValid: true,
-        message: "User input is valid."
-    };
+    
+    return true;
 }
 
-module.exports = validateUserInput;
+module.exports = { validateUserInput, validateUsername, validatePassword };
