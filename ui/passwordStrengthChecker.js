@@ -146,4 +146,62 @@ function getStrengthLevel(score) {
     return "Very Weak";
 }
 
-export { checkPasswordStrength, calculateStrengthScore, getStrengthLevel };
+export { checkPasswordStrength, calculateStrengthScore, getStrengthLevel };function passwordStrengthChecker(password, options = {}) {
+    const defaults = {
+        minLength: 8,
+        requireUppercase: true,
+        requireLowercase: true,
+        requireNumbers: true,
+        requireSpecialChars: true,
+        specialChars: "!@#$%^&*()_+-=[]{}|;:,.<>?"
+    };
+    
+    const config = { ...defaults, ...options };
+    const errors = [];
+    const suggestions = [];
+    
+    if (password.length < config.minLength) {
+        errors.push(`Password must be at least ${config.minLength} characters long`);
+    }
+    
+    if (config.requireUppercase && !/[A-Z]/.test(password)) {
+        errors.push("Password must contain at least one uppercase letter");
+    }
+    
+    if (config.requireLowercase && !/[a-z]/.test(password)) {
+        errors.push("Password must contain at least one lowercase letter");
+    }
+    
+    if (config.requireNumbers && !/\d/.test(password)) {
+        errors.push("Password must contain at least one number");
+    }
+    
+    if (config.requireSpecialChars) {
+        const specialCharRegex = new RegExp(`[${config.specialChars.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}]`);
+        if (!specialCharRegex.test(password)) {
+            errors.push(`Password must contain at least one special character (${config.specialChars})`);
+        }
+    }
+    
+    if (password.length > 20) {
+        suggestions.push("Consider using a shorter password for better memorability");
+    }
+    
+    if (/(.)\1{2,}/.test(password)) {
+        suggestions.push("Avoid repeating characters multiple times in a row");
+    }
+    
+    if (/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(password)) {
+        suggestions.push("Strong password! Consider using a passphrase for even better security");
+    }
+    
+    const score = errors.length === 0 ? 100 - (suggestions.length * 5) : 0;
+    
+    return {
+        isValid: errors.length === 0,
+        score: Math.max(0, score),
+        errors,
+        suggestions,
+        configUsed: config
+    };
+}
