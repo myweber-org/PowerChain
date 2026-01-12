@@ -1,46 +1,58 @@
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
-const userDataCache = new Map();
-
-async function fetchUserData(userId, forceRefresh = false) {
-    const cached = userDataCache.get(userId);
+async function fetchUserData(userId, maxRetries = 3) {
+    const url = `https://api.example.com/users/${userId}`;
     
-    if (!forceRefresh && cached && (Date.now() - cached.timestamp) < CACHE_DURATION) {
-        return cached.data;
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+            const response = await fetch(url);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            console.log(`Successfully fetched data for user ${userId}`);
+            return data;
+            
+        } catch (error) {
+            console.error(`Attempt ${attempt} failed: ${error.message}`);
+            
+            if (attempt === maxRetries) {
+                throw new Error(`Failed to fetch user data after ${maxRetries} attempts`);
+            }
+            
+            await new Promise(resolve => 
+                setTimeout(resolve, Math.pow(2, attempt) * 1000)
+            );
+        }
     }
+}
 
+function validateUserData(userData) {
+    const requiredFields = ['id', 'name', 'email'];
+    
+    for (const field of requiredFields) {
+        if (!userData[field]) {
+            throw new Error(`Missing required field: ${field}`);
+        }
+    }
+    
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(userData.email)) {
+        throw new Error('Invalid email format');
+    }
+    
+    return true;
+}
+
+async function getUserData(userId) {
     try {
-        const response = await fetch(`https://api.example.com/users/${userId}`);
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        
-        userDataCache.set(userId, {
-            data: data,
-            timestamp: Date.now()
-        });
-        
-        return data;
+        const userData = await fetchUserData(userId);
+        validateUserData(userData);
+        return userData;
     } catch (error) {
-        console.error('Failed to fetch user data:', error);
-        
-        if (cached) {
-            console.warn('Returning stale cached data');
-            return cached.data;
-        }
-        
-        throw error;
+        console.error('Failed to get user data:', error.message);
+        return null;
     }
 }
 
-function clearUserCache(userId = null) {
-    if (userId) {
-        userDataCache.delete(userId);
-    } else {
-        userDataCache.clear();
-    }
-}
-
-export { fetchUserData, clearUserCache };
+export { fetchUserData, validateUserData, getUserData };
