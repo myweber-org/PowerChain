@@ -3,12 +3,12 @@ function validateUserInput(username, email) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     if (!usernameRegex.test(username)) {
-        throw new Error('Invalid username format');
+        return { valid: false, message: 'Username must be 3-20 characters and contain only letters, numbers, and underscores.' };
     }
 
     if (!emailRegex.test(email)) {
-        throw new Error('Invalid email format');
+        return { valid: false, message: 'Please enter a valid email address.' };
     }
 
-    return true;
+    return { valid: true, message: 'Input is valid.' };
 }
