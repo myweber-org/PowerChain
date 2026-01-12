@@ -195,4 +195,26 @@ fetchUserData(1);function fetchUserData(userId) {
       console.error('Error fetching user data:', error);
       throw error;
     });
+}async function fetchUserData(userId) {
+  try {
+    const response = await fetch(`https://api.example.com/users/${userId}`);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const userData = await response.json();
+    return processUserData(userData);
+  } catch (error) {
+    console.error('Failed to fetch user data:', error);
+    return null;
+  }
+}
+
+function processUserData(data) {
+  const { id, name, email, status } = data;
+  return {
+    userId: id,
+    fullName: name.toUpperCase(),
+    contact: email,
+    isActive: status === 'active'
+  };
 }
