@@ -25,4 +25,4 @@ function validateUserInput(username, email) {
     };
 }
 
-module.exports = { validateUserInput, validateUsername, validateEmail };
+module.exports = validateUserInput;
