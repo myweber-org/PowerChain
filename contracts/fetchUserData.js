@@ -134,4 +134,19 @@ function displayUserData(user) {
 }
 
 // Example usage
-fetchUserData(1);
+fetchUserData(1);async function fetchUserData() {
+  try {
+    const response = await fetch('https://jsonplaceholder.typicode.com/users/1');
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const userData = await response.json();
+    console.log('Fetched user data:', userData);
+    return userData;
+  } catch (error) {
+    console.error('Error fetching user data:', error);
+    throw error;
+  }
+}
+
+fetchUserData();
