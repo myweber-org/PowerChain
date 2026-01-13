@@ -227,4 +227,79 @@ export default UserPreferencesManager;const UserPreferencesManager = (() => {
   getAllPreferences() {
     return { ...this.getPreferences() };
   }
-};
+};class UserPreferencesManager {
+  constructor() {
+    this.prefs = this.loadPreferences();
+  }
+
+  loadPreferences() {
+    const stored = localStorage.getItem('userPreferences');
+    if (stored) {
+      try {
+        return JSON.parse(stored);
+      } catch (e) {
+        console.warn('Failed to parse stored preferences:', e);
+      }
+    }
+    return this.getDefaultPreferences();
+  }
+
+  getDefaultPreferences() {
+    return {
+      theme: 'light',
+      fontSize: 16,
+      notifications: true,
+      language: 'en',
+      autoSave: false,
+      lastUpdated: new Date().toISOString()
+    };
+  }
+
+  updatePreference(key, value) {
+    if (this.prefs.hasOwnProperty(key)) {
+      this.prefs[key] = value;
+      this.prefs.lastUpdated = new Date().toISOString();
+      this.savePreferences();
+      return true;
+    }
+    return false;
+  }
+
+  savePreferences() {
+    try {
+      localStorage.setItem('userPreferences', JSON.stringify(this.prefs));
+      return true;
+    } catch (e) {
+      console.error('Failed to save preferences:', e);
+      return false;
+    }
+  }
+
+  resetToDefaults() {
+    this.prefs = this.getDefaultPreferences();
+    this.savePreferences();
+  }
+
+  getAllPreferences() {
+    return { ...this.prefs };
+  }
+
+  exportPreferences() {
+    return JSON.stringify(this.prefs, null, 2);
+  }
+
+  importPreferences(jsonString) {
+    try {
+      const imported = JSON.parse(jsonString);
+      this.prefs = { ...this.getDefaultPreferences(), ...imported };
+      this.prefs.lastUpdated = new Date().toISOString();
+      this.savePreferences();
+      return true;
+    } catch (e) {
+      console.error('Failed to import preferences:', e);
+      return false;
+    }
+  }
+}
+
+export default UserPreferencesManager;
