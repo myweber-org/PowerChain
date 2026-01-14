@@ -1,7 +1,21 @@
 function calculateCircleArea(radius) {
-    if (typeof radius !== 'number' || radius <= 0) {
+    if (radius <= 0) {
         throw new Error('Radius must be a positive number');
     }
-    const area = Math.PI * Math.pow(radius, 2);
-    return parseFloat(area.toFixed(2));
+    return Math.PI * radius * radius;
+}
+
+function validateAndCalculate() {
+    const input = document.getElementById('radiusInput').value;
+    const resultElement = document.getElementById('result');
+    
+    try {
+        const radius = parseFloat(input);
+        const area = calculateCircleArea(radius);
+        resultElement.textContent = `Area: ${area.toFixed(2)}`;
+        resultElement.style.color = '#2ecc71';
+    } catch (error) {
+        resultElement.textContent = `Error: ${error.message}`;
+        resultElement.style.color = '#e74c3c';
+    }
 }
