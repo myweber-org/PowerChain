@@ -171,4 +171,69 @@ document.addEventListener('DOMContentLoaded', function() {
       fetchUserData(userId);
     });
   }
-});
+});const USER_CACHE_KEY = 'userDataCache';
+const CACHE_DURATION = 5 * 60 * 1000;
+
+async function fetchUserData(userId) {
+    const cache = getCachedUserData(userId);
+    if (cache && !isCacheExpired(cache.timestamp)) {
+        return cache.data;
+    }
+
+    try {
+        const response = await fetch(`https://api.example.com/users/${userId}`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const userData = await response.json();
+        cacheUserData(userId, userData);
+        return userData;
+    } catch (error) {
+        console.error('Failed to fetch user data:', error);
+        if (cache) {
+            console.warn('Returning cached data due to fetch failure');
+            return cache.data;
+        }
+        throw error;
+    }
+}
+
+function getCachedUserData(userId) {
+    const cache = localStorage.getItem(USER_CACHE_KEY);
+    if (!cache) return null;
+
+    const parsedCache = JSON.parse(cache);
+    return parsedCache[userId] || null;
+}
+
+function cacheUserData(userId, data) {
+    let cache = {};
+    const existingCache = localStorage.getItem(USER_CACHE_KEY);
+    if (existingCache) {
+        cache = JSON.parse(existingCache);
+    }
+
+    cache[userId] = {
+        data: data,
+        timestamp: Date.now()
+    };
+
+    localStorage.setItem(USER_CACHE_KEY, JSON.stringify(cache));
+}
+
+function isCacheExpired(timestamp) {
+    return Date.now() - timestamp > CACHE_DURATION;
+}
+
+function clearUserCache(userId = null) {
+    if (userId) {
+        const cache = localStorage.getItem(USER_CACHE_KEY);
+        if (cache) {
+            const parsedCache = JSON.parse(cache);
+            delete parsedCache[userId];
+            localStorage.setItem(USER_CACHE_KEY, JSON.stringify(parsedCache));
+        }
+    } else {
+        localStorage.removeItem(USER_CACHE_KEY);
+    }
+}
