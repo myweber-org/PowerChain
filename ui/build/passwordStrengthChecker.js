@@ -38,17 +38,17 @@ function checkPasswordStrength(password, options = {}) {
     if (errors.length === 0) {
         const strengthScore = calculateStrengthScore(password);
         if (strengthScore < 3) {
-            suggestions.push("Consider making your password longer for better security");
-        }
-        if (password.length < 12) {
-            suggestions.push("Use 12 or more characters for stronger security");
+            suggestions.push("Consider using a longer password for better security");
         }
         if (!/(.)\1{2,}/.test(password)) {
             suggestions.push("Avoid repeating characters multiple times");
         }
+        if (isCommonPassword(password)) {
+            suggestions.push("This password is commonly used, choose a more unique one");
+        }
         
         return {
-            isValid: true,
+            valid: true,
             strength: getStrengthLabel(strengthScore),
             score: strengthScore,
             suggestions: suggestions
@@ -56,7 +56,7 @@ function checkPasswordStrength(password, options = {}) {
     }
     
     return {
-        isValid: false,
+        valid: false,
         errors: errors,
         suggestions: suggestions
     };
@@ -64,24 +64,27 @@ function checkPasswordStrength(password, options = {}) {
 
 function calculateStrengthScore(password) {
     let score = 0;
-    
-    if (password.length >= 8) score += 1;
-    if (password.length >= 12) score += 1;
-    if (password.length >= 16) score += 1;
+    if (password.length >= 12) score += 2;
+    else if (password.length >= 8) score += 1;
     
     if (/[a-z]/.test(password) && /[A-Z]/.test(password)) score += 1;
     if (/\d/.test(password)) score += 1;
-    if (/[^a-zA-Z0-9]/.test(password)) score += 1;
+    if (/[^A-Za-z0-9]/.test(password)) score += 1;
     
     const uniqueChars = new Set(password).size;
     if (uniqueChars / password.length > 0.7) score += 1;
     
-    return Math.min(score, 6);
+    return Math.min(score, 5);
 }
 
 function getStrengthLabel(score) {
     const labels = ["Very Weak", "Weak", "Fair", "Good", "Strong", "Very Strong"];
-    return labels[Math.min(score, labels.length - 1)];
+    return labels[score] || "Unknown";
+}
+
+function isCommonPassword(password) {
+    const commonPasswords = ["password", "123456", "qwerty", "letmein", "welcome"];
+    return commonPasswords.includes(password.toLowerCase());
 }
 
 export { checkPasswordStrength, calculateStrengthScore };
