@@ -208,4 +208,54 @@ const displayConversion = async () => {
     }
 };
 
-displayConversion();
+displayConversion();const exchangeRates = {};
+
+async function fetchExchangeRate(base, target) {
+    const cacheKey = `${base}_${target}`;
+    const cached = exchangeRates[cacheKey];
+    if (cached && Date.now() - cached.timestamp < 300000) {
+        return cached.rate;
+    }
+    
+    try {
+        const response = await fetch(`https://api.exchangerate-api.com/v4/latest/${base}`);
+        const data = await response.json();
+        const rate = data.rates[target];
+        
+        exchangeRates[cacheKey] = {
+            rate: rate,
+            timestamp: Date.now()
+        };
+        
+        return rate;
+    } catch (error) {
+        console.error('Failed to fetch exchange rate:', error);
+        throw new Error('Exchange rate service unavailable');
+    }
+}
+
+function convertCurrency(amount, baseCurrency, targetCurrency) {
+    if (typeof amount !== 'number' || amount <= 0) {
+        throw new Error('Amount must be a positive number');
+    }
+    
+    if (!baseCurrency || !targetCurrency) {
+        throw new Error('Both base and target currencies must be specified');
+    }
+    
+    return fetchExchangeRate(baseCurrency, targetCurrency)
+        .then(rate => {
+            if (!rate) {
+                throw new Error(`Exchange rate not available for ${baseCurrency} to ${targetCurrency}`);
+            }
+            return amount * rate;
+        });
+}
+
+function clearCache() {
+    Object.keys(exchangeRates).forEach(key => {
+        delete exchangeRates[key];
+    });
+}
+
+export { convertCurrency, clearCache };
