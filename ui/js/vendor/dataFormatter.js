@@ -1,22 +1,49 @@
-function formatDateToISOWithOffset(date) {
-    if (!(date instanceof Date) || isNaN(date)) {
-        throw new TypeError('Invalid Date object provided');
+function formatDate(dateString, locale = 'en-US') {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+        throw new Error('Invalid date string provided');
     }
-
-    const pad = (num) => String(num).padStart(2, '0');
-    const year = date.getFullYear();
-    const month = pad(date.getMonth() + 1);
-    const day = pad(date.getDate());
-    const hours = pad(date.getHours());
-    const minutes = pad(date.getMinutes());
-    const seconds = pad(date.getSeconds());
-
-    const offset = -date.getTimezoneOffset();
-    const offsetSign = offset >= 0 ? '+' : '-';
-    const offsetHours = pad(Math.floor(Math.abs(offset) / 60));
-    const offsetMinutes = pad(Math.abs(offset) % 60);
-
-    return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}${offsetSign}${offsetHours}:${offsetMinutes}`;
+    
+    const options = {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        weekday: 'long',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        timeZoneName: 'short'
+    };
+    
+    return date.toLocaleDateString(locale, options);
 }
 
-export { formatDateToISOWithOffset };
+function calculateTimeDifference(startDate, endDate) {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+        throw new Error('Invalid date string provided');
+    }
+    
+    const diffInMs = Math.abs(end - start);
+    const diffInSeconds = Math.floor(diffInMs / 1000);
+    const diffInMinutes = Math.floor(diffInSeconds / 60);
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    const diffInDays = Math.floor(diffInHours / 24);
+    
+    return {
+        milliseconds: diffInMs,
+        seconds: diffInSeconds,
+        minutes: diffInMinutes,
+        hours: diffInHours,
+        days: diffInDays
+    };
+}
+
+function isValidDate(dateString) {
+    const date = new Date(dateString);
+    return !isNaN(date.getTime()) && dateString.trim() !== '';
+}
+
+export { formatDate, calculateTimeDifference, isValidDate };
