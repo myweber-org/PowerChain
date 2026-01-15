@@ -106,4 +106,82 @@ const UserPreferencesManager = (() => {
 
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = UserPreferencesManager;
-}
+}const UserPreferencesManager = (() => {
+  const STORAGE_KEY = 'app_user_preferences';
+  
+  const defaultPreferences = {
+    theme: 'light',
+    language: 'en',
+    notifications: true,
+    fontSize: 16,
+    autoSave: true,
+    recentItems: []
+  };
+
+  const loadPreferences = () => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        return { ...defaultPreferences, ...JSON.parse(stored) };
+      }
+    } catch (error) {
+      console.error('Failed to load preferences:', error);
+    }
+    return { ...defaultPreferences };
+  };
+
+  const savePreferences = (preferences) => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(preferences));
+      return true;
+    } catch (error) {
+      console.error('Failed to save preferences:', error);
+      return false;
+    }
+  };
+
+  const updatePreference = (key, value) => {
+    const current = loadPreferences();
+    const updated = { ...current, [key]: value };
+    return savePreferences(updated);
+  };
+
+  const resetToDefaults = () => {
+    return savePreferences(defaultPreferences);
+  };
+
+  const addRecentItem = (item) => {
+    const current = loadPreferences();
+    const recent = current.recentItems || [];
+    const updatedRecent = [item, ...recent.filter(i => i.id !== item.id)].slice(0, 10);
+    return updatePreference('recentItems', updatedRecent);
+  };
+
+  const getPreference = (key) => {
+    const preferences = loadPreferences();
+    return preferences[key];
+  };
+
+  const getAllPreferences = () => {
+    return loadPreferences();
+  };
+
+  const subscribeToChanges = (callback) => {
+    const handleStorageChange = (event) => {
+      if (event.key === STORAGE_KEY) {
+        callback(loadPreferences());
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  };
+
+  return {
+    get: getPreference,
+    getAll: getAllPreferences,
+    set: updatePreference,
+    reset: resetToDefaults,
+    addRecent: addRecentItem,
+    subscribe: subscribeToChanges
+  };
+})();
