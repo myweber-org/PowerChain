@@ -25,4 +25,13 @@ function validateUserInput(username, email) {
     };
 }
 
-export { validateUsername, validateEmail, validateUserInput };
+export { validateUsername, validateEmail, validateUserInput };function sanitizeInput(input) {
+    if (typeof input !== 'string') {
+        throw new TypeError('Input must be a string');
+    }
+    
+    return input
+        .trim()
+        .replace(/[<>]/g, '')
+        .substring(0, 255);
+}
