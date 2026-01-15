@@ -67,4 +67,25 @@ function displayErrorMessage(message) {
       console.error('Failed to fetch user data:', error);
       throw error;
     });
+}function fetchUserData(apiUrl) {
+  return fetch(apiUrl)
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      const processedData = data.map(user => ({
+        id: user.id,
+        name: user.name.toUpperCase(),
+        email: user.email.toLowerCase(),
+        active: user.status === 'active'
+      }));
+      return processedData;
+    })
+    .catch(error => {
+      console.error('Error fetching user data:', error);
+      return [];
+    });
 }
