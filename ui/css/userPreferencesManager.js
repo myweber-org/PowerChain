@@ -66,4 +66,86 @@ class UserPreferencesManager {
   }
 }
 
-const userPrefs = new UserPreferencesManager();
+const userPrefs = new UserPreferencesManager();const userPreferencesManager = (() => {
+    const STORAGE_KEY = 'app_preferences';
+    const defaultPreferences = {
+        theme: 'light',
+        language: 'en',
+        notifications: true,
+        fontSize: 16,
+        autoSave: false
+    };
+
+    const getPreferences = () => {
+        try {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            if (stored) {
+                const parsed = JSON.parse(stored);
+                return { ...defaultPreferences, ...parsed };
+            }
+        } catch (error) {
+            console.error('Failed to load preferences:', error);
+        }
+        return { ...defaultPreferences };
+    };
+
+    const savePreferences = (preferences) => {
+        try {
+            const current = getPreferences();
+            const updated = { ...current, ...preferences };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+            return updated;
+        } catch (error) {
+            console.error('Failed to save preferences:', error);
+            return null;
+        }
+    };
+
+    const resetPreferences = () => {
+        try {
+            localStorage.removeItem(STORAGE_KEY);
+            return { ...defaultPreferences };
+        } catch (error) {
+            console.error('Failed to reset preferences:', error);
+            return null;
+        }
+    };
+
+    const setPreference = (key, value) => {
+        if (!defaultPreferences.hasOwnProperty(key)) {
+            console.warn(`Unknown preference key: ${key}`);
+            return false;
+        }
+        const current = getPreferences();
+        return savePreferences({ ...current, [key]: value });
+    };
+
+    const getPreference = (key) => {
+        const preferences = getPreferences();
+        return preferences[key];
+    };
+
+    const exportPreferences = () => {
+        return JSON.stringify(getPreferences(), null, 2);
+    };
+
+    const importPreferences = (jsonString) => {
+        try {
+            const imported = JSON.parse(jsonString);
+            return savePreferences(imported);
+        } catch (error) {
+            console.error('Failed to import preferences:', error);
+            return null;
+        }
+    };
+
+    return {
+        getPreferences,
+        savePreferences,
+        resetPreferences,
+        setPreference,
+        getPreference,
+        exportPreferences,
+        importPreferences
+    };
+})();
