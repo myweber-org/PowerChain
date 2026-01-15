@@ -77,4 +77,61 @@ const UserPreferencesManager = (function() {
     };
 })();
 
-export default UserPreferencesManager;
+export default UserPreferencesManager;const userPreferencesManager = (() => {
+  const PREFERENCES_KEY = 'app_preferences';
+  const defaultPreferences = {
+    theme: 'light',
+    fontSize: 'medium',
+    notifications: true,
+    language: 'en'
+  };
+
+  const getPreferences = () => {
+    try {
+      const stored = localStorage.getItem(PREFERENCES_KEY);
+      return stored ? JSON.parse(stored) : { ...defaultPreferences };
+    } catch (error) {
+      console.warn('Failed to retrieve preferences:', error);
+      return { ...defaultPreferences };
+    }
+  };
+
+  const savePreferences = (preferences) => {
+    try {
+      const merged = { ...getPreferences(), ...preferences };
+      localStorage.setItem(PREFERENCES_KEY, JSON.stringify(merged));
+      return true;
+    } catch (error) {
+      console.error('Failed to save preferences:', error);
+      return false;
+    }
+  };
+
+  const resetPreferences = () => {
+    try {
+      localStorage.removeItem(PREFERENCES_KEY);
+      return true;
+    } catch (error) {
+      console.error('Failed to reset preferences:', error);
+      return false;
+    }
+  };
+
+  const getPreference = (key) => {
+    const prefs = getPreferences();
+    return prefs[key] !== undefined ? prefs[key] : defaultPreferences[key];
+  };
+
+  const setPreference = (key, value) => {
+    return savePreferences({ [key]: value });
+  };
+
+  return {
+    getPreferences,
+    savePreferences,
+    resetPreferences,
+    getPreference,
+    setPreference,
+    defaultPreferences
+  };
+})();
