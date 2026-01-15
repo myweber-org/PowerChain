@@ -105,4 +105,18 @@ async function processUserRequest(userId) {
     }
 }
 
-export { fetchUserData, processUserRequest };
+export { fetchUserData, processUserRequest };async function fetchUserData(userId) {
+    try {
+        const response = await fetch(`https://jsonplaceholder.typicode.com/users/${userId}`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const userData = await response.json();
+        console.log(`User Name: ${userData.name}`);
+        console.log(`User Email: ${userData.email}`);
+        return userData;
+    } catch (error) {
+        console.error('Failed to fetch user data:', error.message);
+        return null;
+    }
+}
