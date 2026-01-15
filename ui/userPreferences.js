@@ -50,4 +50,58 @@ function updatePreference(key, value) {
     return updatedPrefs;
 }
 
-export { validatePreferences, initializeUserPreferences, updatePreference };
+export { validatePreferences, initializeUserPreferences, updatePreference };function validateUserPreferences(preferences) {
+    const defaults = {
+        theme: 'light',
+        language: 'en',
+        notifications: true,
+        timezone: 'UTC'
+    };
+
+    const validated = { ...defaults, ...preferences };
+
+    if (!['light', 'dark'].includes(validated.theme)) {
+        validated.theme = defaults.theme;
+    }
+
+    if (!['en', 'es', 'fr'].includes(validated.language)) {
+        validated.language = defaults.language;
+    }
+
+    if (typeof validated.notifications !== 'boolean') {
+        validated.notifications = defaults.notifications;
+    }
+
+    if (!/^[A-Za-z_]+\/[A-Za-z_]+$/.test(validated.timezone)) {
+        validated.timezone = defaults.timezone;
+    }
+
+    return validated;
+}
+
+function initializeUserPreferences() {
+    const stored = localStorage.getItem('userPreferences');
+    let preferences = {};
+
+    try {
+        preferences = stored ? JSON.parse(stored) : {};
+    } catch (error) {
+        console.error('Failed to parse stored preferences:', error);
+    }
+
+    const validated = validateUserPreferences(preferences);
+    localStorage.setItem('userPreferences', JSON.stringify(validated));
+    
+    return validated;
+}
+
+function updateUserPreferences(updates) {
+    const current = initializeUserPreferences();
+    const merged = { ...current, ...updates };
+    const validated = validateUserPreferences(merged);
+    
+    localStorage.setItem('userPreferences', JSON.stringify(validated));
+    return validated;
+}
+
+export { validateUserPreferences, initializeUserPreferences, updateUserPreferences };
