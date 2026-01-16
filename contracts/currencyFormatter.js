@@ -3,27 +3,26 @@ function formatCurrency(value, locale = 'en-US', currency = 'USD') {
         throw new TypeError('Value must be a number');
     }
     
-    const formatter = new Intl.NumberFormat(locale, {
+    return new Intl.NumberFormat(locale, {
         style: 'currency',
         currency: currency,
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
-    });
-    
-    return formatter.format(value);
+    }).format(value);
 }
 
 function parseCurrency(formattedString, locale = 'en-US') {
     const parts = new Intl.NumberFormat(locale).formatToParts(1234.56);
-    const decimalSeparator = parts.find(part => part.type === 'decimal').value;
-    const groupSeparator = parts.find(part => part.type === 'group').value;
+    const decimalSeparator = parts.find(part => part.type === 'decimal')?.value || '.';
+    const groupSeparator = parts.find(part => part.type === 'group')?.value || ',';
     
-    const cleaned = formattedString
+    const cleanString = formattedString
         .replace(new RegExp(`\\${groupSeparator}`, 'g'), '')
         .replace(new RegExp(`\\${decimalSeparator}`), '.')
         .replace(/[^\d.-]/g, '');
     
-    return parseFloat(cleaned);
+    const parsedValue = parseFloat(cleanString);
+    return isNaN(parsedValue) ? null : parsedValue;
 }
 
 export { formatCurrency, parseCurrency };
