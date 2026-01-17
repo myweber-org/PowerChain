@@ -71,4 +71,90 @@ function handleFileSelect(event) {
     });
 }
 
-document.getElementById('fileInput').addEventListener('change', handleFileSelect);
+document.getElementById('fileInput').addEventListener('change', handleFileSelect);function validateFile(file, allowedTypes, maxSize) {
+    const errors = [];
+    
+    if (!allowedTypes.includes(file.type)) {
+        errors.push(`File type ${file.type} not allowed`);
+    }
+    
+    if (file.size > maxSize) {
+        errors.push(`File size ${file.size} exceeds limit of ${maxSize}`);
+    }
+    
+    return {
+        isValid: errors.length === 0,
+        errors: errors
+    };
+}
+
+function trackUploadProgress(file, onProgress) {
+    let uploaded = 0;
+    const total = file.size;
+    const chunkSize = 1024 * 1024;
+    
+    const uploadChunk = () => {
+        if (uploaded >= total) {
+            onProgress(100);
+            return Promise.resolve();
+        }
+        
+        const chunk = file.slice(uploaded, uploaded + chunkSize);
+        uploaded += chunk.size;
+        
+        const progress = Math.round((uploaded / total) * 100);
+        onProgress(progress);
+        
+        return simulateUpload(chunk).then(uploadChunk);
+    };
+    
+    return uploadChunk();
+}
+
+function simulateUpload(chunk) {
+    return new Promise(resolve => {
+        setTimeout(resolve, Math.random() * 100 + 50);
+    });
+}
+
+function createUploadHandler(config) {
+    return async function handleUpload(files) {
+        const results = [];
+        
+        for (const file of files) {
+            const validation = validateFile(file, config.allowedTypes, config.maxSize);
+            
+            if (!validation.isValid) {
+                results.push({
+                    file: file.name,
+                    success: false,
+                    errors: validation.errors
+                });
+                continue;
+            }
+            
+            try {
+                await trackUploadProgress(file, (progress) => {
+                    console.log(`Uploading ${file.name}: ${progress}%`);
+                });
+                
+                results.push({
+                    file: file.name,
+                    success: true,
+                    size: file.size,
+                    type: file.type
+                });
+            } catch (error) {
+                results.push({
+                    file: file.name,
+                    success: false,
+                    errors: [error.message]
+                });
+            }
+        }
+        
+        return results;
+    };
+}
+
+export { createUploadHandler, validateFile };
