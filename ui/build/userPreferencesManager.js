@@ -45,4 +45,82 @@ const UserPreferencesManager = {
     }
 };
 
-UserPreferencesManager.init();
+UserPreferencesManager.init();const UserPreferencesManager = (() => {
+    const PREFIX = 'app_pref_';
+    const DEFAULT_PREFERENCES = {
+        theme: 'light',
+        fontSize: 14,
+        notifications: true,
+        language: 'en',
+        autoSave: false
+    };
+
+    const validateKey = (key) => {
+        if (!Object.keys(DEFAULT_PREFERENCES).includes(key)) {
+            throw new Error(`Invalid preference key: ${key}`);
+        }
+    };
+
+    const get = (key) => {
+        validateKey(key);
+        const stored = localStorage.getItem(PREFIX + key);
+        
+        if (stored === null) {
+            return DEFAULT_PREFERENCES[key];
+        }
+
+        try {
+            const parsed = JSON.parse(stored);
+            return parsed !== null ? parsed : DEFAULT_PREFERENCES[key];
+        } catch {
+            return DEFAULT_PREFERENCES[key];
+        }
+    };
+
+    const set = (key, value) => {
+        validateKey(key);
+        const type = typeof DEFAULT_PREFERENCES[key];
+        
+        if (typeof value !== type) {
+            throw new Error(`Type mismatch for ${key}. Expected ${type}, got ${typeof value}`);
+        }
+
+        localStorage.setItem(PREFIX + key, JSON.stringify(value));
+        dispatchEvent(new CustomEvent('preferencesChanged', { 
+            detail: { key, value } 
+        }));
+    };
+
+    const getAll = () => {
+        return Object.keys(DEFAULT_PREFERENCES).reduce((prefs, key) => {
+            prefs[key] = get(key);
+            return prefs;
+        }, {});
+    };
+
+    const reset = () => {
+        Object.keys(DEFAULT_PREFERENCES).forEach(key => {
+            localStorage.removeItem(PREFIX + key);
+        });
+        dispatchEvent(new CustomEvent('preferencesReset'));
+    };
+
+    const subscribe = (callback) => {
+        const handler = (event) => callback(event.detail);
+        addEventListener('preferencesChanged', handler);
+        return () => removeEventListener('preferencesChanged', handler);
+    };
+
+    return {
+        get,
+        set,
+        getAll,
+        reset,
+        subscribe,
+        DEFAULT_PREFERENCES
+    };
+})();
+
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = UserPreferencesManager;
+}
