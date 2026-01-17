@@ -74,4 +74,101 @@ const UserPreferencesManager = (() => {
     getAll: getAllPreferences,
     subscribe
   };
+})();const UserPreferencesManager = (() => {
+    const PREFERENCES_KEY = 'app_user_preferences';
+    
+    const defaultPreferences = {
+        theme: 'light',
+        language: 'en',
+        notifications: true,
+        fontSize: 16,
+        autoSave: false,
+        timezone: 'UTC'
+    };
+
+    const loadPreferences = () => {
+        try {
+            const stored = localStorage.getItem(PREFERENCES_KEY);
+            if (stored) {
+                return { ...defaultPreferences, ...JSON.parse(stored) };
+            }
+        } catch (error) {
+            console.warn('Failed to load preferences:', error);
+        }
+        return { ...defaultPreferences };
+    };
+
+    const savePreferences = (preferences) => {
+        try {
+            localStorage.setItem(PREFERENCES_KEY, JSON.stringify(preferences));
+            return true;
+        } catch (error) {
+            console.error('Failed to save preferences:', error);
+            return false;
+        }
+    };
+
+    const updatePreference = (key, value) => {
+        if (!defaultPreferences.hasOwnProperty(key)) {
+            throw new Error(`Invalid preference key: ${key}`);
+        }
+        
+        const current = loadPreferences();
+        const updated = { ...current, [key]: value };
+        
+        if (savePreferences(updated)) {
+            dispatchPreferenceChange(key, value);
+            return true;
+        }
+        return false;
+    };
+
+    const resetPreferences = () => {
+        localStorage.removeItem(PREFERENCES_KEY);
+        Object.entries(defaultPreferences).forEach(([key, value]) => {
+            dispatchPreferenceChange(key, value);
+        });
+        return true;
+    };
+
+    const dispatchPreferenceChange = (key, value) => {
+        window.dispatchEvent(new CustomEvent('preferencechange', {
+            detail: { key, value }
+        }));
+    };
+
+    const getPreference = (key) => {
+        const preferences = loadPreferences();
+        return preferences[key];
+    };
+
+    const getAllPreferences = () => {
+        return loadPreferences();
+    };
+
+    const validatePreference = (key, value) => {
+        const validators = {
+            theme: (val) => ['light', 'dark', 'auto'].includes(val),
+            language: (val) => /^[a-z]{2}(-[A-Z]{2})?$/.test(val),
+            notifications: (val) => typeof val === 'boolean',
+            fontSize: (val) => Number.isInteger(val) && val >= 12 && val <= 24,
+            autoSave: (val) => typeof val === 'boolean',
+            timezone: (val) => Intl.supportedValuesOf('timeZone').includes(val)
+        };
+
+        if (!validators[key]) return false;
+        return validators[key](value);
+    };
+
+    return {
+        get: getPreference,
+        getAll: getAllPreferences,
+        set: updatePreference,
+        reset: resetPreferences,
+        validate: validatePreference
+    };
 })();
+
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = UserPreferencesManager;
+}
