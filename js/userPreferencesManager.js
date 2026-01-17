@@ -96,4 +96,58 @@ const userPreferencesManager = (() => {
   };
 })();
 
-export default userPreferencesManager;
+export default userPreferencesManager;class UserPreferencesManager {
+  constructor() {
+    this.storageKey = 'user_preferences';
+    this.defaults = {
+      theme: 'light',
+      language: 'en',
+      notifications: true,
+      fontSize: 16
+    };
+    this.preferences = this.loadPreferences();
+  }
+
+  loadPreferences() {
+    try {
+      const stored = localStorage.getItem(this.storageKey);
+      return stored ? { ...this.defaults, ...JSON.parse(stored) } : { ...this.defaults };
+    } catch (error) {
+      console.error('Failed to load preferences:', error);
+      return { ...this.defaults };
+    }
+  }
+
+  savePreferences() {
+    try {
+      localStorage.setItem(this.storageKey, JSON.stringify(this.preferences));
+      return true;
+    } catch (error) {
+      console.error('Failed to save preferences:', error);
+      return false;
+    }
+  }
+
+  getPreference(key) {
+    return this.preferences[key] !== undefined ? this.preferences[key] : this.defaults[key];
+  }
+
+  setPreference(key, value) {
+    if (this.defaults[key] !== undefined) {
+      this.preferences[key] = value;
+      return this.savePreferences();
+    }
+    return false;
+  }
+
+  resetToDefaults() {
+    this.preferences = { ...this.defaults };
+    return this.savePreferences();
+  }
+
+  getAllPreferences() {
+    return { ...this.preferences };
+  }
+}
+
+const preferencesManager = new UserPreferencesManager();
