@@ -83,4 +83,40 @@ function validateUserInput(username, password) {
     };
 }
 
-export { validateUserInput, validateUsername, validatePassword };
+export { validateUserInput, validateUsername, validatePassword };function validateUserInput(input, type) {
+    const trimmedInput = input.trim();
+    
+    if (type === 'username') {
+        const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
+        if (!usernameRegex.test(trimmedInput)) {
+            return {
+                isValid: false,
+                message: 'Username must be 3-20 characters and contain only letters, numbers, and underscores'
+            };
+        }
+    }
+    
+    if (type === 'email') {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(trimmedInput)) {
+            return {
+                isValid: false,
+                message: 'Please enter a valid email address'
+            };
+        }
+    }
+    
+    if (trimmedInput.length === 0) {
+        return {
+            isValid: false,
+            message: 'This field is required'
+        };
+    }
+    
+    return {
+        isValid: true,
+        message: 'Validation passed'
+    };
+}
+
+export default validateUserInput;
