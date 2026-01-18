@@ -8,14 +8,14 @@ function validateEmail(email) {
     return emailRegex.test(email);
 }
 
-function validateUserInput(username, email) {
+function validateUserInput(userData) {
     const errors = [];
     
-    if (!validateUsername(username)) {
+    if (!validateUsername(userData.username)) {
         errors.push('Username must be 3-20 characters and contain only letters, numbers, and underscores');
     }
     
-    if (!validateEmail(email)) {
+    if (!validateEmail(userData.email)) {
         errors.push('Please enter a valid email address');
     }
     
@@ -25,38 +25,4 @@ function validateUserInput(username, email) {
     };
 }
 
-export { validateUserInput, validateUsername, validateEmail };
-function sanitizeInput(input) {
-  if (typeof input !== 'string') {
-    return '';
-  }
-  
-  return input
-    .trim()
-    .replace(/[<>]/g, '')
-    .substring(0, 255);
-}
-
-function validateEmail(email) {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
-}
-
-function validatePassword(password) {
-  if (password.length < 8) {
-    return false;
-  }
-  
-  const hasUpperCase = /[A-Z]/.test(password);
-  const hasLowerCase = /[a-z]/.test(password);
-  const hasNumbers = /\d/.test(password);
-  const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
-  
-  return hasUpperCase && hasLowerCase && hasNumbers && hasSpecialChar;
-}
-
-module.exports = {
-  sanitizeInput,
-  validateEmail,
-  validatePassword
-};
+module.exports = validateUserInput;
