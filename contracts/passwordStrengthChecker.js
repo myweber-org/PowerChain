@@ -40,4 +40,38 @@ function validatePassword(password) {
     };
 }
 
-export { validatePassword, calculatePasswordEntropy, evaluateStrength };
+export { validatePassword, calculatePasswordEntropy, evaluateStrength };function validatePassword(password, rules) {
+    const errors = [];
+    const checks = {
+        minLength: (p, len) => p.length >= len,
+        hasUppercase: (p) => /[A-Z]/.test(p),
+        hasLowercase: (p) => /[a-z]/.test(p),
+        hasNumber: (p) => /\d/.test(p),
+        hasSpecial: (p) => /[!@#$%^&*(),.?":{}|<>]/.test(p),
+        noSpaces: (p) => !/\s/.test(p)
+    };
+
+    rules.forEach(rule => {
+        if (rule.required && !checks[rule.type](password, rule.value)) {
+            errors.push(rule.message || `Password must meet ${rule.type} requirement`);
+        }
+    });
+
+    return {
+        isValid: errors.length === 0,
+        errors: errors,
+        score: calculateStrengthScore(password)
+    };
+}
+
+function calculateStrengthScore(password) {
+    let score = 0;
+    if (password.length >= 8) score += 1;
+    if (/[A-Z]/.test(password)) score += 1;
+    if (/[a-z]/.test(password)) score += 1;
+    if (/\d/.test(password)) score += 1;
+    if (/[^A-Za-z0-9]/.test(password)) score += 1;
+    return Math.min(score, 5);
+}
+
+export { validatePassword, calculateStrengthScore };
