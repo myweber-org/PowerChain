@@ -1,6 +1,6 @@
-function formatCurrency(amount, locale = 'en-US', currency = 'USD') {
-    if (typeof amount !== 'number' || isNaN(amount)) {
-        throw new TypeError('Amount must be a valid number');
+function formatCurrency(value, locale = 'en-US', currency = 'USD') {
+    if (typeof value !== 'number' || isNaN(value)) {
+        throw new TypeError('Value must be a valid number');
     }
     
     const formatter = new Intl.NumberFormat(locale, {
@@ -10,7 +10,7 @@ function formatCurrency(amount, locale = 'en-US', currency = 'USD') {
         maximumFractionDigits: 2
     });
     
-    return formatter.format(amount);
+    return formatter.format(value);
 }
 
 function parseCurrency(formattedString, locale = 'en-US') {
@@ -23,29 +23,7 @@ function parseCurrency(formattedString, locale = 'en-US') {
         .replace(regex, '')
         .replace(decimalSeparator, '.');
     
-    const parsedValue = parseFloat(numericString);
-    
-    return isNaN(parsedValue) ? 0 : parsedValue;
-}
-
-export { formatCurrency, parseCurrency };function formatCurrency(amount, locale = 'en-US', currency = 'USD') {
-  return new Intl.NumberFormat(locale, {
-    style: 'currency',
-    currency: currency
-  }).format(amount);
-}
-
-function parseCurrency(formattedString, locale = 'en-US') {
-  const example = formatCurrency(0, locale);
-  const decimalSeparator = example.replace(/\d/g, '').charAt(1);
-  const groupSeparator = example.replace(/\d/g, '').charAt(0);
-  
-  const cleanString = formattedString
-    .replace(new RegExp('\\' + groupSeparator, 'g'), '')
-    .replace(new RegExp('\\' + decimalSeparator), '.')
-    .replace(/[^\d.-]/g, '');
-  
-  return parseFloat(cleanString);
+    return parseFloat(numericString);
 }
 
 export { formatCurrency, parseCurrency };
