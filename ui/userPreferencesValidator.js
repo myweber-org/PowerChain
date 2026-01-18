@@ -99,4 +99,45 @@ function validateUserPreferences(preferences) {
     }
     
     return true;
+}function validateUserPreferences(preferences) {
+    const allowedThemes = ['light', 'dark', 'auto'];
+    const allowedLanguages = ['en', 'es', 'fr', 'de'];
+    const maxItemsPerPage = 100;
+
+    if (!preferences || typeof preferences !== 'object') {
+        throw new Error('Preferences must be an object');
+    }
+
+    if (preferences.theme && !allowedThemes.includes(preferences.theme)) {
+        throw new Error(`Theme must be one of: ${allowedThemes.join(', ')}`);
+    }
+
+    if (preferences.language && !allowedLanguages.includes(preferences.language)) {
+        throw new Error(`Language must be one of: ${allowedLanguages.join(', ')}`);
+    }
+
+    if (preferences.itemsPerPage) {
+        const items = Number(preferences.itemsPerPage);
+        if (isNaN(items) || items < 1 || items > maxItemsPerPage) {
+            throw new Error(`Items per page must be between 1 and ${maxItemsPerPage}`);
+        }
+    }
+
+    if (preferences.notifications) {
+        if (typeof preferences.notifications !== 'object') {
+            throw new Error('Notifications must be an object');
+        }
+        
+        const notificationTypes = ['email', 'push', 'sms'];
+        for (const type of notificationTypes) {
+            if (preferences.notifications[type] !== undefined && 
+                typeof preferences.notifications[type] !== 'boolean') {
+                throw new Error(`Notification preference for ${type} must be boolean`);
+            }
+        }
+    }
+
+    return true;
 }
+
+module.exports = { validateUserPreferences };
