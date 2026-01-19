@@ -48,4 +48,23 @@ function clearUserCache(userId = null) {
     }
 }
 
-export { fetchUserData, clearUserCache };
+export { fetchUserData, clearUserCache };function fetchUserData(userId) {
+  const apiUrl = `https://jsonplaceholder.typicode.com/users/${userId}`;
+  
+  fetch(apiUrl)
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log('User Data:', data);
+      return data;
+    })
+    .catch(error => {
+      console.error('Error fetching user data:', error);
+    });
+}
+
+fetchUserData(1);
