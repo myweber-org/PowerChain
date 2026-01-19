@@ -69,4 +69,67 @@ function clearUserDataCache(userId = null) {
     }
 }
 
-export { fetchUserData, clearUserDataCache };
+export { fetchUserData, clearUserDataCache };async function fetchUserData(userId, maxRetries = 3) {
+    const url = `https://api.example.com/users/${userId}`;
+    let lastError;
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+            const response = await fetch(url);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            console.log(`User data fetched successfully on attempt ${attempt}`);
+            return data;
+            
+        } catch (error) {
+            lastError = error;
+            console.warn(`Attempt ${attempt} failed: ${error.message}`);
+            
+            if (attempt < maxRetries) {
+                const delay = Math.min(1000 * Math.pow(2, attempt - 1), 10000);
+                console.log(`Retrying in ${delay}ms...`);
+                await new Promise(resolve => setTimeout(resolve, delay));
+            }
+        }
+    }
+
+    throw new Error(`Failed to fetch user data after ${maxRetries} attempts: ${lastError.message}`);
+}
+
+function validateUserId(userId) {
+    if (!userId || typeof userId !== 'string') {
+        throw new Error('Invalid user ID provided');
+    }
+    
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(userId)) {
+        throw new Error('User ID must be a valid UUID format');
+    }
+    
+    return true;
+}
+
+async function getUserProfile(userId) {
+    try {
+        validateUserId(userId);
+        const userData = await fetchUserData(userId);
+        
+        return {
+            id: userData.id,
+            name: userData.name,
+            email: userData.email,
+            lastActive: new Date(userData.lastActive),
+            profileComplete: userData.profileFields && userData.profileFields.length > 0
+        };
+        
+    } catch (error) {
+        console.error('Failed to get user profile:', error);
+        throw error;
+    }
+}
+
+export { fetchUserData, getUserProfile };
