@@ -147,4 +147,44 @@ function loadPreferences() {
   return { ...defaultPreferences };
 }
 
-export { validatePreferences, savePreferences, loadPreferences, defaultPreferences };
+export { validatePreferences, savePreferences, loadPreferences, defaultPreferences };const userPreferences = {
+  theme: 'light',
+  fontSize: 16,
+  notifications: true,
+  language: 'en'
+};
+
+function savePreferences(prefs) {
+  try {
+    localStorage.setItem('userPreferences', JSON.stringify(prefs));
+    return true;
+  } catch (error) {
+    console.error('Failed to save preferences:', error);
+    return false;
+  }
+}
+
+function loadPreferences() {
+  try {
+    const saved = localStorage.getItem('userPreferences');
+    if (saved) {
+      return JSON.parse(saved);
+    }
+  } catch (error) {
+    console.error('Failed to load preferences:', error);
+  }
+  return { ...userPreferences };
+}
+
+function updatePreference(key, value) {
+  const prefs = loadPreferences();
+  prefs[key] = value;
+  return savePreferences(prefs);
+}
+
+function resetPreferences() {
+  localStorage.removeItem('userPreferences');
+  return { ...userPreferences };
+}
+
+export { userPreferences, savePreferences, loadPreferences, updatePreference, resetPreferences };
