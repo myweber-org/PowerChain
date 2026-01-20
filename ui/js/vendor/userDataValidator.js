@@ -1,37 +1,29 @@
-function validateEmail(email) {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
+function validateUserData(userData) {
+  const errors = {};
+  
+  if (!userData.username || userData.username.trim().length < 3) {
+    errors.username = 'Username must be at least 3 characters long';
+  }
+  
+  if (!userData.email || !isValidEmail(userData.email)) {
+    errors.email = 'Please provide a valid email address';
+  }
+  
+  if (!userData.password || userData.password.length < 8) {
+    errors.password = 'Password must be at least 8 characters long';
+  }
+  
+  if (userData.password !== userData.confirmPassword) {
+    errors.confirmPassword = 'Passwords do not match';
+  }
+  
+  return {
+    isValid: Object.keys(errors).length === 0,
+    errors: errors
+  };
 }
 
-function validatePassword(password) {
-    const minLength = 8;
-    const hasUpperCase = /[A-Z]/.test(password);
-    const hasLowerCase = /[a-z]/.test(password);
-    const hasNumbers = /\d/.test(password);
-    const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
-    
-    return password.length >= minLength && 
-           hasUpperCase && 
-           hasLowerCase && 
-           hasNumbers && 
-           hasSpecialChar;
+function isValidEmail(email) {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
 }
-
-function validateUserInput(email, password) {
-    const errors = [];
-    
-    if (!validateEmail(email)) {
-        errors.push('Invalid email format');
-    }
-    
-    if (!validatePassword(password)) {
-        errors.push('Password must be at least 8 characters with uppercase, lowercase, number, and special character');
-    }
-    
-    return {
-        isValid: errors.length === 0,
-        errors: errors
-    };
-}
-
-export { validateEmail, validatePassword, validateUserInput };
