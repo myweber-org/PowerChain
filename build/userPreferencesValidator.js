@@ -1,30 +1,38 @@
 function validateUserPreferences(preferences) {
-    const errors = [];
-
-    if (!preferences || typeof preferences !== 'object') {
-        errors.push('Preferences must be an object');
-        return errors;
+    const validKeys = ['theme', 'notifications', 'language', 'timezone'];
+    const requiredKeys = ['theme', 'language'];
+    
+    if (typeof preferences !== 'object' || preferences === null) {
+        throw new Error('Preferences must be a non-null object');
     }
-
-    if (preferences.theme && !['light', 'dark', 'auto'].includes(preferences.theme)) {
-        errors.push('Theme must be light, dark, or auto');
+    
+    for (const key of Object.keys(preferences)) {
+        if (!validKeys.includes(key)) {
+            throw new Error(`Invalid preference key: ${key}`);
+        }
     }
-
-    if (preferences.language && typeof preferences.language !== 'string') {
-        errors.push('Language must be a string');
+    
+    for (const requiredKey of requiredKeys) {
+        if (!preferences.hasOwnProperty(requiredKey)) {
+            throw new Error(`Missing required preference: ${requiredKey}`);
+        }
     }
-
+    
+    if (!['light', 'dark', 'auto'].includes(preferences.theme)) {
+        throw new Error('Theme must be light, dark, or auto');
+    }
+    
     if (preferences.notifications !== undefined && typeof preferences.notifications !== 'boolean') {
-        errors.push('Notifications must be a boolean value');
+        throw new Error('Notifications must be a boolean value');
     }
-
-    if (preferences.itemsPerPage && (typeof preferences.itemsPerPage !== 'number' || preferences.itemsPerPage < 5 || preferences.itemsPerPage > 100)) {
-        errors.push('Items per page must be a number between 5 and 100');
+    
+    if (!/^[a-z]{2}(-[A-Z]{2})?$/.test(preferences.language)) {
+        throw new Error('Language must be in format like en or en-US');
     }
-
+    
     if (preferences.timezone && !/^[A-Za-z_]+\/[A-Za-z_]+$/.test(preferences.timezone)) {
-        errors.push('Timezone must be in format Area/Location');
+        throw new Error('Timezone must be in format like America/New_York');
     }
-
-    return errors;
+    
+    return true;
 }
