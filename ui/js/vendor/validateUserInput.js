@@ -18,6 +18,6 @@ function validateUserInput(username, password) {
     
     return {
         isValid: true,
-        message: "Input validation successful."
+        message: "Input validation passed."
     };
 }
