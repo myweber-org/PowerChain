@@ -50,4 +50,42 @@ class CurrencyConverter {
   }
 }
 
-module.exports = CurrencyConverter;
+module.exports = CurrencyConverter;const exchangeRates = {};
+
+async function fetchExchangeRate(base, target) {
+    const cacheKey = `${base}_${target}`;
+    if (exchangeRates[cacheKey] && (Date.now() - exchangeRates[cacheKey].timestamp) < 3600000) {
+        return exchangeRates[cacheKey].rate;
+    }
+
+    try {
+        const response = await fetch(`https://api.exchangerate-api.com/v4/latest/${base}`);
+        const data = await response.json();
+        const rate = data.rates[target];
+        
+        if (rate) {
+            exchangeRates[cacheKey] = {
+                rate: rate,
+                timestamp: Date.now()
+            };
+            return rate;
+        }
+    } catch (error) {
+        console.error('Failed to fetch exchange rate:', error);
+    }
+    
+    return null;
+}
+
+function convertCurrency(amount, rate) {
+    if (typeof amount !== 'number' || isNaN(amount)) {
+        throw new Error('Amount must be a valid number');
+    }
+    if (typeof rate !== 'number' || isNaN(rate)) {
+        throw new Error('Rate must be a valid number');
+    }
+    
+    return parseFloat((amount * rate).toFixed(2));
+}
+
+export { fetchExchangeRate, convertCurrency };
