@@ -235,4 +235,47 @@ if (typeof module !== 'undefined' && module.exports) {
   }
 };
 
-export default UserPreferences;
+export default UserPreferences;const UserPreferences = {
+  preferences: {},
+
+  init() {
+    const stored = localStorage.getItem('userPreferences');
+    if (stored) {
+      try {
+        this.preferences = JSON.parse(stored);
+      } catch (e) {
+        console.warn('Failed to parse stored preferences');
+        this.preferences = {};
+      }
+    }
+  },
+
+  set(key, value) {
+    this.preferences[key] = value;
+    this.save();
+  },
+
+  get(key, defaultValue = null) {
+    return this.preferences[key] !== undefined ? this.preferences[key] : defaultValue;
+  },
+
+  remove(key) {
+    delete this.preferences[key];
+    this.save();
+  },
+
+  clear() {
+    this.preferences = {};
+    localStorage.removeItem('userPreferences');
+  },
+
+  save() {
+    localStorage.setItem('userPreferences', JSON.stringify(this.preferences));
+  },
+
+  getAll() {
+    return { ...this.preferences };
+  }
+};
+
+UserPreferences.init();
