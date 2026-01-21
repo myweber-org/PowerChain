@@ -36,4 +36,30 @@ function displayError(message) {
   if (outputDiv) {
     outputDiv.innerHTML = `<p class="error">Error: ${message}</p>`;
   }
+}async function fetchUserData(url) {
+    try {
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        console.log('Fetched user data:', data);
+        return data;
+    } catch (error) {
+        console.error('Error fetching user data:', error);
+        return null;
+    }
 }
+
+function displayUserData(users) {
+    if (!users || !Array.isArray(users)) {
+        console.log('No valid user data to display.');
+        return;
+    }
+    users.forEach(user => {
+        console.log(`User: ${user.name}, Email: ${user.email}`);
+    });
+}
+
+const apiUrl = 'https://jsonplaceholder.typicode.com/users';
+fetchUserData(apiUrl).then(displayUserData);
