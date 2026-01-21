@@ -69,4 +69,41 @@ function createFilePreview(file) {
     });
 }
 
-export { validateFile, handleFileUpload, createFilePreview };
+export { validateFile, handleFileUpload, createFilePreview };function uploadFile(file, onProgress, onComplete) {
+  const validTypes = ['image/jpeg', 'image/png', 'application/pdf'];
+  const maxSize = 10 * 1024 * 1024;
+
+  if (!validTypes.includes(file.type)) {
+    throw new Error('Invalid file type. Only JPEG, PNG, and PDF are allowed.');
+  }
+
+  if (file.size > maxSize) {
+    throw new Error('File size exceeds 10MB limit.');
+  }
+
+  const xhr = new XMLHttpRequest();
+  const formData = new FormData();
+  formData.append('file', file);
+
+  xhr.upload.addEventListener('progress', (event) => {
+    if (event.lengthComputable) {
+      const percentComplete = (event.loaded / event.total) * 100;
+      onProgress(percentComplete);
+    }
+  });
+
+  xhr.addEventListener('load', () => {
+    if (xhr.status === 200) {
+      onComplete(null, JSON.parse(xhr.responseText));
+    } else {
+      onComplete(new Error(`Upload failed with status: ${xhr.status}`), null);
+    }
+  });
+
+  xhr.addEventListener('error', () => {
+    onComplete(new Error('Network error during upload'), null);
+  });
+
+  xhr.open('POST', '/api/upload', true);
+  xhr.send(formData);
+}
