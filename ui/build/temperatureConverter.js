@@ -6,13 +6,15 @@ function fahrenheitToCelsius(fahrenheit) {
     return (fahrenheit - 32) * 5/9;
 }
 
-function convertTemperature(value, unit) {
-    if (unit.toLowerCase() === 'c') {
+function convertTemperature(value, fromUnit, toUnit) {
+    if (fromUnit === 'C' && toUnit === 'F') {
         return celsiusToFahrenheit(value);
-    } else if (unit.toLowerCase() === 'f') {
+    } else if (fromUnit === 'F' && toUnit === 'C') {
         return fahrenheitToCelsius(value);
+    } else if (fromUnit === toUnit) {
+        return value;
     } else {
-        throw new Error('Invalid unit. Use "C" for Celsius or "F" for Fahrenheit.');
+        throw new Error('Unsupported temperature conversion');
     }
 }
 
