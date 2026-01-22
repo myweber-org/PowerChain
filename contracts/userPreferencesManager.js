@@ -63,4 +63,56 @@ const UserPreferencesManager = (function() {
         reset: resetPreferences,
         subscribe: subscribe
     };
-})();
+})();const UserPreferences = {
+  preferences: {},
+
+  init() {
+    this.loadPreferences();
+    this.setupAutoSave();
+  },
+
+  loadPreferences() {
+    const stored = localStorage.getItem('userPreferences');
+    if (stored) {
+      try {
+        this.preferences = JSON.parse(stored);
+      } catch (e) {
+        console.warn('Failed to parse stored preferences:', e);
+        this.preferences = {};
+      }
+    }
+  },
+
+  savePreferences() {
+    localStorage.setItem('userPreferences', JSON.stringify(this.preferences));
+  },
+
+  setupAutoSave() {
+    window.addEventListener('beforeunload', () => this.savePreferences());
+  },
+
+  setPreference(key, value) {
+    this.preferences[key] = value;
+    this.savePreferences();
+  },
+
+  getPreference(key, defaultValue = null) {
+    return this.preferences.hasOwnProperty(key) ? this.preferences[key] : defaultValue;
+  },
+
+  removePreference(key) {
+    if (this.preferences.hasOwnProperty(key)) {
+      delete this.preferences[key];
+      this.savePreferences();
+      return true;
+    }
+    return false;
+  },
+
+  clearAllPreferences() {
+    this.preferences = {};
+    localStorage.removeItem('userPreferences');
+  }
+};
+
+UserPreferences.init();
