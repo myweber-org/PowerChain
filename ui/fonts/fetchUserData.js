@@ -247,4 +247,26 @@ function displayUserData(user) {
 }
 
 // Example usage
-fetchUserData(1);
+fetchUserData(1);async function fetchUserData(userId) {
+  try {
+    const response = await fetch(`https://api.example.com/users/${userId}`);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const userData = await response.json();
+    return processUserData(userData);
+  } catch (error) {
+    console.error('Failed to fetch user data:', error);
+    return null;
+  }
+}
+
+function processUserData(data) {
+  return {
+    id: data.id,
+    name: `${data.firstName} ${data.lastName}`,
+    email: data.email,
+    isActive: data.status === 'active',
+    lastLogin: new Date(data.lastLogin)
+  };
+}
