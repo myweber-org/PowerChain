@@ -278,4 +278,111 @@ export default UserPreferences;const UserPreferences = {
   }
 };
 
-UserPreferences.init();
+UserPreferences.init();const userPreferencesManager = (() => {
+    const STORAGE_KEY = 'app_preferences';
+    const defaultPreferences = {
+        theme: 'light',
+        language: 'en',
+        notifications: true,
+        fontSize: 16,
+        autoSave: true
+    };
+
+    function loadPreferences() {
+        try {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            return stored ? { ...defaultPreferences, ...JSON.parse(stored) } : { ...defaultPreferences };
+        } catch (error) {
+            console.error('Failed to load preferences:', error);
+            return { ...defaultPreferences };
+        }
+    }
+
+    function savePreferences(preferences) {
+        try {
+            const validated = validatePreferences(preferences);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(validated));
+            return true;
+        } catch (error) {
+            console.error('Failed to save preferences:', error);
+            return false;
+        }
+    }
+
+    function validatePreferences(preferences) {
+        const valid = { ...defaultPreferences };
+        
+        if (preferences.theme && ['light', 'dark', 'auto'].includes(preferences.theme)) {
+            valid.theme = preferences.theme;
+        }
+        
+        if (preferences.language && typeof preferences.language === 'string') {
+            valid.language = preferences.language.substring(0, 5);
+        }
+        
+        if (typeof preferences.notifications === 'boolean') {
+            valid.notifications = preferences.notifications;
+        }
+        
+        if (typeof preferences.fontSize === 'number' && preferences.fontSize >= 12 && preferences.fontSize <= 24) {
+            valid.fontSize = preferences.fontSize;
+        }
+        
+        if (typeof preferences.autoSave === 'boolean') {
+            valid.autoSave = preferences.autoSave;
+        }
+        
+        return valid;
+    }
+
+    function resetPreferences() {
+        localStorage.removeItem(STORAGE_KEY);
+        return { ...defaultPreferences };
+    }
+
+    function getPreference(key) {
+        const prefs = loadPreferences();
+        return prefs[key] !== undefined ? prefs[key] : defaultPreferences[key];
+    }
+
+    function setPreference(key, value) {
+        const current = loadPreferences();
+        const updated = { ...current, [key]: value };
+        return savePreferences(updated);
+    }
+
+    function getAllPreferences() {
+        return loadPreferences();
+    }
+
+    function setMultiplePreferences(preferences) {
+        const current = loadPreferences();
+        const updated = { ...current, ...preferences };
+        return savePreferences(updated);
+    }
+
+    function subscribe(callback) {
+        if (typeof callback !== 'function') return;
+        
+        const originalSetItem = localStorage.setItem;
+        localStorage.setItem = function(key, value) {
+            originalSetItem.apply(this, arguments);
+            if (key === STORAGE_KEY) {
+                callback(loadPreferences());
+            }
+        };
+        
+        return () => {
+            localStorage.setItem = originalSetItem;
+        };
+    }
+
+    return {
+        get: getPreference,
+        set: setPreference,
+        getAll: getAllPreferences,
+        setMultiple: setMultiplePreferences,
+        reset: resetPreferences,
+        subscribe
+    };
+})();
