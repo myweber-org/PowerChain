@@ -1,61 +1,39 @@
-async function fetchUserData(userId, maxRetries = 3) {
-    const url = `https://api.example.com/users/${userId}`;
+function fetchUserData(userId) {
+    const apiUrl = `https://jsonplaceholder.typicode.com/users/${userId}`;
     
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-        try {
-            const response = await fetch(url);
-            
+    fetch(apiUrl)
+        .then(response => {
             if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
-            
-            const data = await response.json();
-            console.log(`Successfully fetched data for user ${userId}`);
-            return data;
-            
-        } catch (error) {
-            console.error(`Attempt ${attempt} failed: ${error.message}`);
-            
-            if (attempt === maxRetries) {
-                throw new Error(`Failed to fetch user data after ${maxRetries} attempts`);
-            }
-            
-            const delay = Math.min(1000 * Math.pow(2, attempt - 1), 10000);
-            console.log(`Retrying in ${delay}ms...`);
-            await new Promise(resolve => setTimeout(resolve, delay));
-        }
+            return response.json();
+        })
+        .then(data => {
+            console.log('User Data:', data);
+            displayUserInfo(data);
+        })
+        .catch(error => {
+            console.error('Error fetching user data:', error);
+            displayErrorMessage(error.message);
+        });
+}
+
+function displayUserInfo(user) {
+    const outputDiv = document.getElementById('userOutput');
+    if (outputDiv) {
+        outputDiv.innerHTML = `
+            <h3>${user.name}</h3>
+            <p>Email: ${user.email}</p>
+            <p>Phone: ${user.phone}</p>
+            <p>Website: ${user.website}</p>
+            <p>Company: ${user.company.name}</p>
+        `;
     }
 }
 
-function validateUserId(userId) {
-    if (typeof userId !== 'string' && typeof userId !== 'number') {
-        throw new TypeError('User ID must be a string or number');
-    }
-    
-    if (typeof userId === 'string' && userId.trim() === '') {
-        throw new Error('User ID cannot be empty');
-    }
-    
-    return String(userId).trim();
-}
-
-async function getUserProfile(userId) {
-    try {
-        const validatedId = validateUserId(userId);
-        const userData = await fetchUserData(validatedId);
-        
-        return {
-            id: userData.id,
-            name: userData.name,
-            email: userData.email,
-            profilePicture: userData.avatar,
-            lastActive: new Date(userData.last_seen)
-        };
-        
-    } catch (error) {
-        console.error('Failed to get user profile:', error);
-        return null;
+function displayErrorMessage(message) {
+    const outputDiv = document.getElementById('userOutput');
+    if (outputDiv) {
+        outputDiv.innerHTML = `<p class="error">Failed to load user data: ${message}</p>`;
     }
 }
-
-export { fetchUserData, getUserProfile };
