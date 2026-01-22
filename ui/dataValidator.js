@@ -3,47 +3,40 @@ function validateEmail(email) {
     return emailRegex.test(email);
 }
 
-function validatePhone(phone) {
-    const phoneRegex = /^\+?[\d\s\-\(\)]{10,}$/;
-    return phoneRegex.test(phone);
+function validatePassword(password) {
+    return password.length >= 8 && 
+           /[A-Z]/.test(password) && 
+           /[a-z]/.test(password) && 
+           /\d/.test(password);
 }
 
 function sanitizeInput(input) {
-    return input.trim()
-        .replace(/[<>]/g, '')
-        .substring(0, 255);
+    return input.replace(/[<>]/g, '');
 }
 
-function validateFormData(data) {
+function validateFormData(userData) {
     const errors = [];
     
-    if (!validateEmail(data.email)) {
+    if (!validateEmail(userData.email)) {
         errors.push('Invalid email format');
     }
     
-    if (!validatePhone(data.phone)) {
-        errors.push('Invalid phone number');
+    if (!validatePassword(userData.password)) {
+        errors.push('Password must be at least 8 characters with uppercase, lowercase and number');
     }
     
-    const sanitizedName = sanitizeInput(data.name);
-    if (sanitizedName.length < 2) {
-        errors.push('Name must be at least 2 characters');
+    if (userData.username) {
+        userData.username = sanitizeInput(userData.username);
+        if (userData.username.length < 3) {
+            errors.push('Username must be at least 3 characters');
+        }
     }
     
     return {
         isValid: errors.length === 0,
         errors: errors,
-        sanitizedData: {
-            name: sanitizedName,
-            email: data.email.toLowerCase(),
-            phone: data.phone.replace(/\D/g, '')
-        }
+        sanitizedData: userData
     };
 }
 
-module.exports = {
-    validateEmail,
-    validatePhone,
-    sanitizeInput,
-    validateFormData
-};
+export { validateEmail, validatePassword, sanitizeInput, validateFormData };
