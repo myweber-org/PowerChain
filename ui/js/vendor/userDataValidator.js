@@ -1,29 +1,43 @@
-function validateUserData(userData) {
-  const errors = {};
-  
-  if (!userData.username || userData.username.trim().length < 3) {
-    errors.username = 'Username must be at least 3 characters long';
-  }
-  
-  if (!userData.email || !isValidEmail(userData.email)) {
-    errors.email = 'Please provide a valid email address';
-  }
-  
-  if (!userData.password || userData.password.length < 8) {
-    errors.password = 'Password must be at least 8 characters long';
-  }
-  
-  if (userData.password !== userData.confirmPassword) {
-    errors.confirmPassword = 'Passwords do not match';
-  }
-  
-  return {
-    isValid: Object.keys(errors).length === 0,
-    errors: errors
-  };
+function validateEmail(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
 }
 
-function isValidEmail(email) {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
+function validatePassword(password) {
+    return password.length >= 8 && 
+           /[A-Z]/.test(password) && 
+           /[a-z]/.test(password) && 
+           /\d/.test(password);
 }
+
+function validateUsername(username) {
+    const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
+    return usernameRegex.test(username);
+}
+
+function validateUserRegistration(data) {
+    const errors = {};
+    
+    if (!validateEmail(data.email)) {
+        errors.email = 'Invalid email format';
+    }
+    
+    if (!validatePassword(data.password)) {
+        errors.password = 'Password must be at least 8 characters with uppercase, lowercase and number';
+    }
+    
+    if (!validateUsername(data.username)) {
+        errors.username = 'Username must be 3-20 characters (letters, numbers, underscore)';
+    }
+    
+    if (data.password !== data.confirmPassword) {
+        errors.confirmPassword = 'Passwords do not match';
+    }
+    
+    return {
+        isValid: Object.keys(errors).length === 0,
+        errors: errors
+    };
+}
+
+export { validateUserRegistration, validateEmail, validatePassword, validateUsername };
