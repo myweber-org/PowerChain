@@ -1,29 +1,39 @@
-function currencyConverter(amount, fromCurrency, toCurrency) {
-    const exchangeRates = {
-        USD: { EUR: 0.85, GBP: 0.73, JPY: 110.15 },
-        EUR: { USD: 1.18, GBP: 0.86, JPY: 129.53 },
-        GBP: { USD: 1.37, EUR: 1.16, JPY: 150.89 },
-        JPY: { USD: 0.0091, EUR: 0.0077, GBP: 0.0066 }
-    };
+const exchangeRates = {
+    USD: 1.0,
+    EUR: 0.85,
+    GBP: 0.73,
+    JPY: 110.0,
+    CAD: 1.25,
+    AUD: 1.35,
+    CNY: 6.45
+};
 
-    if (!exchangeRates[fromCurrency] || !exchangeRates[fromCurrency][toCurrency]) {
-        throw new Error('Unsupported currency conversion');
+function convertCurrency(amount, fromCurrency, toCurrency) {
+    if (!exchangeRates[fromCurrency] || !exchangeRates[toCurrency]) {
+        throw new Error('Invalid currency code');
     }
-
-    const rate = exchangeRates[fromCurrency][toCurrency];
-    const convertedAmount = amount * rate;
     
-    return {
-        originalAmount: amount,
-        fromCurrency: fromCurrency,
-        toCurrency: toCurrency,
-        exchangeRate: rate,
-        convertedAmount: parseFloat(convertedAmount.toFixed(2))
-    };
+    const amountInUSD = amount / exchangeRates[fromCurrency];
+    const convertedAmount = amountInUSD * exchangeRates[toCurrency];
+    
+    return parseFloat(convertedAmount.toFixed(2));
 }
 
-function formatCurrencyOutput(conversionResult) {
-    return `${conversionResult.originalAmount} ${conversionResult.fromCurrency} = ${conversionResult.convertedAmount} ${conversionResult.toCurrency} (Rate: ${conversionResult.exchangeRate})`;
+function getAvailableCurrencies() {
+    return Object.keys(exchangeRates);
 }
 
-module.exports = { currencyConverter, formatCurrencyOutput };
+function updateExchangeRate(currency, rate) {
+    if (typeof rate !== 'number' || rate <= 0) {
+        throw new Error('Invalid exchange rate');
+    }
+    
+    exchangeRates[currency] = rate;
+    return true;
+}
+
+module.exports = {
+    convertCurrency,
+    getAvailableCurrencies,
+    updateExchangeRate
+};
