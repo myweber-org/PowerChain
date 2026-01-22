@@ -4,34 +4,32 @@ function validateEmail(email) {
 }
 
 function validatePassword(password) {
-    return password.length >= 8 && 
-           /[A-Z]/.test(password) && 
-           /[a-z]/.test(password) && 
-           /\d/.test(password);
+    const minLength = 8;
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasNumbers = /\d/.test(password);
+    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+    
+    return password.length >= minLength && 
+           hasUpperCase && 
+           hasLowerCase && 
+           hasNumbers && 
+           hasSpecialChar;
 }
 
-function validateUsername(username) {
-    const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
-    return usernameRegex.test(username);
-}
-
-function validateRegistrationForm(userData) {
+function validateUserInput(userData) {
     const errors = [];
     
-    if (!validateUsername(userData.username)) {
-        errors.push('Username must be 3-20 characters (letters, numbers, underscores)');
-    }
-    
     if (!validateEmail(userData.email)) {
-        errors.push('Please enter a valid email address');
+        errors.push('Invalid email format');
     }
     
     if (!validatePassword(userData.password)) {
-        errors.push('Password must be at least 8 characters with uppercase, lowercase and number');
+        errors.push('Password must be at least 8 characters with uppercase, lowercase, number and special character');
     }
     
-    if (userData.password !== userData.confirmPassword) {
-        errors.push('Passwords do not match');
+    if (userData.username && userData.username.length < 3) {
+        errors.push('Username must be at least 3 characters');
     }
     
     return {
@@ -40,4 +38,4 @@ function validateRegistrationForm(userData) {
     };
 }
 
-export { validateRegistrationForm, validateEmail, validatePassword, validateUsername };
+export { validateEmail, validatePassword, validateUserInput };
