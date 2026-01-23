@@ -58,4 +58,58 @@ const UserPreferencesManager = (() => {
     resetPreferences,
     subscribe
   };
-})();
+})();class UserPreferencesManager {
+    constructor() {
+        this.preferences = this.loadPreferences();
+    }
+
+    loadPreferences() {
+        const stored = localStorage.getItem('userPreferences');
+        if (stored) {
+            try {
+                return JSON.parse(stored);
+            } catch (error) {
+                console.error('Failed to parse stored preferences:', error);
+            }
+        }
+        return {
+            theme: 'light',
+            language: 'en',
+            notifications: true,
+            fontSize: 16
+        };
+    }
+
+    savePreferences() {
+        localStorage.setItem('userPreferences', JSON.stringify(this.preferences));
+    }
+
+    setPreference(key, value) {
+        if (this.preferences.hasOwnProperty(key)) {
+            this.preferences[key] = value;
+            this.savePreferences();
+            return true;
+        }
+        return false;
+    }
+
+    getPreference(key) {
+        return this.preferences[key];
+    }
+
+    resetToDefaults() {
+        this.preferences = {
+            theme: 'light',
+            language: 'en',
+            notifications: true,
+            fontSize: 16
+        };
+        this.savePreferences();
+    }
+
+    getAllPreferences() {
+        return { ...this.preferences };
+    }
+}
+
+export default UserPreferencesManager;
