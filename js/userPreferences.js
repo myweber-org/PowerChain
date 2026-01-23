@@ -158,4 +158,78 @@ function saveUserPreferences(preferences) {
     return validated;
 }
 
-export { validateUserPreferences, initializeUserPreferences, saveUserPreferences };
+export { validateUserPreferences, initializeUserPreferences, saveUserPreferences };function validateUserPreferences(preferences) {
+    const defaults = {
+        theme: 'light',
+        notifications: true,
+        language: 'en',
+        timezone: 'UTC',
+        resultsPerPage: 25
+    };
+
+    const validated = { ...defaults, ...preferences };
+
+    if (!['light', 'dark', 'auto'].includes(validated.theme)) {
+        validated.theme = defaults.theme;
+    }
+
+    if (typeof validated.notifications !== 'boolean') {
+        validated.notifications = defaults.notifications;
+    }
+
+    if (!['en', 'es', 'fr', 'de'].includes(validated.language)) {
+        validated.language = defaults.language;
+    }
+
+    if (typeof validated.timezone !== 'string' || validated.timezone.length === 0) {
+        validated.timezone = defaults.timezone;
+    }
+
+    if (!Number.isInteger(validated.resultsPerPage) || validated.resultsPerPage < 10 || validated.resultsPerPage > 100) {
+        validated.resultsPerPage = defaults.resultsPerPage;
+    }
+
+    return validated;
+}
+
+function initializeUserPreferences() {
+    let storedPreferences = {};
+    
+    try {
+        const stored = localStorage.getItem('userPreferences');
+        if (stored) {
+            storedPreferences = JSON.parse(stored);
+        }
+    } catch (error) {
+        console.warn('Failed to parse stored preferences, using defaults');
+    }
+
+    const preferences = validateUserPreferences(storedPreferences);
+    localStorage.setItem('userPreferences', JSON.stringify(preferences));
+    
+    return preferences;
+}
+
+function updateUserPreference(key, value) {
+    let currentPreferences = {};
+    
+    try {
+        const stored = localStorage.getItem('userPreferences');
+        if (stored) {
+            currentPreferences = JSON.parse(stored);
+        }
+    } catch (error) {
+        console.warn('Failed to parse stored preferences');
+    }
+
+    const updatedPreferences = validateUserPreferences({
+        ...currentPreferences,
+        [key]: value
+    });
+
+    localStorage.setItem('userPreferences', JSON.stringify(updatedPreferences));
+    
+    return updatedPreferences;
+}
+
+export { validateUserPreferences, initializeUserPreferences, updateUserPreference };
