@@ -56,4 +56,68 @@ const userPreferencesManager = (() => {
     export: exportPreferences,
     import: importPreferences
   };
-})();
+})();const UserPreferences = {
+    storageKey: 'app_preferences',
+
+    defaults: {
+        theme: 'light',
+        language: 'en',
+        notifications: true,
+        fontSize: 16
+    },
+
+    init() {
+        if (!this.getPreferences()) {
+            this.savePreferences(this.defaults);
+        }
+    },
+
+    getPreferences() {
+        try {
+            const stored = localStorage.getItem(this.storageKey);
+            return stored ? JSON.parse(stored) : null;
+        } catch (error) {
+            console.error('Failed to retrieve preferences:', error);
+            return null;
+        }
+    },
+
+    savePreferences(prefs) {
+        try {
+            const current = this.getPreferences() || this.defaults;
+            const merged = { ...current, ...prefs };
+            localStorage.setItem(this.storageKey, JSON.stringify(merged));
+            return true;
+        } catch (error) {
+            console.error('Failed to save preferences:', error);
+            return false;
+        }
+    },
+
+    getPreference(key) {
+        const prefs = this.getPreferences();
+        return prefs ? prefs[key] : this.defaults[key];
+    },
+
+    setPreference(key, value) {
+        const prefs = this.getPreferences() || this.defaults;
+        prefs[key] = value;
+        return this.savePreferences(prefs);
+    },
+
+    resetToDefaults() {
+        return this.savePreferences(this.defaults);
+    },
+
+    clearPreferences() {
+        try {
+            localStorage.removeItem(this.storageKey);
+            return true;
+        } catch (error) {
+            console.error('Failed to clear preferences:', error);
+            return false;
+        }
+    }
+};
+
+UserPreferences.init();
