@@ -59,4 +59,69 @@ function handleFileSelect(event, callback) {
     }
 }
 
-export { validateFileUpload, handleFileSelect };
+export { validateFileUpload, handleFileSelect };function validateFileUpload(file, options = {}) {
+    const defaultOptions = {
+        allowedTypes: ['image/jpeg', 'image/png', 'image/gif'],
+        maxSize: 5 * 1024 * 1024,
+        minSize: 1024
+    };
+
+    const settings = { ...defaultOptions, ...options };
+
+    if (!file) {
+        return { valid: false, error: 'No file provided' };
+    }
+
+    if (!settings.allowedTypes.includes(file.type)) {
+        return { 
+            valid: false, 
+            error: `File type not allowed. Allowed types: ${settings.allowedTypes.join(', ')}` 
+        };
+    }
+
+    if (file.size > settings.maxSize) {
+        return { 
+            valid: false, 
+            error: `File too large. Maximum size: ${settings.maxSize / 1024 / 1024}MB` 
+        };
+    }
+
+    if (file.size < settings.minSize) {
+        return { 
+            valid: false, 
+            error: `File too small. Minimum size: ${settings.minSize / 1024}KB` 
+        };
+    }
+
+    return { valid: true, file };
+}
+
+function createFileUploadHandler(validationOptions) {
+    return function(event) {
+        const fileInput = event.target;
+        const file = fileInput.files[0];
+        
+        const validationResult = validateFileUpload(file, validationOptions);
+        
+        if (!validationResult.valid) {
+            console.error('Upload failed:', validationResult.error);
+            fileInput.value = '';
+            return false;
+        }
+        
+        console.log('File validated successfully:', validationResult.file.name);
+        return true;
+    };
+}
+
+const imageUploadHandler = createFileUploadHandler({
+    allowedTypes: ['image/jpeg', 'image/png'],
+    maxSize: 10 * 1024 * 1024
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    const uploadInput = document.getElementById('fileUpload');
+    if (uploadInput) {
+        uploadInput.addEventListener('change', imageUploadHandler);
+    }
+});
