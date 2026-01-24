@@ -1,44 +1,47 @@
-function validateEmail(email) {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-}
+function validateRegistrationForm(email, password, confirmPassword) {
+    const errors = [];
 
-function validatePassword(password) {
-    if (password.length < 8) {
-        return false;
+    if (!email || !email.includes('@')) {
+        errors.push('Invalid email address');
     }
-    
+
+    if (!password || password.length < 8) {
+        errors.push('Password must be at least 8 characters long');
+    }
+
+    if (password !== confirmPassword) {
+        errors.push('Passwords do not match');
+    }
+
     const hasUpperCase = /[A-Z]/.test(password);
     const hasLowerCase = /[a-z]/.test(password);
     const hasNumbers = /\d/.test(password);
-    const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
-    
-    return hasUpperCase && hasLowerCase && hasNumbers && hasSpecialChar;
-}
+    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
 
-function validateRegistration(userData) {
-    const errors = {};
-    
-    if (!validateEmail(userData.email)) {
-        errors.email = 'Invalid email format';
+    if (!hasUpperCase || !hasLowerCase || !hasNumbers || !hasSpecialChar) {
+        errors.push('Password must contain uppercase, lowercase, numbers, and special characters');
     }
-    
-    if (!validatePassword(userData.password)) {
-        errors.password = 'Password must be at least 8 characters with uppercase, lowercase, number, and special character';
-    }
-    
-    if (userData.password !== userData.confirmPassword) {
-        errors.confirmPassword = 'Passwords do not match';
-    }
-    
-    if (userData.age && (userData.age < 13 || userData.age > 120)) {
-        errors.age = 'Age must be between 13 and 120';
-    }
-    
+
     return {
-        isValid: Object.keys(errors).length === 0,
+        isValid: errors.length === 0,
         errors: errors
     };
 }
 
-module.exports = { validateRegistration, validateEmail, validatePassword };
+function validateUserAge(birthDate) {
+    const today = new Date();
+    const birth = new Date(birthDate);
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+    
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+        age--;
+    }
+    
+    return age >= 13;
+}
+
+module.exports = {
+    validateRegistrationForm,
+    validateUserAge
+};
