@@ -3,40 +3,30 @@ function validateEmail(email) {
     return emailRegex.test(email);
 }
 
-function validatePassword(password) {
-    return password.length >= 8 && 
-           /[A-Z]/.test(password) && 
-           /[a-z]/.test(password) && 
-           /\d/.test(password);
+function validatePhoneNumber(phone) {
+    const phoneRegex = /^\+?[\d\s\-\(\)]{10,}$/;
+    return phoneRegex.test(phone);
 }
 
-function sanitizeInput(input) {
-    return input.replace(/[<>]/g, '');
-}
-
-function validateFormData(userData) {
+function validateFormData(data) {
     const errors = [];
     
-    if (!validateEmail(userData.email)) {
+    if (!validateEmail(data.email)) {
         errors.push('Invalid email format');
     }
     
-    if (!validatePassword(userData.password)) {
-        errors.push('Password must be at least 8 characters with uppercase, lowercase and number');
+    if (!validatePhoneNumber(data.phone)) {
+        errors.push('Invalid phone number format');
     }
     
-    if (userData.username) {
-        userData.username = sanitizeInput(userData.username);
-        if (userData.username.length < 3) {
-            errors.push('Username must be at least 3 characters');
-        }
+    if (data.name && data.name.trim().length < 2) {
+        errors.push('Name must be at least 2 characters long');
     }
     
     return {
         isValid: errors.length === 0,
-        errors: errors,
-        sanitizedData: userData
+        errors: errors
     };
 }
 
-export { validateEmail, validatePassword, sanitizeInput, validateFormData };
+export { validateEmail, validatePhoneNumber, validateFormData };
