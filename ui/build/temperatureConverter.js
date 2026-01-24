@@ -27,29 +27,28 @@ function convertTemperature(value, fromUnit, toUnit) {
     if (!units.includes(fromUnit) || !units.includes(toUnit)) {
         throw new Error('Invalid temperature unit');
     }
-
+    
     if (fromUnit === toUnit) {
         return value;
     }
-
-    if (fromUnit === 'C' && toUnit === 'F') {
-        return celsiusToFahrenheit(value);
+    
+    const conversionMap = {
+        'C_F': celsiusToFahrenheit,
+        'C_K': celsiusToKelvin,
+        'F_C': fahrenheitToCelsius,
+        'F_K': fahrenheitToKelvin,
+        'K_C': kelvinToCelsius,
+        'K_F': kelvinToFahrenheit
+    };
+    
+    const conversionKey = `${fromUnit}_${toUnit}`;
+    const conversionFunction = conversionMap[conversionKey];
+    
+    if (conversionFunction) {
+        return conversionFunction(value);
     }
-    if (fromUnit === 'C' && toUnit === 'K') {
-        return celsiusToKelvin(value);
-    }
-    if (fromUnit === 'F' && toUnit === 'C') {
-        return fahrenheitToCelsius(value);
-    }
-    if (fromUnit === 'F' && toUnit === 'K') {
-        return fahrenheitToKelvin(value);
-    }
-    if (fromUnit === 'K' && toUnit === 'C') {
-        return kelvinToCelsius(value);
-    }
-    if (fromUnit === 'K' && toUnit === 'F') {
-        return kelvinToFahrenheit(value);
-    }
+    
+    throw new Error('Conversion not supported');
 }
 
 module.exports = {
