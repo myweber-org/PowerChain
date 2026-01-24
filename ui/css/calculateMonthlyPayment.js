@@ -26,4 +26,13 @@ function validateLoanInputs(principal, rate, years) {
     if (years > 50) errors.push('Loan term cannot exceed 50 years');
     
     return errors;
+}function calculateMonthlyPayment(principal, annualInterestRate, years) {
+    const monthlyRate = annualInterestRate / 100 / 12;
+    const totalPayments = years * 12;
+    if (monthlyRate === 0) {
+        return principal / totalPayments;
+    }
+    const numerator = principal * monthlyRate * Math.pow(1 + monthlyRate, totalPayments);
+    const denominator = Math.pow(1 + monthlyRate, totalPayments) - 1;
+    return numerator / denominator;
 }
