@@ -16,14 +16,8 @@ function convertTemperature(value, unit) {
     }
 }
 
-function formatTemperature(value, unit) {
-    const symbol = unit.toLowerCase() === 'c' ? '°C' : '°F';
-    return `${value.toFixed(2)} ${symbol}`;
-}
-
 module.exports = {
     celsiusToFahrenheit,
     fahrenheitToCelsius,
-    convertTemperature,
-    formatTemperature
+    convertTemperature
 };
