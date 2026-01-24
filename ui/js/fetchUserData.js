@@ -19,7 +19,7 @@ function fetchUserData(userId) {
 }
 
 function displayUserInfo(user) {
-    const outputDiv = document.getElementById('user-info');
+    const outputDiv = document.getElementById('userOutput');
     if (outputDiv) {
         outputDiv.innerHTML = `
             <h3>${user.name}</h3>
@@ -32,18 +32,8 @@ function displayUserInfo(user) {
 }
 
 function displayErrorMessage(message) {
-    const outputDiv = document.getElementById('user-info');
+    const outputDiv = document.getElementById('userOutput');
     if (outputDiv) {
         outputDiv.innerHTML = `<p class="error">Error: ${message}</p>`;
     }
 }
-
-document.addEventListener('DOMContentLoaded', function() {
-    const fetchButton = document.getElementById('fetch-user-btn');
-    if (fetchButton) {
-        fetchButton.addEventListener('click', function() {
-            const userId = document.getElementById('user-id').value || 1;
-            fetchUserData(userId);
-        });
-    }
-});
