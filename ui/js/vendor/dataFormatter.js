@@ -1,49 +1,38 @@
-function formatDate(dateString, locale = 'en-US') {
-    const date = new Date(dateString);
-    if (isNaN(date.getTime())) {
-        throw new Error('Invalid date string provided');
+function formatDateWithTimezone(date) {
+    if (!(date instanceof Date)) {
+        throw new TypeError('Input must be a Date object');
     }
-    
-    const options = {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        weekday: 'long',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        timeZoneName: 'short'
-    };
-    
-    return date.toLocaleDateString(locale, options);
+
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+
+    const timezoneOffset = -date.getTimezoneOffset();
+    const offsetSign = timezoneOffset >= 0 ? '+' : '-';
+    const offsetHours = String(Math.floor(Math.abs(timezoneOffset) / 60)).padStart(2, '0');
+    const offsetMinutes = String(Math.abs(timezoneOffset) % 60).padStart(2, '0');
+
+    return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}${offsetSign}${offsetHours}:${offsetMinutes}`;
 }
 
-function calculateTimeDifference(startDate, endDate) {
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    
-    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-        throw new Error('Invalid date string provided');
+function parseFormattedDate(dateString) {
+    const regex = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})([+-])(\d{2}):(\d{2})$/;
+    const match = dateString.match(regex);
+
+    if (!match) {
+        throw new Error('Invalid date format. Expected YYYY-MM-DDTHH:mm:ss±HH:mm');
     }
-    
-    const diffInMs = Math.abs(end - start);
-    const diffInSeconds = Math.floor(diffInMs / 1000);
-    const diffInMinutes = Math.floor(diffInSeconds / 60);
-    const diffInHours = Math.floor(diffInMinutes / 60);
-    const diffInDays = Math.floor(diffInHours / 24);
-    
-    return {
-        milliseconds: diffInMs,
-        seconds: diffInSeconds,
-        minutes: diffInMinutes,
-        hours: diffInHours,
-        days: diffInDays
-    };
+
+    const [, year, month, day, hours, minutes, seconds, sign, offsetHours, offsetMinutes] = match;
+    const date = new Date(Date.UTC(year, month - 1, day, hours, minutes, seconds));
+
+    const offset = (sign === '+' ? 1 : -1) * (parseInt(offsetHours) * 60 + parseInt(offsetMinutes));
+    date.setMinutes(date.getMinutes() - offset);
+
+    return date;
 }
 
-function isValidDate(dateString) {
-    const date = new Date(dateString);
-    return !isNaN(date.getTime()) && dateString.trim() !== '';
-}
-
-export { formatDate, calculateTimeDifference, isValidDate };
+export { formatDateWithTimezone, parseFormattedDate };
