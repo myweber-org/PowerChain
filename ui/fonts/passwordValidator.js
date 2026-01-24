@@ -37,28 +37,24 @@ function validatePassword(password, options = {}) {
     return {
         isValid: errors.length === 0,
         errors: errors,
-        score: calculatePasswordScore(password, config)
+        score: calculatePasswordStrength(password)
     };
 }
 
-function calculatePasswordScore(password, config) {
+function calculatePasswordStrength(password) {
     let score = 0;
     
-    if (password.length >= config.minLength) score += 25;
-    if (password.length >= config.minLength + 4) score += 15;
+    if (password.length >= 8) score += 1;
+    if (password.length >= 12) score += 1;
+    if (/[A-Z]/.test(password)) score += 1;
+    if (/[a-z]/.test(password)) score += 1;
+    if (/\d/.test(password)) score += 1;
+    if (/[^A-Za-z0-9]/.test(password)) score += 1;
     
-    if (/[A-Z]/.test(password)) score += 15;
-    if (/[a-z]/.test(password)) score += 15;
-    if (/\d/.test(password)) score += 15;
+    const uniqueChars = new Set(password).size;
+    if (uniqueChars / password.length > 0.7) score += 1;
     
-    const specialCharRegex = new RegExp(`[${config.specialChars.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}]`);
-    if (specialCharRegex.test(password)) score += 15;
-    
-    if (/^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*])/.test(password)) {
-        score += 10;
-    }
-    
-    return Math.min(score, 100);
+    return Math.min(score, 7);
 }
 
-export { validatePassword, calculatePasswordScore };
+export { validatePassword, calculatePasswordStrength };
