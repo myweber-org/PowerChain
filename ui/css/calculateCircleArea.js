@@ -5,3 +5,5 @@ function calculateCircleArea(radius) {
     const area = Math.PI * Math.pow(radius, 2);
     return parseFloat(area.toFixed(2));
 }
+
+module.exports = calculateCircleArea;
