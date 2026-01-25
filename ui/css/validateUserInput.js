@@ -1,55 +1,65 @@
-function validateUsername(username) {
-    const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
-    return usernameRegex.test(username);
-}
 
-function validateEmail(email) {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-}
+function validateUserInput(input, options = {}) {
+  const {
+    minLength = 1,
+    maxLength = 100,
+    allowNumbers = true,
+    allowLetters = true,
+    allowSpaces = true,
+    allowedSpecialChars = '',
+    trim = true
+  } = options;
 
-function validateUserInput(username, email) {
-    const errors = [];
-    
-    if (!validateUsername(username)) {
-        errors.push('Username must be 3-20 characters and contain only letters, numbers, and underscores');
-    }
-    
-    if (!validateEmail(email)) {
-        errors.push('Please enter a valid email address');
-    }
-    
-    return {
-        isValid: errors.length === 0,
-        errors: errors
+  if (typeof input !== 'string') {
+    return { isValid: false, error: 'Input must be a string' };
+  }
+
+  let processedInput = input;
+  if (trim) {
+    processedInput = processedInput.trim();
+  }
+
+  if (processedInput.length < minLength) {
+    return { 
+      isValid: false, 
+      error: `Input must be at least ${minLength} characters long` 
     };
-}
+  }
 
-export { validateUserInput, validateUsername, validateEmail };function validateUsername(username) {
-    const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
-    return usernameRegex.test(username);
-}
-
-function validateEmail(email) {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-}
-
-function validateUserInput(username, email) {
-    const errors = [];
-    
-    if (!validateUsername(username)) {
-        errors.push('Username must be 3-20 characters and contain only letters, numbers, and underscores.');
-    }
-    
-    if (!validateEmail(email)) {
-        errors.push('Please enter a valid email address.');
-    }
-    
-    return {
-        isValid: errors.length === 0,
-        errors: errors
+  if (processedInput.length > maxLength) {
+    return { 
+      isValid: false, 
+      error: `Input must not exceed ${maxLength} characters` 
     };
+  }
+
+  const charPattern = [];
+  if (allowLetters) charPattern.push('a-zA-Z');
+  if (allowNumbers) charPattern.push('0-9');
+  if (allowSpaces) charPattern.push('\\s');
+  if (allowedSpecialChars) charPattern.push(allowedSpecialChars.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+
+  const patternStr = charPattern.length > 0 ? `[${charPattern.join('')}]+` : '.+';
+  const regex = new RegExp(`^${patternStr}$`);
+
+  if (!regex.test(processedInput)) {
+    return { 
+      isValid: false, 
+      error: 'Input contains invalid characters' 
+    };
+  }
+
+  return { 
+    isValid: true, 
+    cleanedInput: processedInput,
+    length: processedInput.length
+  };
 }
 
-export { validateUsername, validateEmail, validateUserInput };
+function sanitizeHTML(input) {
+  const div = document.createElement('div');
+  div.textContent = input;
+  return div.innerHTML;
+}
+
+export { validateUserInput, sanitizeHTML };
