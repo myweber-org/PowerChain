@@ -72,4 +72,71 @@ const UserPreferencesManager = (() => {
     };
 })();
 
-export default UserPreferencesManager;
+export default UserPreferencesManager;const userPreferences = {
+  theme: 'light',
+  language: 'en',
+  notifications: true,
+  fontSize: 16
+};
+
+const PREFERENCES_KEY = 'app_preferences';
+
+function savePreferences(preferences) {
+  try {
+    const serialized = JSON.stringify(preferences);
+    localStorage.setItem(PREFERENCES_KEY, serialized);
+    return true;
+  } catch (error) {
+    console.error('Failed to save preferences:', error);
+    return false;
+  }
+}
+
+function loadPreferences() {
+  try {
+    const stored = localStorage.getItem(PREFERENCES_KEY);
+    if (stored) {
+      return JSON.parse(stored);
+    }
+  } catch (error) {
+    console.error('Failed to load preferences:', error);
+  }
+  return { ...userPreferences };
+}
+
+function updatePreference(key, value) {
+  if (userPreferences.hasOwnProperty(key)) {
+    userPreferences[key] = value;
+    savePreferences(userPreferences);
+    return true;
+  }
+  return false;
+}
+
+function resetPreferences() {
+  Object.keys(userPreferences).forEach(key => {
+    userPreferences[key] = userPreferences.constructor.prototype[key];
+  });
+  localStorage.removeItem(PREFERENCES_KEY);
+}
+
+function applyPreferences() {
+  const prefs = loadPreferences();
+  Object.assign(userPreferences, prefs);
+  
+  document.documentElement.setAttribute('data-theme', userPreferences.theme);
+  document.documentElement.style.fontSize = `${userPreferences.fontSize}px`;
+  
+  if (!userPreferences.notifications) {
+    console.log('Notifications disabled');
+  }
+}
+
+export {
+  userPreferences,
+  savePreferences,
+  loadPreferences,
+  updatePreference,
+  resetPreferences,
+  applyPreferences
+};
