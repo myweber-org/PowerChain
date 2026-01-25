@@ -759,4 +759,54 @@ if (typeof module !== 'undefined' && module.exports) {
 
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = UserPreferencesManager;
-}
+}const UserPreferences = {
+    preferences: {},
+
+    init: function() {
+        const stored = localStorage.getItem('userPreferences');
+        if (stored) {
+            try {
+                this.preferences = JSON.parse(stored);
+            } catch (e) {
+                console.warn('Failed to parse stored preferences');
+                this.preferences = {};
+            }
+        }
+        return this;
+    },
+
+    setPreference: function(key, value) {
+        this.preferences[key] = value;
+        this.save();
+        return this;
+    },
+
+    getPreference: function(key, defaultValue = null) {
+        return this.preferences.hasOwnProperty(key) ? this.preferences[key] : defaultValue;
+    },
+
+    removePreference: function(key) {
+        if (this.preferences.hasOwnProperty(key)) {
+            delete this.preferences[key];
+            this.save();
+        }
+        return this;
+    },
+
+    clearAll: function() {
+        this.preferences = {};
+        localStorage.removeItem('userPreferences');
+        return this;
+    },
+
+    save: function() {
+        localStorage.setItem('userPreferences', JSON.stringify(this.preferences));
+        return this;
+    },
+
+    getAll: function() {
+        return {...this.preferences};
+    }
+};
+
+const userPrefs = Object.create(UserPreferences).init();
