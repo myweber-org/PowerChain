@@ -24,4 +24,17 @@ function displayFibonacci(limit) {
     return result;
 }
 
-module.exports = { calculateFibonacci, displayFibonacci };
+module.exports = { calculateFibonacci, displayFibonacci };function fibonacci(n, memo = {}) {
+    if (n in memo) return memo[n];
+    if (n <= 2) return 1;
+    memo[n] = fibonacci(n - 1, memo) + fibonacci(n - 2, memo);
+    return memo[n];
+}
+
+function printFibonacciSequence(limit) {
+    for (let i = 1; i <= limit; i++) {
+        console.log(`Fibonacci(${i}) = ${fibonacci(i)}`);
+    }
+}
+
+module.exports = { fibonacci, printFibonacciSequence };
