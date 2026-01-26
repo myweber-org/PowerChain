@@ -53,4 +53,43 @@ class FileManager {
   }
 }
 
-module.exports = FileManager;
+module.exports = FileManager;class FileManager {
+  constructor() {
+    this.files = new Map();
+  }
+
+  createFile(filename, content = '') {
+    if (this.files.has(filename)) {
+      throw new Error(`File ${filename} already exists`);
+    }
+    this.files.set(filename, content);
+    return { success: true, filename };
+  }
+
+  readFile(filename) {
+    if (!this.files.has(filename)) {
+      throw new Error(`File ${filename} not found`);
+    }
+    return this.files.get(filename);
+  }
+
+  deleteFile(filename) {
+    if (!this.files.has(filename)) {
+      throw new Error(`File ${filename} not found`);
+    }
+    this.files.delete(filename);
+    return { success: true, filename };
+  }
+
+  listFiles() {
+    return Array.from(this.files.keys());
+  }
+
+  getFileCount() {
+    return this.files.size;
+  }
+}
+
+const manager = new FileManager();
+
+export default FileManager;
