@@ -68,4 +68,131 @@ FileUploader.prototype.upload = function(file) {
 FileUploader.prototype.uploadMultiple = function(files) {
   const uploadPromises = Array.from(files).map(file => this.upload(file));
   return Promise.all(uploadPromises);
-};
+};const fileUploader = (() => {
+    const uploadQueue = new Map();
+    let uploadEndpoint = '/api/upload';
+
+    const setEndpoint = (endpoint) => {
+        uploadEndpoint = endpoint;
+    };
+
+    const validateFile = (file, allowedTypes = ['image/jpeg', 'image/png', 'application/pdf']) => {
+        if (!allowedTypes.includes(file.type)) {
+            throw new Error(`File type ${file.type} not allowed`);
+        }
+        if (file.size > 10 * 1024 * 1024) {
+            throw new Error('File size exceeds 10MB limit');
+        }
+        return true;
+    };
+
+    const uploadFile = async (file, onProgress = null) => {
+        try {
+            validateFile(file);
+            
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('timestamp', Date.now());
+
+            const xhr = new XMLHttpRequest();
+            const uploadId = `upload_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+            
+            uploadQueue.set(uploadId, { xhr, file, progress: 0 });
+
+            return new Promise((resolve, reject) => {
+                xhr.upload.addEventListener('progress', (event) => {
+                    if (event.lengthComputable && onProgress) {
+                        const progress = Math.round((event.loaded / event.total) * 100);
+                        uploadQueue.get(uploadId).progress = progress;
+                        onProgress(progress, uploadId);
+                    }
+                });
+
+                xhr.addEventListener('load', () => {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        uploadQueue.delete(uploadId);
+                        resolve(JSON.parse(xhr.responseText));
+                    } else {
+                        reject(new Error(`Upload failed with status ${xhr.status}`));
+                    }
+                });
+
+                xhr.addEventListener('error', () => {
+                    uploadQueue.delete(uploadId);
+                    reject(new Error('Network error during upload'));
+                });
+
+                xhr.open('POST', uploadEndpoint);
+                xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+                xhr.send(formData);
+            });
+        } catch (error) {
+            throw error;
+        }
+    };
+
+    const cancelUpload = (uploadId) => {
+        const upload = uploadQueue.get(uploadId);
+        if (upload) {
+            upload.xhr.abort();
+            uploadQueue.delete(uploadId);
+            return true;
+        }
+        return false;
+    };
+
+    const getUploadStatus = (uploadId) => {
+        const upload = uploadQueue.get(uploadId);
+        return upload ? { 
+            name: upload.file.name, 
+            size: upload.file.size, 
+            progress: upload.progress 
+        } : null;
+    };
+
+    const initializeDropZone = (elementId) => {
+        const dropZone = document.getElementById(elementId);
+        if (!dropZone) return;
+
+        const preventDefaults = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+        };
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+        });
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => {
+                dropZone.classList.add('drag-active');
+            }, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => {
+                dropZone.classList.remove('drag-active');
+            }, false);
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            const files = Array.from(e.dataTransfer.files);
+            files.forEach(file => {
+                uploadFile(file).catch(console.error);
+            });
+        }, false);
+    };
+
+    return {
+        setEndpoint,
+        uploadFile,
+        cancelUpload,
+        getUploadStatus,
+        initializeDropZone,
+        get queueSize() {
+            return uploadQueue.size;
+        }
+    };
+})();
+
+export default fileUploader;
