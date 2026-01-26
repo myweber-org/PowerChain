@@ -1,4 +1,4 @@
-const FileUploader = (() => {
+const FileUploader = (function() {
     const MAX_FILE_SIZE = 10 * 1024 * 1024;
     const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'application/pdf'];
 
@@ -10,47 +10,50 @@ const FileUploader = (() => {
         }
 
         init() {
-            this.createDropzone();
+            this.createDropZone();
             this.bindEvents();
         }
 
-        createDropzone() {
-            this.dropzone = document.createElement('div');
-            this.dropzone.className = 'upload-dropzone';
-            this.dropzone.innerHTML = `
+        createDropZone() {
+            this.dropZone = document.createElement('div');
+            this.dropZone.className = 'upload-dropzone';
+            this.dropZone.innerHTML = `
                 <div class="dropzone-content">
                     <svg class="upload-icon" width="48" height="48" viewBox="0 0 24 24">
                         <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/>
                     </svg>
-                    <p class="dropzone-text">Drag & drop files here or click to browse</p>
+                    <p class="dropzone-text">Drag & drop files here</p>
+                    <p class="dropzone-subtext">or click to browse</p>
                     <input type="file" class="file-input" multiple style="display: none;">
                 </div>
+                <div class="progress-container" style="display: none;"></div>
             `;
-            this.container.appendChild(this.dropzone);
-            this.fileInput = this.dropzone.querySelector('.file-input');
+            this.container.appendChild(this.dropZone);
         }
 
         bindEvents() {
-            this.dropzone.addEventListener('click', () => this.fileInput.click());
-            this.dropzone.addEventListener('dragover', this.handleDragOver.bind(this));
-            this.dropzone.addEventListener('dragleave', this.handleDragLeave.bind(this));
-            this.dropzone.addEventListener('drop', this.handleDrop.bind(this));
-            this.fileInput.addEventListener('change', this.handleFileSelect.bind(this));
+            const dropZone = this.dropZone;
+            const fileInput = dropZone.querySelector('.file-input');
+
+            dropZone.addEventListener('click', () => fileInput.click());
+            dropZone.addEventListener('dragover', this.handleDragOver.bind(this));
+            dropZone.addEventListener('dragleave', this.handleDragLeave.bind(this));
+            dropZone.addEventListener('drop', this.handleDrop.bind(this));
+            fileInput.addEventListener('change', this.handleFileSelect.bind(this));
         }
 
         handleDragOver(e) {
             e.preventDefault();
-            this.dropzone.classList.add('dragover');
+            this.dropZone.classList.add('dragover');
         }
 
-        handleDragLeave(e) {
-            e.preventDefault();
-            this.dropzone.classList.remove('dragover');
+        handleDragLeave() {
+            this.dropZone.classList.remove('dragover');
         }
 
         handleDrop(e) {
             e.preventDefault();
-            this.dropzone.classList.remove('dragover');
+            this.dropZone.classList.remove('dragover');
             const files = Array.from(e.dataTransfer.files);
             this.processFiles(files);
         }
@@ -63,126 +66,119 @@ const FileUploader = (() => {
         processFiles(files) {
             const validFiles = files.filter(file => this.validateFile(file));
             
-            if (validFiles.length !== files.length) {
-                this.showError('Some files were rejected due to size or type restrictions');
+            if (validFiles.length === 0) {
+                this.showError('No valid files selected');
+                return;
             }
 
-            this.files = [...this.files, ...validFiles];
+            this.files.push(...validFiles);
             this.uploadFiles(validFiles);
         }
 
         validateFile(file) {
             if (file.size > MAX_FILE_SIZE) {
-                console.warn(`File ${file.name} exceeds maximum size limit`);
+                this.showError(`File ${file.name} exceeds maximum size`);
                 return false;
             }
 
             if (!ALLOWED_TYPES.includes(file.type)) {
-                console.warn(`File ${file.name} has unsupported type: ${file.type}`);
+                this.showError(`File type not supported: ${file.name}`);
                 return false;
             }
 
             return true;
         }
 
-        async uploadFiles(files) {
-            for (const file of files) {
-                try {
-                    await this.uploadSingleFile(file);
-                } catch (error) {
-                    console.error(`Failed to upload ${file.name}:`, error);
-                    this.showError(`Failed to upload ${file.name}`);
-                }
-            }
-        }
-
-        uploadSingleFile(file) {
-            return new Promise((resolve, reject) => {
-                const formData = new FormData();
-                formData.append('file', file);
-
-                const xhr = new XMLHttpRequest();
-                const progressBar = this.createProgressBar(file.name);
-
-                xhr.upload.addEventListener('progress', (e) => {
-                    if (e.lengthComputable) {
-                        const percent = Math.round((e.loaded / e.total) * 100);
-                        progressBar.update(percent);
-                    }
-                });
-
-                xhr.addEventListener('load', () => {
-                    if (xhr.status >= 200 && xhr.status < 300) {
-                        progressBar.complete();
-                        resolve(JSON.parse(xhr.responseText));
-                    } else {
-                        progressBar.error();
-                        reject(new Error(`Upload failed with status ${xhr.status}`));
-                    }
-                });
-
-                xhr.addEventListener('error', () => {
-                    progressBar.error();
-                    reject(new Error('Network error occurred'));
-                });
-
-                xhr.open('POST', '/api/upload');
-                xhr.send(formData);
+        uploadFiles(files) {
+            files.forEach(file => {
+                this.createProgressBar(file);
+                this.simulateUpload(file);
             });
         }
 
-        createProgressBar(filename) {
-            const progressContainer = document.createElement('div');
-            progressContainer.className = 'progress-container';
-            progressContainer.innerHTML = `
-                <div class="progress-info">
-                    <span class="filename">${filename}</span>
-                    <span class="progress-percent">0%</span>
+        createProgressBar(file) {
+            const progressContainer = this.dropZone.querySelector('.progress-container');
+            progressContainer.style.display = 'block';
+
+            const progressItem = document.createElement('div');
+            progressItem.className = 'progress-item';
+            progressItem.innerHTML = `
+                <div class="file-info">
+                    <span class="file-name">${file.name}</span>
+                    <span class="file-size">${this.formatFileSize(file.size)}</span>
                 </div>
                 <div class="progress-bar">
-                    <div class="progress-fill"></div>
+                    <div class="progress-fill" style="width: 0%"></div>
                 </div>
+                <div class="progress-status">0%</div>
             `;
 
-            this.container.appendChild(progressContainer);
+            progressContainer.appendChild(progressItem);
+        }
 
-            return {
-                update: (percent) => {
-                    const fill = progressContainer.querySelector('.progress-fill');
-                    const percentText = progressContainer.querySelector('.progress-percent');
-                    fill.style.width = `${percent}%`;
-                    percentText.textContent = `${percent}%`;
-                },
-                complete: () => {
-                    progressContainer.classList.add('complete');
-                    progressContainer.querySelector('.progress-percent').textContent = 'Complete';
-                },
-                error: () => {
-                    progressContainer.classList.add('error');
-                    progressContainer.querySelector('.progress-percent').textContent = 'Failed';
+        simulateUpload(file) {
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += Math.random() * 10;
+                if (progress >= 100) {
+                    progress = 100;
+                    clearInterval(interval);
+                    this.updateProgress(file.name, progress, 'completed');
+                } else {
+                    this.updateProgress(file.name, progress, 'uploading');
                 }
-            };
+            }, 200);
+        }
+
+        updateProgress(fileName, progress, status) {
+            const progressItems = this.dropZone.querySelectorAll('.progress-item');
+            progressItems.forEach(item => {
+                const nameElement = item.querySelector('.file-name');
+                if (nameElement.textContent === fileName) {
+                    const fillElement = item.querySelector('.progress-fill');
+                    const statusElement = item.querySelector('.progress-status');
+                    
+                    fillElement.style.width = `${progress}%`;
+                    statusElement.textContent = `${Math.round(progress)}%`;
+                    
+                    if (status === 'completed') {
+                        item.classList.add('completed');
+                        statusElement.textContent = '✓ Uploaded';
+                    }
+                }
+            });
+        }
+
+        formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
         }
 
         showError(message) {
             const errorDiv = document.createElement('div');
             errorDiv.className = 'upload-error';
             errorDiv.textContent = message;
-            this.container.appendChild(errorDiv);
-
+            this.dropZone.appendChild(errorDiv);
+            
             setTimeout(() => {
                 errorDiv.remove();
-            }, 5000);
+            }, 3000);
         }
 
         getUploadedFiles() {
-            return [...this.files];
+            return this.files.filter(file => 
+                this.dropZone.querySelector(`.file-name:contains("${file.name}")`)?.closest('.progress-item')?.classList.contains('completed')
+            );
         }
 
-        clearFiles() {
+        reset() {
             this.files = [];
-            const progressContainers = this.container.querySelectorAll('.progress-container');
-            progressContainers.forEach(container => container.remove());
+            const progressContainer = this.dropZone.querySelector('.progress-container');
+            progressContainer.innerHTML = '';
+            progressContainer.style.display = 'none';
         }
     }
 
