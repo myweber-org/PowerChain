@@ -275,4 +275,70 @@ export default userPreferences;const UserPreferencesManager = (() => {
 
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = UserPreferencesManager;
+}const UserPreferencesManager = (() => {
+    const PREFIX = 'app_pref_';
+    
+    const setPreference = (key, value) => {
+        try {
+            const serializedValue = JSON.stringify(value);
+            localStorage.setItem(`${PREFIX}${key}`, serializedValue);
+            return true;
+        } catch (error) {
+            console.error('Failed to save preference:', error);
+            return false;
+        }
+    };
+    
+    const getPreference = (key, defaultValue = null) => {
+        try {
+            const item = localStorage.getItem(`${PREFIX}${key}`);
+            return item ? JSON.parse(item) : defaultValue;
+        } catch (error) {
+            console.error('Failed to retrieve preference:', error);
+            return defaultValue;
+        }
+    };
+    
+    const removePreference = (key) => {
+        localStorage.removeItem(`${PREFIX}${key}`);
+    };
+    
+    const clearAllPreferences = () => {
+        Object.keys(localStorage)
+            .filter(key => key.startsWith(PREFIX))
+            .forEach(key => localStorage.removeItem(key));
+    };
+    
+    const getAllPreferences = () => {
+        return Object.keys(localStorage)
+            .filter(key => key.startsWith(PREFIX))
+            .reduce((prefs, key) => {
+                const prefKey = key.replace(PREFIX, '');
+                prefs[prefKey] = getPreference(prefKey);
+                return prefs;
+            }, {});
+    };
+    
+    const migratePreference = (oldKey, newKey) => {
+        const value = getPreference(oldKey);
+        if (value !== null) {
+            setPreference(newKey, value);
+            removePreference(oldKey);
+            return true;
+        }
+        return false;
+    };
+    
+    return {
+        set: setPreference,
+        get: getPreference,
+        remove: removePreference,
+        clear: clearAllPreferences,
+        getAll: getAllPreferences,
+        migrate: migratePreference
+    };
+})();
+
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = UserPreferencesManager;
 }
