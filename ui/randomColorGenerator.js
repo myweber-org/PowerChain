@@ -7,15 +7,18 @@ function generateRandomColor() {
     return color;
 }
 
-function applyRandomTheme() {
-    const newColor = generateRandomColor();
-    document.documentElement.style.setProperty('--primary-color', newColor);
-    console.log('Theme updated with color:', newColor);
+function generateRandomRGB() {
+    const r = Math.floor(Math.random() * 256);
+    const g = Math.floor(Math.random() * 256);
+    const b = Math.floor(Math.random() * 256);
+    return `rgb(${r}, ${g}, ${b})`;
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-    const themeButton = document.createElement('button');
-    themeButton.textContent = 'Change Theme';
-    themeButton.addEventListener('click', applyRandomTheme);
-    document.body.prepend(themeButton);
-});
+function generateRandomRGBA(alpha = Math.random().toFixed(2)) {
+    const r = Math.floor(Math.random() * 256);
+    const g = Math.floor(Math.random() * 256);
+    const b = Math.floor(Math.random() * 256);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+export { generateRandomColor, generateRandomRGB, generateRandomRGBA };
