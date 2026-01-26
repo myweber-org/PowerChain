@@ -139,4 +139,150 @@ if (typeof module !== 'undefined' && module.exports) {
 // Example usage
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = UserPreferencesManager;
+}const UserPreferencesManager = (() => {
+  const STORAGE_KEY = 'app_user_preferences';
+  const DEFAULT_PREFERENCES = {
+    theme: 'light',
+    language: 'en',
+    notifications: true,
+    fontSize: 16,
+    autoSave: true,
+    showTutorial: false,
+    resultsPerPage: 20,
+    timezone: 'UTC'
+  };
+
+  const validatePreference = (key, value) => {
+    const validators = {
+      theme: (val) => ['light', 'dark', 'auto'].includes(val),
+      language: (val) => /^[a-z]{2}(-[A-Z]{2})?$/.test(val),
+      notifications: (val) => typeof val === 'boolean',
+      fontSize: (val) => Number.isInteger(val) && val >= 12 && val <= 24,
+      autoSave: (val) => typeof val === 'boolean',
+      showTutorial: (val) => typeof val === 'boolean',
+      resultsPerPage: (val) => [10, 20, 50, 100].includes(val),
+      timezone: (val) => Intl.supportedValuesOf('timeZone').includes(val)
+    };
+
+    return validators[key] ? validators[key](value) : false;
+  };
+
+  const loadPreferences = () => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (!stored) return { ...DEFAULT_PREFERENCES };
+
+      const parsed = JSON.parse(stored);
+      const merged = { ...DEFAULT_PREFERENCES, ...parsed };
+
+      Object.keys(merged).forEach(key => {
+        if (!validatePreference(key, merged[key])) {
+          merged[key] = DEFAULT_PREFERENCES[key];
+        }
+      });
+
+      return merged;
+    } catch (error) {
+      console.warn('Failed to load preferences, using defaults:', error);
+      return { ...DEFAULT_PREFERENCES };
+    }
+  };
+
+  const savePreferences = (preferences) => {
+    try {
+      const validated = {};
+      Object.keys(preferences).forEach(key => {
+        if (validatePreference(key, preferences[key])) {
+          validated[key] = preferences[key];
+        }
+      });
+
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(validated));
+      return true;
+    } catch (error) {
+      console.error('Failed to save preferences:', error);
+      return false;
+    }
+  };
+
+  const updatePreference = (key, value) => {
+    if (!validatePreference(key, value)) {
+      throw new Error(`Invalid preference value for ${key}: ${value}`);
+    }
+
+    const current = loadPreferences();
+    const updated = { ...current, [key]: value };
+    
+    if (savePreferences(updated)) {
+      dispatchPreferenceChange(key, value);
+      return true;
+    }
+    
+    return false;
+  };
+
+  const resetPreferences = () => {
+    localStorage.removeItem(STORAGE_KEY);
+    Object.keys(DEFAULT_PREFERENCES).forEach(key => {
+      dispatchPreferenceChange(key, DEFAULT_PREFERENCES[key]);
+    });
+    return true;
+  };
+
+  const dispatchPreferenceChange = (key, value) => {
+    const event = new CustomEvent('preferencechange', {
+      detail: { key, value, timestamp: Date.now() }
+    });
+    window.dispatchEvent(event);
+  };
+
+  const exportPreferences = () => {
+    const prefs = loadPreferences();
+    return {
+      data: prefs,
+      meta: {
+        exportedAt: new Date().toISOString(),
+        version: '1.0',
+        count: Object.keys(prefs).length
+      }
+    };
+  };
+
+  const importPreferences = (preferencesData) => {
+    if (!preferencesData || !preferencesData.data) {
+      throw new Error('Invalid preferences data format');
+    }
+
+    const imported = preferencesData.data;
+    const validPreferences = {};
+
+    Object.keys(imported).forEach(key => {
+      if (DEFAULT_PREFERENCES.hasOwnProperty(key) && validatePreference(key, imported[key])) {
+        validPreferences[key] = imported[key];
+      }
+    });
+
+    return savePreferences(validPreferences);
+  };
+
+  return {
+    getPreferences: loadPreferences,
+    setPreference: updatePreference,
+    reset: resetPreferences,
+    export: exportPreferences,
+    import: importPreferences,
+    validate: validatePreference,
+    subscribe: (callback) => {
+      window.addEventListener('preferencechange', (event) => {
+        callback(event.detail);
+      });
+    },
+    unsubscribe: (callback) => {
+      window.removeEventListener('preferencechange', callback);
+    }
+  };
+})();
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = UserPreferencesManager;
 }
