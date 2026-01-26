@@ -26,3 +26,30 @@ function validateUserInput(username, email) {
 }
 
 module.exports = validateUserInput;
+function validateUserInput(input, type) {
+  const trimmedInput = input.trim();
+
+  if (type === 'email') {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(trimmedInput);
+  }
+
+  if (type === 'username') {
+    const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
+    return usernameRegex.test(trimmedInput);
+  }
+
+  if (type === 'password') {
+    return trimmedInput.length >= 8 && 
+           /[A-Z]/.test(trimmedInput) && 
+           /[a-z]/.test(trimmedInput) && 
+           /\d/.test(trimmedInput);
+  }
+
+  if (type === 'phone') {
+    const phoneRegex = /^\+?[\d\s\-\(\)]{10,}$/;
+    return phoneRegex.test(trimmedInput.replace(/\s/g, ''));
+  }
+
+  return false;
+}
