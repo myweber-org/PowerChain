@@ -3,4 +3,7 @@ function validateEmail(email) {
     return emailRegex.test(email);
 }
 
-module.exports = validateEmail;
+module.exports = validateEmail;function validateEmail(email) {
+    const pattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return pattern.test(email);
+}
