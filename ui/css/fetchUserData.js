@@ -65,4 +65,56 @@ document.addEventListener('DOMContentLoaded', function() {
             displayUserInfo(userId);
         });
     }
-});
+});async function fetchUserData(userId, maxRetries = 3) {
+    const baseUrl = 'https://api.example.com/users';
+    
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+            const response = await fetch(`${baseUrl}/${userId}`);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const userData = await response.json();
+            return userData;
+            
+        } catch (error) {
+            console.error(`Attempt ${attempt} failed:`, error.message);
+            
+            if (attempt === maxRetries) {
+                throw new Error(`Failed to fetch user data after ${maxRetries} attempts`);
+            }
+            
+            await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+        }
+    }
+}
+
+function validateUserData(userData) {
+    const requiredFields = ['id', 'name', 'email'];
+    
+    for (const field of requiredFields) {
+        if (!userData[field]) {
+            throw new Error(`Missing required field: ${field}`);
+        }
+    }
+    
+    return true;
+}
+
+async function getUserProfile(userId) {
+    try {
+        const userData = await fetchUserData(userId);
+        validateUserData(userData);
+        
+        console.log('User profile loaded successfully:', userData);
+        return userData;
+        
+    } catch (error) {
+        console.error('Failed to load user profile:', error.message);
+        return null;
+    }
+}
+
+export { fetchUserData, getUserProfile };
