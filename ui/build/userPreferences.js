@@ -153,4 +153,62 @@ function loadUserPreferences() {
     return validateUserPreferences({});
 }
 
-export { validateUserPreferences, saveUserPreferences, loadUserPreferences };
+export { validateUserPreferences, saveUserPreferences, loadUserPreferences };function validateUserPreferences(preferences) {
+    const defaults = {
+        theme: 'light',
+        notifications: true,
+        language: 'en',
+        resultsPerPage: 25
+    };
+
+    const validated = { ...defaults };
+
+    if (preferences && typeof preferences === 'object') {
+        if (['light', 'dark', 'auto'].includes(preferences.theme)) {
+            validated.theme = preferences.theme;
+        }
+
+        if (typeof preferences.notifications === 'boolean') {
+            validated.notifications = preferences.notifications;
+        }
+
+        if (['en', 'es', 'fr', 'de'].includes(preferences.language)) {
+            validated.language = preferences.language;
+        }
+
+        if (Number.isInteger(preferences.resultsPerPage) && preferences.resultsPerPage >= 10 && preferences.resultsPerPage <= 100) {
+            validated.resultsPerPage = preferences.resultsPerPage;
+        }
+    }
+
+    return validated;
+}
+
+function initializeUserPreferences() {
+    try {
+        const stored = localStorage.getItem('userPreferences');
+        const parsed = stored ? JSON.parse(stored) : {};
+        const preferences = validateUserPreferences(parsed);
+        localStorage.setItem('userPreferences', JSON.stringify(preferences));
+        return preferences;
+    } catch (error) {
+        console.error('Failed to initialize user preferences:', error);
+        return validateUserPreferences({});
+    }
+}
+
+function updateUserPreference(key, value) {
+    const current = initializeUserPreferences();
+    const updated = { ...current, [key]: value };
+    const validated = validateUserPreferences(updated);
+    localStorage.setItem('userPreferences', JSON.stringify(validated));
+    return validated;
+}
+
+function resetUserPreferences() {
+    const defaults = validateUserPreferences({});
+    localStorage.setItem('userPreferences', JSON.stringify(defaults));
+    return defaults;
+}
+
+export { validateUserPreferences, initializeUserPreferences, updateUserPreference, resetUserPreferences };
