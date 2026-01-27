@@ -1,43 +1,13 @@
-function fetchUserData(userId, cacheDuration = 300000) {
-    const cacheKey = `user_${userId}`;
-    const cachedData = localStorage.getItem(cacheKey);
-
-    if (cachedData) {
-        const { data, timestamp } = JSON.parse(cachedData);
-        if (Date.now() - timestamp < cacheDuration) {
-            console.log('Returning cached user data');
-            return Promise.resolve(data);
-        }
-    }
-
-    return fetch(`https://api.example.com/users/${userId}`)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(userData => {
-            const cacheItem = {
-                data: userData,
-                timestamp: Date.now()
-            };
-            localStorage.setItem(cacheKey, JSON.stringify(cacheItem));
-            return userData;
-        })
-        .catch(error => {
-            console.error('Failed to fetch user data:', error);
-            throw error;
-        });
-}const USER_DATA_CACHE_KEY = 'userDataCache';
 const CACHE_DURATION = 5 * 60 * 1000;
+const userDataCache = new Map();
 
-async function fetchUserData(userId, forceRefresh = false) {
-    const cache = getCachedUserData(userId);
-    
-    if (!forceRefresh && cache && !isCacheExpired(cache.timestamp)) {
+async function fetchUserData(userId) {
+    const cacheKey = `user_${userId}`;
+    const cached = userDataCache.get(cacheKey);
+
+    if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
         console.log(`Returning cached data for user ${userId}`);
-        return cache.data;
+        return cached.data;
     }
 
     try {
@@ -48,57 +18,32 @@ async function fetchUserData(userId, forceRefresh = false) {
         }
 
         const userData = await response.json();
-        cacheUserData(userId, userData);
         
+        userDataCache.set(cacheKey, {
+            data: userData,
+            timestamp: Date.now()
+        });
+
+        console.log(`Fetched fresh data for user ${userId}`);
         return userData;
     } catch (error) {
-        console.error('Failed to fetch user data:', error);
+        console.error(`Failed to fetch data for user ${userId}:`, error);
         
-        if (cache) {
-            console.log('Falling back to cached data');
-            return cache.data;
+        if (cached) {
+            console.log(`Falling back to stale cache for user ${userId}`);
+            return cached.data;
         }
         
         throw error;
     }
 }
 
-function getCachedUserData(userId) {
-    const cacheKey = `${USER_DATA_CACHE_KEY}_${userId}`;
-    const cached = localStorage.getItem(cacheKey);
-    
-    if (cached) {
-        return JSON.parse(cached);
-    }
-    
-    return null;
-}
-
-function cacheUserData(userId, data) {
-    const cacheKey = `${USER_DATA_CACHE_KEY}_${userId}`;
-    const cacheEntry = {
-        data: data,
-        timestamp: Date.now()
-    };
-    
-    localStorage.setItem(cacheKey, JSON.stringify(cacheEntry));
-}
-
-function isCacheExpired(timestamp) {
-    return Date.now() - timestamp > CACHE_DURATION;
-}
-
-function clearUserDataCache(userId = null) {
+function clearUserCache(userId = null) {
     if (userId) {
-        const cacheKey = `${USER_DATA_CACHE_KEY}_${userId}`;
-        localStorage.removeItem(cacheKey);
+        userDataCache.delete(`user_${userId}`);
     } else {
-        Object.keys(localStorage).forEach(key => {
-            if (key.startsWith(USER_DATA_CACHE_KEY)) {
-                localStorage.removeItem(key);
-            }
-        });
+        userDataCache.clear();
     }
 }
 
-export { fetchUserData, clearUserDataCache };
+export { fetchUserData, clearUserCache };
