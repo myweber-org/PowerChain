@@ -63,4 +63,37 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 }
 
-fetchUserData();
+fetchUserData();async function fetchUserData(userId, timeout = 5000) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+  try {
+    const response = await fetch(`https://api.example.com/users/${userId}`, {
+      signal: controller.signal,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return {
+      success: true,
+      data: data,
+      timestamp: new Date().toISOString()
+    };
+  } catch (error) {
+    clearTimeout(timeoutId);
+    
+    return {
+      success: false,
+      error: error.name === 'AbortError' ? 'Request timeout' : error.message,
+      timestamp: new Date().toISOString()
+    };
+  }
+}
