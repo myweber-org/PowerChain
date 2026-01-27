@@ -1,58 +1,97 @@
-const userPreferences = {
-  theme: 'light',
-  language: 'en',
-  notifications: true,
-  fontSize: 16
-};
+const USER_PREFERENCES_KEY = 'app_user_preferences';
 
-const UserPreferencesManager = {
-  storageKey: 'app_user_prefs',
-
-  load() {
-    const saved = localStorage.getItem(this.storageKey);
-    if (saved) {
-      try {
-        Object.assign(userPreferences, JSON.parse(saved));
-      } catch (error) {
-        console.warn('Failed to parse saved preferences:', error);
-      }
+class UserPreferencesManager {
+    constructor() {
+        this.preferences = this.loadPreferences();
     }
-    return { ...userPreferences };
-  },
 
-  save() {
-    try {
-      localStorage.setItem(this.storageKey, JSON.stringify(userPreferences));
-      return true;
-    } catch (error) {
-      console.error('Failed to save preferences:', error);
-      return false;
+    loadPreferences() {
+        try {
+            const stored = localStorage.getItem(USER_PREFERENCES_KEY);
+            return stored ? JSON.parse(stored) : this.getDefaultPreferences();
+        } catch (error) {
+            console.error('Failed to load preferences:', error);
+            return this.getDefaultPreferences();
+        }
     }
-  },
 
-  update(key, value) {
-    if (userPreferences.hasOwnProperty(key)) {
-      userPreferences[key] = value;
-      this.save();
-      return true;
+    getDefaultPreferences() {
+        return {
+            theme: 'light',
+            language: 'en',
+            notifications: true,
+            fontSize: 16,
+            autoSave: false,
+            lastUpdated: new Date().toISOString()
+        };
     }
-    return false;
-  },
 
-  reset() {
-    const defaults = {
-      theme: 'light',
-      language: 'en',
-      notifications: true,
-      fontSize: 16
-    };
-    Object.assign(userPreferences, defaults);
-    localStorage.removeItem(this.storageKey);
-  },
+    updatePreference(key, value) {
+        if (!this.preferences.hasOwnProperty(key)) {
+            throw new Error(`Invalid preference key: ${key}`);
+        }
 
-  getAll() {
-    return { ...userPreferences };
-  }
-};
+        const oldValue = this.preferences[key];
+        this.preferences[key] = value;
+        this.preferences.lastUpdated = new Date().toISOString();
+        
+        this.savePreferences();
+        
+        return {
+            success: true,
+            key,
+            oldValue,
+            newValue: value,
+            timestamp: this.preferences.lastUpdated
+        };
+    }
 
-export default UserPreferencesManager;
+    savePreferences() {
+        try {
+            localStorage.setItem(USER_PREFERENCES_KEY, JSON.stringify(this.preferences));
+            return true;
+        } catch (error) {
+            console.error('Failed to save preferences:', error);
+            return false;
+        }
+    }
+
+    resetToDefaults() {
+        this.preferences = this.getDefaultPreferences();
+        return this.savePreferences();
+    }
+
+    getAllPreferences() {
+        return { ...this.preferences };
+    }
+
+    getPreference(key) {
+        return this.preferences[key];
+    }
+
+    exportPreferences() {
+        return {
+            data: this.preferences,
+            format: 'json',
+            version: '1.0',
+            exportedAt: new Date().toISOString()
+        };
+    }
+
+    importPreferences(data) {
+        if (!data || typeof data !== 'object') {
+            throw new Error('Invalid preferences data');
+        }
+
+        const defaultPrefs = this.getDefaultPreferences();
+        const mergedPreferences = { ...defaultPrefs, ...data };
+        
+        this.preferences = mergedPreferences;
+        this.preferences.lastUpdated = new Date().toISOString();
+        
+        return this.savePreferences();
+    }
+}
+
+const userPrefs = new UserPreferencesManager();
+export default userPrefs;
