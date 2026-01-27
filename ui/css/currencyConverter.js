@@ -201,4 +201,85 @@ class CurrencyConverter {
   }
 }
 
-module.exports = CurrencyConverter;
+module.exports = CurrencyConverter;const exchangeRates = {
+    USD: 1.0,
+    EUR: 0.85,
+    GBP: 0.73,
+    JPY: 110.0,
+    CAD: 1.25,
+    AUD: 1.35,
+    CNY: 6.45
+};
+
+const cache = new Map();
+const CACHE_DURATION = 5 * 60 * 1000;
+
+function validateCurrencyCode(code) {
+    return typeof code === 'string' && 
+           code.length === 3 && 
+           exchangeRates.hasOwnProperty(code.toUpperCase());
+}
+
+function getCachedRate(from, to) {
+    const key = `${from}_${to}`;
+    const cached = cache.get(key);
+    
+    if (cached && (Date.now() - cached.timestamp) < CACHE_DURATION) {
+        return cached.rate;
+    }
+    return null;
+}
+
+function setCachedRate(from, to, rate) {
+    const key = `${from}_${to}`;
+    cache.set(key, {
+        rate: rate,
+        timestamp: Date.now()
+    });
+}
+
+function convertCurrency(amount, fromCurrency, toCurrency) {
+    if (typeof amount !== 'number' || amount <= 0) {
+        throw new Error('Amount must be a positive number');
+    }
+    
+    const from = fromCurrency.toUpperCase();
+    const to = toCurrency.toUpperCase();
+    
+    if (!validateCurrencyCode(from) || !validateCurrencyCode(to)) {
+        throw new Error('Invalid currency code');
+    }
+    
+    let rate = getCachedRate(from, to);
+    
+    if (!rate) {
+        rate = exchangeRates[to] / exchangeRates[from];
+        setCachedRate(from, to, rate);
+    }
+    
+    const result = amount * rate;
+    
+    return {
+        originalAmount: amount,
+        fromCurrency: from,
+        toCurrency: to,
+        convertedAmount: parseFloat(result.toFixed(2)),
+        exchangeRate: parseFloat(rate.toFixed(6)),
+        timestamp: new Date().toISOString()
+    };
+}
+
+function formatCurrencyOutput(conversionResult) {
+    return `${conversionResult.originalAmount} ${conversionResult.fromCurrency} = ${conversionResult.convertedAmount} ${conversionResult.toCurrency}`;
+}
+
+function getAvailableCurrencies() {
+    return Object.keys(exchangeRates).sort();
+}
+
+export {
+    convertCurrency,
+    formatCurrencyOutput,
+    getAvailableCurrencies,
+    validateCurrencyCode
+};
