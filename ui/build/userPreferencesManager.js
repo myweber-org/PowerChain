@@ -116,4 +116,59 @@ export default UserPreferencesManager;const userPreferencesManager = (() => {
     setPreference,
     subscribe
   };
-})();
+})();const userPreferences = {
+  theme: 'light',
+  language: 'en',
+  notifications: true,
+  fontSize: 'medium'
+};
+
+const PREFERENCES_KEY = 'app_preferences';
+
+function savePreferences(prefs) {
+  try {
+    localStorage.setItem(PREFERENCES_KEY, JSON.stringify(prefs));
+    return true;
+  } catch (error) {
+    console.error('Failed to save preferences:', error);
+    return false;
+  }
+}
+
+function loadPreferences() {
+  try {
+    const stored = localStorage.getItem(PREFERENCES_KEY);
+    return stored ? JSON.parse(stored) : { ...userPreferences };
+  } catch (error) {
+    console.error('Failed to load preferences:', error);
+    return { ...userPreferences };
+  }
+}
+
+function updatePreference(key, value) {
+  if (!userPreferences.hasOwnProperty(key)) {
+    console.warn(`Unknown preference key: ${key}`);
+    return false;
+  }
+
+  const currentPrefs = loadPreferences();
+  currentPrefs[key] = value;
+  
+  return savePreferences(currentPrefs);
+}
+
+function resetPreferences() {
+  return savePreferences({ ...userPreferences });
+}
+
+function getCurrentPreferences() {
+  return loadPreferences();
+}
+
+export {
+  savePreferences,
+  loadPreferences,
+  updatePreference,
+  resetPreferences,
+  getCurrentPreferences
+};
