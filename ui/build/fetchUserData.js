@@ -79,4 +79,45 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Error fetching user data:', error);
             throw error;
         });
+}async function fetchUserData(userId, maxRetries = 3) {
+    const baseUrl = 'https://api.example.com/users';
+    let lastError;
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+            const response = await fetch(`${baseUrl}/${userId}`);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            return {
+                success: true,
+                data: data,
+                attempts: attempt
+            };
+        } catch (error) {
+            lastError = error;
+            console.warn(`Attempt ${attempt} failed: ${error.message}`);
+            
+            if (attempt < maxRetries) {
+                await new Promise(resolve => 
+                    setTimeout(resolve, Math.pow(2, attempt) * 100)
+                );
+            }
+        }
+    }
+
+    return {
+        success: false,
+        error: lastError.message,
+        attempts: maxRetries
+    };
 }
+
+function validateUserId(userId) {
+    return typeof userId === 'string' && /^[a-zA-Z0-9-_]+$/.test(userId);
+}
+
+export { fetchUserData, validateUserId };
