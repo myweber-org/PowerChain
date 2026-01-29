@@ -3,65 +3,50 @@ const FileUploader = (function() {
     const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'application/pdf'];
 
     class Uploader {
-        constructor(containerId, options = {}) {
+        constructor(containerId) {
             this.container = document.getElementById(containerId);
-            this.options = {
-                maxSize: options.maxSize || MAX_FILE_SIZE,
-                allowedTypes: options.allowedTypes || ALLOWED_TYPES,
-                endpoint: options.endpoint || '/upload',
-                multiple: options.multiple || false
-            };
-            this.files = new Map();
-            this.init();
+            this.files = [];
+            this.initialize();
         }
 
-        init() {
-            this.createUI();
+        initialize() {
+            this.createDropZone();
             this.bindEvents();
         }
 
-        createUI() {
-            this.container.innerHTML = `
-                <div class="upload-area">
-                    <div class="drop-zone">
-                        <p>Drag & drop files here or</p>
-                        <button class="browse-btn">Browse Files</button>
-                        <input type="file" class="file-input" ${this.options.multiple ? 'multiple' : ''}>
-                    </div>
-                    <div class="progress-container"></div>
-                    <div class="file-list"></div>
+        createDropZone() {
+            this.dropZone = document.createElement('div');
+            this.dropZone.className = 'upload-dropzone';
+            this.dropZone.innerHTML = `
+                <div class="drop-area">
+                    <p>Drag files here or click to browse</p>
+                    <input type="file" multiple style="display:none">
                 </div>
+                <div class="progress-container"></div>
             `;
+            this.container.appendChild(this.dropZone);
         }
 
         bindEvents() {
-            const dropZone = this.container.querySelector('.drop-zone');
-            const fileInput = this.container.querySelector('.file-input');
-            const browseBtn = this.container.querySelector('.browse-btn');
+            const dropArea = this.dropZone.querySelector('.drop-area');
+            const fileInput = this.dropZone.querySelector('input[type="file"]');
 
-            dropZone.addEventListener('dragover', this.handleDragOver.bind(this));
-            dropZone.addEventListener('dragleave', this.handleDragLeave.bind(this));
-            dropZone.addEventListener('drop', this.handleDrop.bind(this));
-            browseBtn.addEventListener('click', () => fileInput.click());
+            dropArea.addEventListener('click', () => fileInput.click());
+            dropArea.addEventListener('dragover', this.handleDragOver.bind(this));
+            dropArea.addEventListener('drop', this.handleDrop.bind(this));
             fileInput.addEventListener('change', this.handleFileSelect.bind(this));
         }
 
         handleDragOver(e) {
             e.preventDefault();
             e.stopPropagation();
-            e.currentTarget.classList.add('dragover');
-        }
-
-        handleDragLeave(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            e.currentTarget.classList.remove('dragover');
+            this.dropZone.classList.add('dragover');
         }
 
         handleDrop(e) {
             e.preventDefault();
             e.stopPropagation();
-            e.currentTarget.classList.remove('dragover');
+            this.dropZone.classList.remove('dragover');
             
             const files = Array.from(e.dataTransfer.files);
             this.processFiles(files);
@@ -70,127 +55,126 @@ const FileUploader = (function() {
         handleFileSelect(e) {
             const files = Array.from(e.target.files);
             this.processFiles(files);
-            e.target.value = '';
         }
 
         processFiles(files) {
             files.forEach(file => {
                 if (!this.validateFile(file)) {
-                    this.showError(`File ${file.name} is invalid`);
+                    this.showError(`${file.name} is invalid`);
                     return;
                 }
                 
-                const fileId = this.generateFileId();
-                this.files.set(fileId, file);
-                this.displayFile(file, fileId);
-                this.uploadFile(file, fileId);
+                this.files.push(file);
+                this.uploadFile(file);
             });
         }
 
         validateFile(file) {
-            if (file.size > this.options.maxSize) {
+            if (file.size > MAX_FILE_SIZE) {
                 return false;
             }
             
-            if (!this.options.allowedTypes.includes(file.type)) {
+            if (!ALLOWED_TYPES.includes(file.type)) {
                 return false;
             }
             
             return true;
         }
 
-        generateFileId() {
-            return Date.now().toString(36) + Math.random().toString(36).substr(2);
-        }
-
-        displayFile(file, fileId) {
-            const fileList = this.container.querySelector('.file-list');
-            const fileElement = document.createElement('div');
-            fileElement.className = 'file-item';
-            fileElement.dataset.id = fileId;
-            fileElement.innerHTML = `
-                <span class="file-name">${file.name}</span>
-                <span class="file-size">${this.formatFileSize(file.size)}</span>
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: 0%"></div>
-                </div>
-                <span class="status">Pending</span>
-            `;
-            fileList.appendChild(fileElement);
-        }
-
-        uploadFile(file, fileId) {
+        uploadFile(file) {
+            const progressBar = this.createProgressBar(file.name);
+            
+            const xhr = new XMLHttpRequest();
             const formData = new FormData();
             formData.append('file', file);
-            formData.append('fileId', fileId);
-
-            const xhr = new XMLHttpRequest();
-            xhr.open('POST', this.options.endpoint, true);
 
             xhr.upload.addEventListener('progress', (e) => {
                 if (e.lengthComputable) {
-                    const percent = (e.loaded / e.total) * 100;
-                    this.updateProgress(fileId, percent);
+                    const percent = Math.round((e.loaded / e.total) * 100);
+                    progressBar.update(percent);
                 }
             });
 
             xhr.addEventListener('load', () => {
                 if (xhr.status === 200) {
-                    this.updateStatus(fileId, 'Completed');
+                    progressBar.complete();
+                    this.onUploadSuccess(file);
                 } else {
-                    this.updateStatus(fileId, 'Failed');
+                    progressBar.error();
+                    this.onUploadError(file);
                 }
             });
 
             xhr.addEventListener('error', () => {
-                this.updateStatus(fileId, 'Failed');
+                progressBar.error();
+                this.onUploadError(file);
             });
 
+            xhr.open('POST', '/upload');
             xhr.send(formData);
-            this.updateStatus(fileId, 'Uploading');
         }
 
-        updateProgress(fileId, percent) {
-            const fileElement = this.container.querySelector(`[data-id="${fileId}"]`);
-            if (fileElement) {
-                const progressFill = fileElement.querySelector('.progress-fill');
-                progressFill.style.width = `${percent}%`;
-            }
+        createProgressBar(filename) {
+            const container = this.dropZone.querySelector('.progress-container');
+            const progressBar = document.createElement('div');
+            progressBar.className = 'progress-item';
+            progressBar.innerHTML = `
+                <div class="file-info">${filename}</div>
+                <div class="progress-track">
+                    <div class="progress-fill"></div>
+                </div>
+                <div class="status"></div>
+            `;
+            container.appendChild(progressBar);
+
+            return {
+                update: (percent) => {
+                    const fill = progressBar.querySelector('.progress-fill');
+                    fill.style.width = `${percent}%`;
+                    progressBar.querySelector('.status').textContent = `${percent}%`;
+                },
+                complete: () => {
+                    progressBar.classList.add('complete');
+                    progressBar.querySelector('.status').textContent = 'Complete';
+                },
+                error: () => {
+                    progressBar.classList.add('error');
+                    progressBar.querySelector('.status').textContent = 'Failed';
+                }
+            };
         }
 
-        updateStatus(fileId, status) {
-            const fileElement = this.container.querySelector(`[data-id="${fileId}"]`);
-            if (fileElement) {
-                const statusElement = fileElement.querySelector('.status');
-                statusElement.textContent = status;
-                statusElement.className = `status ${status.toLowerCase()}`;
-            }
+        onUploadSuccess(file) {
+            console.log(`Upload successful: ${file.name}`);
         }
 
-        formatFileSize(bytes) {
-            if (bytes === 0) return '0 Bytes';
-            const k = 1024;
-            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
-            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        onUploadError(file) {
+            console.error(`Upload failed: ${file.name}`);
         }
 
         showError(message) {
             const errorDiv = document.createElement('div');
-            errorDiv.className = 'error-message';
+            errorDiv.className = 'upload-error';
             errorDiv.textContent = message;
-            this.container.appendChild(errorDiv);
+            this.dropZone.appendChild(errorDiv);
             
-            setTimeout(() => {
-                errorDiv.remove();
-            }, 5000);
+            setTimeout(() => errorDiv.remove(), 5000);
+        }
+
+        getUploadedFiles() {
+            return this.files;
         }
 
         clearFiles() {
-            this.files.clear();
-            this.container.querySelector('.file-list').innerHTML = '';
+            this.files = [];
+            const container = this.dropZone.querySelector('.progress-container');
+            container.innerHTML = '';
         }
     }
 
     return Uploader;
 })();
+
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = FileUploader;
+}
