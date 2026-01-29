@@ -55,4 +55,51 @@ document.getElementById('loginForm').addEventListener('submit', function(event) 
 
     alert('Form submitted successfully!');
     return true;
+}function validateForm() {
+    const form = document.getElementById('userForm');
+    const email = document.getElementById('email');
+    const password = document.getElementById('password');
+    const errorContainer = document.getElementById('errorMessages');
+    
+    errorContainer.innerHTML = '';
+    let isValid = true;
+    
+    if (!email.value.includes('@')) {
+        displayError('Please enter a valid email address');
+        email.classList.add('invalid');
+        isValid = false;
+    } else {
+        email.classList.remove('invalid');
+    }
+    
+    if (password.value.length < 8) {
+        displayError('Password must be at least 8 characters long');
+        password.classList.add('invalid');
+        isValid = false;
+    } else {
+        password.classList.remove('invalid');
+    }
+    
+    function displayError(message) {
+        const errorElement = document.createElement('div');
+        errorElement.className = 'error-message';
+        errorElement.textContent = message;
+        errorContainer.appendChild(errorElement);
+    }
+    
+    if (isValid) {
+        form.submit();
+    }
+    
+    return false;
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('userForm');
+    if (form) {
+        form.addEventListener('submit', function(event) {
+            event.preventDefault();
+            validateForm();
+        });
+    }
+});
