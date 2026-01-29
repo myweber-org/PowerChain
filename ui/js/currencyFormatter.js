@@ -81,4 +81,33 @@ function parseCurrency(formattedString, locale = 'en-US') {
     return isNaN(number) ? null : number;
 }
 
-export { formatCurrency, parseCurrency };
+export { formatCurrency, parseCurrency };const currencyFormatter = (amount, locale = 'en-US', currency = 'USD') => {
+  if (typeof amount !== 'number') {
+    throw new TypeError('Amount must be a number');
+  }
+  
+  const formatter = new Intl.NumberFormat(locale, {
+    style: 'currency',
+    currency: currency,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+  
+  return formatter.format(amount);
+};
+
+const formatCurrencyWithSymbol = (amount, currencyCode = 'USD') => {
+  const symbols = {
+    'USD': '$',
+    'EUR': '€',
+    'GBP': '£',
+    'JPY': '¥'
+  };
+  
+  const symbol = symbols[currencyCode] || currencyCode;
+  const formattedAmount = Math.abs(amount).toFixed(2);
+  
+  return amount < 0 ? `-${symbol}${formattedAmount}` : `${symbol}${formattedAmount}`;
+};
+
+export { currencyFormatter, formatCurrencyWithSymbol };
