@@ -1,63 +1,30 @@
-function formatCurrency(value, currency = 'USD', locale = 'en-US') {
-    if (typeof value !== 'number' || isNaN(value)) {
-        throw new Error('Invalid value provided. Must be a number.');
+function formatCurrency(amount, locale = 'en-US', currency = 'USD') {
+    if (typeof amount !== 'number' || isNaN(amount)) {
+        throw new TypeError('Amount must be a valid number');
     }
     
     const formatter = new Intl.NumberFormat(locale, {
         style: 'currency',
-        currency: currency.toUpperCase(),
+        currency: currency,
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
     });
     
-    return formatter.format(value);
+    return formatter.format(amount);
 }
 
 function parseCurrency(formattedString, locale = 'en-US') {
     const parts = new Intl.NumberFormat(locale).formatToParts(1234.56);
-    const decimalSeparator = parts.find(part => part.type === 'decimal')?.value || '.';
-    const groupSeparator = parts.find(part => part.type === 'group')?.value || ',';
+    const groupSeparator = parts.find(part => part.type === 'group').value;
+    const decimalSeparator = parts.find(part => part.type === 'decimal').value;
     
-    let cleaned = formattedString
-        .replace(new RegExp(`[${groupSeparator}]`, 'g'), '')
-        .replace(new RegExp(`[${decimalSeparator}]`, 'g'), '.')
-        .replace(/[^\d.-]/g, '');
+    const regex = new RegExp(`[${groupSeparator}${decimalSeparator}]`, 'g');
+    const normalized = formattedString.replace(regex, match => 
+        match === groupSeparator ? '' : '.'
+    );
     
-    const number = parseFloat(cleaned);
+    const number = parseFloat(normalized.replace(/[^\d.-]/g, ''));
     return isNaN(number) ? null : number;
 }
 
-function getCurrencySymbol(currency = 'USD', locale = 'en-US') {
-    const formatter = new Intl.NumberFormat(locale, {
-        style: 'currency',
-        currency: currency.toUpperCase(),
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0
-    });
-    
-    const parts = formatter.formatToParts(0);
-    const symbolPart = parts.find(part => part.type === 'currency');
-    return symbolPart ? symbolPart.value : currency.toUpperCase();
-}
-
-function convertCurrency(amount, fromCurrency, toCurrency, exchangeRates) {
-    if (!exchangeRates || typeof exchangeRates !== 'object') {
-        throw new Error('Exchange rates object is required');
-    }
-    
-    if (!exchangeRates[fromCurrency] || !exchangeRates[toCurrency]) {
-        throw new Error('Unsupported currency in exchange rates');
-    }
-    
-    const fromRate = exchangeRates[fromCurrency];
-    const toRate = exchangeRates[toCurrency];
-    
-    if (fromRate <= 0 || toRate <= 0) {
-        throw new Error('Invalid exchange rate');
-    }
-    
-    const amountInBase = amount / fromRate;
-    return amountInBase * toRate;
-}
-
-export { formatCurrency, parseCurrency, getCurrencySymbol, convertCurrency };
+export { formatCurrency, parseCurrency };
