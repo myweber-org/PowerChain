@@ -117,4 +117,27 @@ fetchUserData();async function fetchUserData(userId, timeout = 5000) {
   };
 
   return fetchWithRetry(1);
-};
+};function fetchUserData(userId) {
+    const apiUrl = `https://jsonplaceholder.typicode.com/users/${userId}`;
+    
+    fetch(apiUrl)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('User Data:', {
+                id: data.id,
+                name: data.name,
+                email: data.email,
+                company: data.company.name
+            });
+            return data;
+        })
+        .catch(error => {
+            console.error('Error fetching user data:', error);
+            throw error;
+        });
+}
