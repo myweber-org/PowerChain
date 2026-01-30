@@ -79,4 +79,79 @@ const userPreferencesManager = (() => {
     };
 })();
 
-export default userPreferencesManager;
+export default userPreferencesManager;const UserPreferences = {
+  preferences: {},
+
+  init() {
+    this.loadPreferences();
+    this.setupListeners();
+  },
+
+  loadPreferences() {
+    const stored = localStorage.getItem('userPreferences');
+    if (stored) {
+      try {
+        this.preferences = JSON.parse(stored);
+      } catch (e) {
+        console.warn('Failed to parse stored preferences:', e);
+        this.preferences = this.getDefaultPreferences();
+      }
+    } else {
+      this.preferences = this.getDefaultPreferences();
+    }
+  },
+
+  getDefaultPreferences() {
+    return {
+      theme: 'light',
+      notifications: true,
+      fontSize: 16,
+      language: 'en',
+      autoSave: true
+    };
+  },
+
+  savePreferences() {
+    try {
+      localStorage.setItem('userPreferences', JSON.stringify(this.preferences));
+      this.dispatchEvent('preferencesUpdated', this.preferences);
+      return true;
+    } catch (e) {
+      console.error('Failed to save preferences:', e);
+      return false;
+    }
+  },
+
+  getPreference(key) {
+    return this.preferences[key];
+  },
+
+  setPreference(key, value) {
+    if (key in this.preferences) {
+      this.preferences[key] = value;
+      return this.savePreferences();
+    }
+    return false;
+  },
+
+  resetToDefaults() {
+    this.preferences = this.getDefaultPreferences();
+    return this.savePreferences();
+  },
+
+  setupListeners() {
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'userPreferences') {
+        this.loadPreferences();
+        this.dispatchEvent('preferencesSynced', this.preferences);
+      }
+    });
+  },
+
+  dispatchEvent(eventName, detail) {
+    const event = new CustomEvent(eventName, { detail });
+    window.dispatchEvent(event);
+  }
+};
+
+UserPreferences.init();
