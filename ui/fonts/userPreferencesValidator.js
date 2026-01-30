@@ -70,4 +70,32 @@ function validateUserPreferences(preferences) {
     return errors;
 }
 
-module.exports = { validatePreferences };
+module.exports = { validatePreferences };function validateUserPreferences(prefs) {
+    const requiredFields = ['theme', 'notifications', 'language'];
+    const fieldTypes = {
+        theme: 'string',
+        notifications: 'boolean',
+        language: 'string'
+    };
+
+    for (const field of requiredFields) {
+        if (!prefs.hasOwnProperty(field)) {
+            throw new Error(`Missing required field: ${field}`);
+        }
+        if (typeof prefs[field] !== fieldTypes[field]) {
+            throw new TypeError(`Field ${field} must be of type ${fieldTypes[field]}`);
+        }
+    }
+
+    const validThemes = ['light', 'dark', 'auto'];
+    if (!validThemes.includes(prefs.theme)) {
+        throw new Error(`Theme must be one of: ${validThemes.join(', ')}`);
+    }
+
+    const validLanguages = ['en', 'es', 'fr', 'de'];
+    if (!validLanguages.includes(prefs.language)) {
+        throw new Error(`Language must be one of: ${validLanguages.join(', ')}`);
+    }
+
+    return true;
+}
