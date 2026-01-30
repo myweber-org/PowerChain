@@ -1,97 +1,58 @@
-const USER_PREFERENCES_KEY = 'app_user_preferences';
+const userPreferencesManager = (function() {
+    const STORAGE_KEY = 'user_preferences';
+    const DEFAULT_PREFERENCES = {
+        theme: 'light',
+        fontSize: 'medium',
+        notifications: true,
+        language: 'en'
+    };
 
-class UserPreferencesManager {
-    constructor() {
-        this.preferences = this.loadPreferences();
-    }
-
-    loadPreferences() {
-        try {
-            const stored = localStorage.getItem(USER_PREFERENCES_KEY);
-            return stored ? JSON.parse(stored) : this.getDefaultPreferences();
-        } catch (error) {
-            console.error('Failed to load preferences:', error);
-            return this.getDefaultPreferences();
+    function getPreferences() {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+            try {
+                return { ...DEFAULT_PREFERENCES, ...JSON.parse(stored) };
+            } catch (e) {
+                console.error('Failed to parse stored preferences:', e);
+                return { ...DEFAULT_PREFERENCES };
+            }
         }
+        return { ...DEFAULT_PREFERENCES };
     }
 
-    getDefaultPreferences() {
-        return {
-            theme: 'light',
-            language: 'en',
-            notifications: true,
-            fontSize: 16,
-            autoSave: false,
-            lastUpdated: new Date().toISOString()
+    function updatePreferences(newPreferences) {
+        const current = getPreferences();
+        const updated = { ...current, ...newPreferences };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+        dispatchPreferenceChange(updated);
+        return updated;
+    }
+
+    function resetPreferences() {
+        localStorage.removeItem(STORAGE_KEY);
+        dispatchPreferenceChange({ ...DEFAULT_PREFERENCES });
+        return { ...DEFAULT_PREFERENCES };
+    }
+
+    function dispatchPreferenceChange(preferences) {
+        window.dispatchEvent(new CustomEvent('preferencesChanged', {
+            detail: preferences
+        }));
+    }
+
+    function subscribe(callback) {
+        window.addEventListener('preferencesChanged', (event) => {
+            callback(event.detail);
+        });
+        return () => {
+            window.removeEventListener('preferencesChanged', callback);
         };
     }
 
-    updatePreference(key, value) {
-        if (!this.preferences.hasOwnProperty(key)) {
-            throw new Error(`Invalid preference key: ${key}`);
-        }
-
-        const oldValue = this.preferences[key];
-        this.preferences[key] = value;
-        this.preferences.lastUpdated = new Date().toISOString();
-        
-        this.savePreferences();
-        
-        return {
-            success: true,
-            key,
-            oldValue,
-            newValue: value,
-            timestamp: this.preferences.lastUpdated
-        };
-    }
-
-    savePreferences() {
-        try {
-            localStorage.setItem(USER_PREFERENCES_KEY, JSON.stringify(this.preferences));
-            return true;
-        } catch (error) {
-            console.error('Failed to save preferences:', error);
-            return false;
-        }
-    }
-
-    resetToDefaults() {
-        this.preferences = this.getDefaultPreferences();
-        return this.savePreferences();
-    }
-
-    getAllPreferences() {
-        return { ...this.preferences };
-    }
-
-    getPreference(key) {
-        return this.preferences[key];
-    }
-
-    exportPreferences() {
-        return {
-            data: this.preferences,
-            format: 'json',
-            version: '1.0',
-            exportedAt: new Date().toISOString()
-        };
-    }
-
-    importPreferences(data) {
-        if (!data || typeof data !== 'object') {
-            throw new Error('Invalid preferences data');
-        }
-
-        const defaultPrefs = this.getDefaultPreferences();
-        const mergedPreferences = { ...defaultPrefs, ...data };
-        
-        this.preferences = mergedPreferences;
-        this.preferences.lastUpdated = new Date().toISOString();
-        
-        return this.savePreferences();
-    }
-}
-
-const userPrefs = new UserPreferencesManager();
-export default userPrefs;
+    return {
+        getPreferences,
+        updatePreferences,
+        resetPreferences,
+        subscribe
+    };
+})();
