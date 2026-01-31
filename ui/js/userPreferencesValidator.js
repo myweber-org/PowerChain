@@ -1,29 +1,35 @@
-function validateUserPreferences(prefs) {
-    const requiredFields = ['theme', 'notifications', 'language'];
-    const fieldTypes = {
-        theme: 'string',
-        notifications: 'boolean',
-        language: 'string'
-    };
-
-    for (const field of requiredFields) {
-        if (!prefs.hasOwnProperty(field)) {
-            throw new Error(`Missing required field: ${field}`);
-        }
-        if (typeof prefs[field] !== fieldTypes[field]) {
-            throw new Error(`Invalid type for field ${field}. Expected ${fieldTypes[field]}, got ${typeof prefs[field]}`);
-        }
-    }
-
+function validatePreferences(preferences) {
+    const validKeys = ['theme', 'language', 'notifications', 'timezone'];
     const validThemes = ['light', 'dark', 'auto'];
-    if (!validThemes.includes(prefs.theme)) {
-        throw new Error(`Invalid theme value. Must be one of: ${validThemes.join(', ')}`);
-    }
-
     const validLanguages = ['en', 'es', 'fr', 'de'];
-    if (!validLanguages.includes(prefs.language)) {
-        throw new Error(`Invalid language code. Must be one of: ${validLanguages.join(', ')}`);
+    
+    if (!preferences || typeof preferences !== 'object') {
+        throw new Error('Preferences must be an object');
     }
-
+    
+    for (const key in preferences) {
+        if (!validKeys.includes(key)) {
+            throw new Error(`Invalid preference key: ${key}`);
+        }
+    }
+    
+    if (preferences.theme && !validThemes.includes(preferences.theme)) {
+        throw new Error(`Invalid theme value: ${preferences.theme}`);
+    }
+    
+    if (preferences.language && !validLanguages.includes(preferences.language)) {
+        throw new Error(`Invalid language value: ${preferences.language}`);
+    }
+    
+    if (preferences.timezone && typeof preferences.timezone !== 'string') {
+        throw new Error('Timezone must be a string');
+    }
+    
+    if (preferences.notifications !== undefined && typeof preferences.notifications !== 'boolean') {
+        throw new Error('Notifications must be a boolean value');
+    }
+    
     return true;
 }
+
+module.exports = { validatePreferences };
