@@ -1,27 +1,14 @@
-function validateEmail(email) {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-}
+function validateUserInput(username, password) {
+    const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
+    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{8,}$/;
 
-function validatePassword(password) {
-    return password.length >= 8;
-}
-
-function validateUserInput(email, password) {
-    const errors = [];
-    
-    if (!validateEmail(email)) {
-        errors.push('Invalid email format');
+    if (!usernameRegex.test(username)) {
+        throw new Error('Invalid username format');
     }
-    
-    if (!validatePassword(password)) {
-        errors.push('Password must be at least 8 characters long');
-    }
-    
-    return {
-        isValid: errors.length === 0,
-        errors: errors
-    };
-}
 
-export { validateUserInput, validateEmail, validatePassword };
+    if (!passwordRegex.test(password)) {
+        throw new Error('Password must be at least 8 characters with letters and numbers');
+    }
+
+    return { username, password };
+}
