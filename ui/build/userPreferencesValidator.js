@@ -1,34 +1,29 @@
-function validateUserPreferences(preferences) {
-  const requiredFields = ['theme', 'language', 'notifications'];
-  const allowedThemes = ['light', 'dark', 'auto'];
-  const allowedLanguages = ['en', 'es', 'fr', 'de'];
+function validateUserPreferences(prefs) {
+    const requiredFields = ['theme', 'notifications', 'language'];
+    const fieldTypes = {
+        theme: 'string',
+        notifications: 'boolean',
+        language: 'string'
+    };
 
-  if (!preferences || typeof preferences !== 'object') {
-    throw new Error('Preferences must be an object');
-  }
-
-  for (const field of requiredFields) {
-    if (!preferences.hasOwnProperty(field)) {
-      throw new Error(`Missing required field: ${field}`);
+    for (const field of requiredFields) {
+        if (!prefs.hasOwnProperty(field)) {
+            throw new Error(`Missing required field: ${field}`);
+        }
+        if (typeof prefs[field] !== fieldTypes[field]) {
+            throw new Error(`Invalid type for field ${field}. Expected ${fieldTypes[field]}, got ${typeof prefs[field]}`);
+        }
     }
-  }
 
-  if (!allowedThemes.includes(preferences.theme)) {
-    throw new Error(`Invalid theme. Allowed values: ${allowedThemes.join(', ')}`);
-  }
+    const validThemes = ['light', 'dark', 'auto'];
+    if (!validThemes.includes(prefs.theme)) {
+        throw new Error(`Invalid theme value. Must be one of: ${validThemes.join(', ')}`);
+    }
 
-  if (!allowedLanguages.includes(preferences.language)) {
-    throw new Error(`Invalid language. Allowed values: ${allowedLanguages.join(', ')}`);
-  }
+    const validLanguages = ['en', 'es', 'fr', 'de'];
+    if (!validLanguages.includes(prefs.language)) {
+        throw new Error(`Invalid language value. Must be one of: ${validLanguages.join(', ')}`);
+    }
 
-  if (typeof preferences.notifications !== 'boolean') {
-    throw new Error('Notifications must be a boolean value');
-  }
-
-  return {
-    isValid: true,
-    message: 'User preferences are valid'
-  };
+    return true;
 }
-
-module.exports = validateUserPreferences;
