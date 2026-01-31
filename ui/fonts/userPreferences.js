@@ -137,4 +137,62 @@ function resetPreferences() {
   return { ...defaultPreferences };
 }
 
-export { validatePreferences, savePreferences, loadPreferences, resetPreferences };
+export { validatePreferences, savePreferences, loadPreferences, resetPreferences };function validateUserPreferences(preferences) {
+    const defaults = {
+        theme: 'light',
+        notifications: true,
+        language: 'en',
+        resultsPerPage: 25
+    };
+
+    if (!preferences || typeof preferences !== 'object') {
+        return defaults;
+    }
+
+    const validated = { ...defaults };
+
+    if (['light', 'dark', 'auto'].includes(preferences.theme)) {
+        validated.theme = preferences.theme;
+    }
+
+    if (typeof preferences.notifications === 'boolean') {
+        validated.notifications = preferences.notifications;
+    }
+
+    if (['en', 'es', 'fr', 'de'].includes(preferences.language)) {
+        validated.language = preferences.language;
+    }
+
+    if (Number.isInteger(preferences.resultsPerPage) && preferences.resultsPerPage >= 10 && preferences.resultsPerPage <= 100) {
+        validated.resultsPerPage = preferences.resultsPerPage;
+    }
+
+    return validated;
+}
+
+function initializeUserSettings() {
+    const stored = localStorage.getItem('userPreferences');
+    let parsed = null;
+    
+    try {
+        parsed = stored ? JSON.parse(stored) : null;
+    } catch (error) {
+        console.warn('Failed to parse stored preferences');
+    }
+
+    const preferences = validateUserPreferences(parsed);
+    localStorage.setItem('userPreferences', JSON.stringify(preferences));
+    
+    return preferences;
+}
+
+function updatePreference(key, value) {
+    const current = JSON.parse(localStorage.getItem('userPreferences') || '{}');
+    const updated = { ...current, [key]: value };
+    const validated = validateUserPreferences(updated);
+    
+    localStorage.setItem('userPreferences', JSON.stringify(validated));
+    return validated;
+}
+
+export { validateUserPreferences, initializeUserSettings, updatePreference };
