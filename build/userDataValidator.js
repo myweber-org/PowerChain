@@ -4,32 +4,37 @@ function validateEmail(email) {
 }
 
 function validatePassword(password) {
-    if (password.length < 8) return false;
-    if (!/[A-Z]/.test(password)) return false;
-    if (!/[a-z]/.test(password)) return false;
-    if (!/\d/.test(password)) return false;
-    return true;
+    return password.length >= 8 && /[A-Z]/.test(password) && /[0-9]/.test(password);
 }
 
-function validateUserData(user) {
-    const errors = [];
+function validateUsername(username) {
+    const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
+    return usernameRegex.test(username);
+}
+
+function validateRegistrationForm(userData) {
+    const errors = {};
     
-    if (!user.email || !validateEmail(user.email)) {
-        errors.push('Invalid email format');
+    if (!validateEmail(userData.email)) {
+        errors.email = 'Invalid email format';
     }
     
-    if (!user.password || !validatePassword(user.password)) {
-        errors.push('Password must be at least 8 characters with uppercase, lowercase and number');
+    if (!validatePassword(userData.password)) {
+        errors.password = 'Password must be at least 8 characters with one uppercase letter and one number';
     }
     
-    if (user.age && (user.age < 0 || user.age > 120)) {
-        errors.push('Age must be between 0 and 120');
+    if (!validateUsername(userData.username)) {
+        errors.username = 'Username must be 3-20 characters (letters, numbers, underscores only)';
+    }
+    
+    if (userData.password !== userData.confirmPassword) {
+        errors.confirmPassword = 'Passwords do not match';
     }
     
     return {
-        isValid: errors.length === 0,
+        isValid: Object.keys(errors).length === 0,
         errors: errors
     };
 }
 
-module.exports = { validateUserData, validateEmail, validatePassword };
+export { validateRegistrationForm, validateEmail, validatePassword, validateUsername };
