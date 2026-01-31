@@ -37,4 +37,19 @@ function validateProfileForm(userData) {
     };
 }
 
-module.exports = { validateProfileForm };
+module.exports = { validateProfileForm };function validateUserProfile(profile) {
+    const { email, age } = profile;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const isValidEmail = emailRegex.test(email);
+    const isValidAge = age >= 18 && age <= 120;
+    
+    if (!isValidEmail) {
+        return { valid: false, error: 'Invalid email format' };
+    }
+    
+    if (!isValidAge) {
+        return { valid: false, error: 'Age must be between 18 and 120' };
+    }
+    
+    return { valid: true, error: null };
+}
