@@ -1,47 +1,28 @@
-function validateRegistrationForm(email, password, confirmPassword) {
-    const errors = [];
+function validateRegistrationForm(formData) {
+    const errors = {};
 
-    if (!email || !email.includes('@')) {
-        errors.push('Invalid email address');
+    if (!formData.username || formData.username.trim().length < 3) {
+        errors.username = 'Username must be at least 3 characters long';
     }
 
-    if (!password || password.length < 8) {
-        errors.push('Password must be at least 8 characters long');
+    if (!formData.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+        errors.email = 'Please enter a valid email address';
     }
 
-    if (password !== confirmPassword) {
-        errors.push('Passwords do not match');
+    if (!formData.password || formData.password.length < 8) {
+        errors.password = 'Password must be at least 8 characters long';
     }
 
-    const hasUpperCase = /[A-Z]/.test(password);
-    const hasLowerCase = /[a-z]/.test(password);
-    const hasNumbers = /\d/.test(password);
-    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+    if (formData.password !== formData.confirmPassword) {
+        errors.confirmPassword = 'Passwords do not match';
+    }
 
-    if (!hasUpperCase || !hasLowerCase || !hasNumbers || !hasSpecialChar) {
-        errors.push('Password must contain uppercase, lowercase, numbers, and special characters');
+    if (formData.age && (isNaN(formData.age) || formData.age < 18)) {
+        errors.age = 'Age must be a number and at least 18';
     }
 
     return {
-        isValid: errors.length === 0,
+        isValid: Object.keys(errors).length === 0,
         errors: errors
     };
 }
-
-function validateUserAge(birthDate) {
-    const today = new Date();
-    const birth = new Date(birthDate);
-    let age = today.getFullYear() - birth.getFullYear();
-    const monthDiff = today.getMonth() - birth.getMonth();
-    
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
-        age--;
-    }
-    
-    return age >= 13;
-}
-
-module.exports = {
-    validateRegistrationForm,
-    validateUserAge
-};
