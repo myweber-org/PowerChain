@@ -43,4 +43,95 @@ const userPreferencesManager = (function() {
         has: hasPreference,
         keys: getAllKeys
     };
-})();
+})();const UserPreferences = {
+  storageKey: 'app_user_preferences',
+
+  defaultPreferences: {
+    theme: 'light',
+    language: 'en',
+    fontSize: 16,
+    notifications: true,
+    autoSave: false
+  },
+
+  validatePreference(key, value) {
+    const validators = {
+      theme: (val) => ['light', 'dark', 'auto'].includes(val),
+      language: (val) => ['en', 'es', 'fr', 'de'].includes(val),
+      fontSize: (val) => Number.isInteger(val) && val >= 12 && val <= 24,
+      notifications: (val) => typeof val === 'boolean',
+      autoSave: (val) => typeof val === 'boolean'
+    };
+
+    return validators[key] ? validators[key](value) : false;
+  },
+
+  load() {
+    try {
+      const stored = localStorage.getItem(this.storageKey);
+      if (!stored) return { ...this.defaultPreferences };
+
+      const parsed = JSON.parse(stored);
+      const validated = {};
+
+      for (const key in this.defaultPreferences) {
+        if (this.validatePreference(key, parsed[key])) {
+          validated[key] = parsed[key];
+        } else {
+          validated[key] = this.defaultPreferences[key];
+        }
+      }
+
+      return validated;
+    } catch (error) {
+      console.error('Failed to load preferences:', error);
+      return { ...this.defaultPreferences };
+    }
+  },
+
+  save(preferences) {
+    try {
+      const validated = {};
+
+      for (const key in this.defaultPreferences) {
+        if (this.validatePreference(key, preferences[key])) {
+          validated[key] = preferences[key];
+        } else {
+          validated[key] = this.defaultPreferences[key];
+        }
+      }
+
+      localStorage.setItem(this.storageKey, JSON.stringify(validated));
+      return true;
+    } catch (error) {
+      console.error('Failed to save preferences:', error);
+      return false;
+    }
+  },
+
+  update(key, value) {
+    if (!this.validatePreference(key, value)) {
+      throw new Error(`Invalid value for preference "${key}"`);
+    }
+
+    const current = this.load();
+    current[key] = value;
+    return this.save(current);
+  },
+
+  reset() {
+    try {
+      localStorage.removeItem(this.storageKey);
+      return true;
+    } catch (error) {
+      console.error('Failed to reset preferences:', error);
+      return false;
+    }
+  },
+
+  getAll() {
+    return this.load();
+  }
+};
+
+export default UserPreferences;
