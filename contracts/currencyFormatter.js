@@ -1,32 +1,24 @@
-function formatCurrency(value, locale = 'en-US', options = {}) {
-  const defaultOptions = {
+function formatCurrency(value, locale = 'en-US', currency = 'USD') {
+  return new Intl.NumberFormat(locale, {
     style: 'currency',
-    currency: 'USD',
+    currency: currency,
     minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-    ...options
-  };
-  
-  try {
-    const formatter = new Intl.NumberFormat(locale, defaultOptions);
-    return formatter.format(value);
-  } catch (error) {
-    console.error('Currency formatting error:', error);
-    return value.toString();
-  }
+    maximumFractionDigits: 2
+  }).format(value);
 }
 
 function parseCurrency(formattedValue, locale = 'en-US') {
-  const parts = new Intl.NumberFormat(locale).formatToParts(12345.6);
-  const groupSeparator = parts.find(part => part.type === 'group')?.value || ',';
-  const decimalSeparator = parts.find(part => part.type === 'decimal')?.value || '.';
+  const example = formatCurrency(1234.56, locale);
+  const cleanPattern = example.replace(/[\d\s.,]/g, '');
+  const decimalSeparator = example.match(/[^\d\s]/g)?.[1] || '.';
+  const groupSeparator = example.match(/[^\d\s]/g)?.[0] || ',';
   
-  const regex = new RegExp(`[^0-9${decimalSeparator}]`, 'g');
-  const numericString = formattedValue
-    .replace(regex, '')
-    .replace(decimalSeparator, '.');
+  const cleanValue = formattedValue
+    .replace(new RegExp(`[${cleanPattern}]`, 'g'), '')
+    .replace(new RegExp(`\\${groupSeparator}`, 'g'), '')
+    .replace(new RegExp(`\\${decimalSeparator}`), '.');
   
-  return parseFloat(numericString) || 0;
+  return parseFloat(cleanValue) || 0;
 }
 
 export { formatCurrency, parseCurrency };
