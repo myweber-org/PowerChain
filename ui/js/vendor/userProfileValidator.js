@@ -4,52 +4,41 @@ function validateEmail(email) {
 }
 
 function validateUsername(username) {
-    const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
-    return usernameRegex.test(username);
+    return username.length >= 3 && username.length <= 20;
 }
 
 function validatePassword(password) {
-    const minLength = 8;
     const hasUpperCase = /[A-Z]/.test(password);
     const hasLowerCase = /[a-z]/.test(password);
     const hasNumbers = /\d/.test(password);
-    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+    const hasSpecialChar = /[!@#$%^&*]/.test(password);
     
-    return password.length >= minLength && 
-           hasUpperCase && 
-           hasLowerCase && 
-           hasNumbers && 
-           hasSpecialChar;
+    return password.length >= 8 && hasUpperCase && hasLowerCase && hasNumbers && hasSpecialChar;
 }
 
-function validateAge(age) {
-    const parsedAge = parseInt(age, 10);
-    return !isNaN(parsedAge) && parsedAge >= 13 && parsedAge <= 120;
-}
-
-function validateProfileData(userData) {
-    const errors = [];
+function validateProfileForm(userData) {
+    const errors = {};
     
     if (!validateEmail(userData.email)) {
-        errors.push('Invalid email format');
+        errors.email = 'Invalid email format';
     }
     
     if (!validateUsername(userData.username)) {
-        errors.push('Username must be 3-20 characters and contain only letters, numbers, and underscores');
+        errors.username = 'Username must be between 3 and 20 characters';
     }
     
     if (!validatePassword(userData.password)) {
-        errors.push('Password must be at least 8 characters with uppercase, lowercase, number, and special character');
+        errors.password = 'Password must be at least 8 characters with uppercase, lowercase, number and special character';
     }
     
-    if (!validateAge(userData.age)) {
-        errors.push('Age must be between 13 and 120');
+    if (userData.age && (userData.age < 13 || userData.age > 120)) {
+        errors.age = 'Age must be between 13 and 120';
     }
     
     return {
-        isValid: errors.length === 0,
+        isValid: Object.keys(errors).length === 0,
         errors: errors
     };
 }
 
-export { validateProfileData, validateEmail, validateUsername, validatePassword, validateAge };
+export { validateProfileForm, validateEmail, validateUsername, validatePassword };
