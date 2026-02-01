@@ -170,4 +170,36 @@ module.exports = {
     celsiusToFahrenheit,
     fahrenheitToCelsius,
     convertTemperature
+};function celsiusToFahrenheit(celsius) {
+    return (celsius * 9/5) + 32;
+}
+
+function fahrenheitToCelsius(fahrenheit) {
+    return (fahrenheit - 32) * 5/9;
+}
+
+function convertTemperature(value, unit) {
+    if (unit === 'C') {
+        return {
+            celsius: value,
+            fahrenheit: celsiusToFahrenheit(value)
+        };
+    } else if (unit === 'F') {
+        return {
+            celsius: fahrenheitToCelsius(value),
+            fahrenheit: value
+        };
+    }
+    return null;
+}
+
+function formatTemperature(value, unit) {
+    return `${value.toFixed(1)}°${unit}`;
+}
+
+module.exports = {
+    celsiusToFahrenheit,
+    fahrenheitToCelsius,
+    convertTemperature,
+    formatTemperature
 };
