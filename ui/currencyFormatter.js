@@ -25,4 +25,33 @@ function parseCurrency(formattedString, locale = 'en-US') {
     return isNaN(number) ? 0 : number;
 }
 
+export { formatCurrency, parseCurrency };function formatCurrency(value, locale = 'en-US', currency = 'USD') {
+    if (typeof value !== 'number' || isNaN(value)) {
+        throw new TypeError('Value must be a valid number');
+    }
+    
+    const formatter = new Intl.NumberFormat(locale, {
+        style: 'currency',
+        currency: currency,
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+    
+    return formatter.format(value);
+}
+
+function parseCurrency(formattedString, locale = 'en-US') {
+    const example = formatCurrency(1234.56, locale);
+    const groupSeparator = example.replace(/\d/g, '').charAt(1);
+    const decimalSeparator = example.replace(/\d/g, '').charAt(2);
+    
+    const cleanString = formattedString
+        .replace(new RegExp(`[${groupSeparator}]`, 'g'), '')
+        .replace(new RegExp(`[${decimalSeparator}]`, 'g'), '.')
+        .replace(/[^\d.-]/g, '');
+    
+    const parsedValue = parseFloat(cleanString);
+    return isNaN(parsedValue) ? null : parsedValue;
+}
+
 export { formatCurrency, parseCurrency };
