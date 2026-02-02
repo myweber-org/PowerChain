@@ -72,4 +72,76 @@ const UserPreferencesManager = (() => {
 
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = UserPreferencesManager;
+}class UserPreferencesManager {
+  constructor() {
+    this.storageKey = 'userPreferences';
+    this.defaultPreferences = {
+      theme: 'light',
+      language: 'en',
+      notifications: true,
+      fontSize: 16,
+      autoSave: true
+    };
+    this.preferences = this.loadPreferences();
+  }
+
+  loadPreferences() {
+    try {
+      const stored = localStorage.getItem(this.storageKey);
+      if (stored) {
+        return { ...this.defaultPreferences, ...JSON.parse(stored) };
+      }
+    } catch (error) {
+      console.error('Failed to load preferences:', error);
+    }
+    return { ...this.defaultPreferences };
+  }
+
+  savePreferences() {
+    try {
+      localStorage.setItem(this.storageKey, JSON.stringify(this.preferences));
+      return true;
+    } catch (error) {
+      console.error('Failed to save preferences:', error);
+      return false;
+    }
+  }
+
+  getPreference(key) {
+    return this.preferences[key] !== undefined ? this.preferences[key] : this.defaultPreferences[key];
+  }
+
+  setPreference(key, value) {
+    if (this.defaultPreferences.hasOwnProperty(key)) {
+      this.preferences[key] = value;
+      return this.savePreferences();
+    }
+    return false;
+  }
+
+  resetToDefaults() {
+    this.preferences = { ...this.defaultPreferences };
+    return this.savePreferences();
+  }
+
+  getAllPreferences() {
+    return { ...this.preferences };
+  }
+
+  exportPreferences() {
+    return JSON.stringify(this.preferences, null, 2);
+  }
+
+  importPreferences(jsonString) {
+    try {
+      const imported = JSON.parse(jsonString);
+      this.preferences = { ...this.defaultPreferences, ...imported };
+      return this.savePreferences();
+    } catch (error) {
+      console.error('Failed to import preferences:', error);
+      return false;
+    }
+  }
 }
+
+const userPrefs = new UserPreferencesManager();
