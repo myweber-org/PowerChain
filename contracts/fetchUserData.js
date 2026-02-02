@@ -25,4 +25,27 @@ function fetchUserData(userId, maxRetries = 3) {
     }
 
     return attemptFetch();
+}function fetchUserData(apiUrl) {
+    return fetch(apiUrl)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data && data.users) {
+                return data.users.map(user => ({
+                    id: user.id,
+                    name: user.name,
+                    email: user.email,
+                    active: user.status === 'active'
+                }));
+            }
+            return [];
+        })
+        .catch(error => {
+            console.error('Error fetching user data:', error);
+            throw error;
+        });
 }
