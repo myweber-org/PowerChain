@@ -41,4 +41,30 @@ class FileManager {
     }
 }
 
-module.exports = FileManager;
+module.exports = FileManager;const fs = require('fs');
+const path = require('path');
+
+function readJsonFile(filePath) {
+    try {
+        const absolutePath = path.resolve(filePath);
+        const fileContent = fs.readFileSync(absolutePath, 'utf8');
+        const parsedData = JSON.parse(fileContent);
+        return { success: true, data: parsedData };
+    } catch (error) {
+        let errorMessage = 'Unknown error occurred';
+        if (error.code === 'ENOENT') {
+            errorMessage = 'File not found';
+        } else if (error instanceof SyntaxError) {
+            errorMessage = 'Invalid JSON format';
+        } else {
+            errorMessage = error.message;
+        }
+        return { 
+            success: false, 
+            error: errorMessage,
+            details: error 
+        };
+    }
+}
+
+module.exports = { readJsonFile };
