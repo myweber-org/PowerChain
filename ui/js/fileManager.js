@@ -92,4 +92,46 @@ module.exports = FileManager;class FileManager {
 
 const manager = new FileManager();
 
-export default FileManager;
+export default FileManager;const fs = require('fs');
+const path = require('path');
+
+class FileManager {
+    constructor(directory) {
+        this.baseDir = directory;
+    }
+
+    readJSON(filename) {
+        try {
+            const filePath = path.join(this.baseDir, filename);
+            const data = fs.readFileSync(filePath, 'utf8');
+            return JSON.parse(data);
+        } catch (error) {
+            console.error(`Error reading file ${filename}:`, error.message);
+            return null;
+        }
+    }
+
+    writeJSON(filename, data) {
+        try {
+            const filePath = path.join(this.baseDir, filename);
+            const jsonString = JSON.stringify(data, null, 2);
+            fs.writeFileSync(filePath, jsonString, 'utf8');
+            return true;
+        } catch (error) {
+            console.error(`Error writing file ${filename}:`, error.message);
+            return false;
+        }
+    }
+
+    listFiles(extension = '.json') {
+        try {
+            const files = fs.readdirSync(this.baseDir);
+            return files.filter(file => file.endsWith(extension));
+        } catch (error) {
+            console.error('Error listing files:', error.message);
+            return [];
+        }
+    }
+}
+
+module.exports = FileManager;
