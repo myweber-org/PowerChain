@@ -41,4 +41,23 @@ function validateProfileForm(userData) {
     };
 }
 
-export { validateProfileForm, validateEmail, validateUsername, validatePassword };
+export { validateProfileForm, validateEmail, validateUsername, validatePassword };function validateUserProfile(profile) {
+    const errors = [];
+
+    if (!profile.username || profile.username.trim().length < 3) {
+        errors.push('Username must be at least 3 characters long');
+    }
+
+    if (!profile.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(profile.email)) {
+        errors.push('Valid email is required');
+    }
+
+    if (profile.age && (profile.age < 0 || profile.age > 150)) {
+        errors.push('Age must be between 0 and 150');
+    }
+
+    return {
+        isValid: errors.length === 0,
+        errors: errors
+    };
+}
