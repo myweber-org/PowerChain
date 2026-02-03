@@ -31,3 +31,15 @@ function formatUserData(users) {
         return { ...user, ...formatted };
     });
 }
+function formatUserData(users) {
+  return users.map(user => ({
+    id: user.id,
+    fullName: `${user.firstName} ${user.lastName}`.trim(),
+    email: user.email.toLowerCase(),
+    age: user.age || 'N/A',
+    active: user.isActive ? 'Yes' : 'No',
+    joinedDate: new Date(user.createdAt).toLocaleDateString('en-US')
+  }));
+}
+
+export default formatUserData;
