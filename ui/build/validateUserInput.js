@@ -25,4 +25,31 @@ function validateUserInput(username, email) {
     };
 }
 
-module.exports = validateUserInput;
+module.exports = validateUserInput;function sanitizeInput(input) {
+  if (typeof input !== 'string') {
+    return '';
+  }
+  
+  return input
+    .replace(/[<>]/g, '')
+    .trim()
+    .substring(0, 255);
+}
+
+function validateEmail(email) {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+}
+
+function validatePassword(password) {
+  return password.length >= 8 && 
+         /[A-Z]/.test(password) && 
+         /[a-z]/.test(password) && 
+         /[0-9]/.test(password);
+}
+
+module.exports = {
+  sanitizeInput,
+  validateEmail,
+  validatePassword
+};
