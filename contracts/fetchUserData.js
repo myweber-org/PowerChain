@@ -1,51 +1,49 @@
-function fetchUserData(userId, maxRetries = 3) {
-    const url = `https://api.example.com/users/${userId}`;
-    let retryCount = 0;
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+const userDataCache = new Map();
 
-    async function attemptFetch() {
-        try {
-            const response = await fetch(url);
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            const data = await response.json();
-            console.log('User data fetched successfully:', data);
-            return data;
-        } catch (error) {
-            retryCount++;
-            if (retryCount <= maxRetries) {
-                console.warn(`Attempt ${retryCount} failed. Retrying...`);
-                await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
-                return attemptFetch();
-            } else {
-                console.error('Max retries reached. Failed to fetch user data:', error);
-                throw error;
-            }
-        }
+async function fetchUserData(userId, forceRefresh = false) {
+    const cacheKey = `user_${userId}`;
+    const cached = userDataCache.get(cacheKey);
+
+    if (!forceRefresh && cached && (Date.now() - cached.timestamp) < CACHE_DURATION) {
+        console.log(`Returning cached data for user ${userId}`);
+        return cached.data;
     }
 
-    return attemptFetch();
-}function fetchUserData(apiUrl) {
-    return fetch(apiUrl)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data && data.users) {
-                return data.users.map(user => ({
-                    id: user.id,
-                    name: user.name,
-                    email: user.email,
-                    active: user.status === 'active'
-                }));
-            }
-            return [];
-        })
-        .catch(error => {
-            console.error('Error fetching user data:', error);
-            throw error;
+    try {
+        console.log(`Fetching fresh data for user ${userId}`);
+        const response = await fetch(`https://api.example.com/users/${userId}`);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const userData = await response.json();
+        
+        userDataCache.set(cacheKey, {
+            data: userData,
+            timestamp: Date.now()
         });
+        
+        return userData;
+    } catch (error) {
+        console.error('Failed to fetch user data:', error);
+        
+        if (cached) {
+            console.log('Returning stale cached data due to fetch error');
+            return cached.data;
+        }
+        
+        throw error;
+    }
 }
+
+function clearUserCache(userId = null) {
+    if (userId) {
+        userDataCache.delete(`user_${userId}`);
+    } else {
+        userDataCache.clear();
+    }
+}
+
+export { fetchUserData, clearUserCache };
