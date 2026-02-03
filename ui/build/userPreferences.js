@@ -212,3 +212,96 @@ function resetUserPreferences() {
 }
 
 export { validateUserPreferences, initializeUserPreferences, updateUserPreference, resetUserPreferences };
+const userPreferences = {
+  theme: 'light',
+  fontSize: 16,
+  notifications: true,
+  
+  init() {
+    this.loadPreferences();
+    this.applyPreferences();
+    this.setupEventListeners();
+  },
+  
+  loadPreferences() {
+    const saved = localStorage.getItem('userPreferences');
+    if (saved) {
+      const preferences = JSON.parse(saved);
+      this.theme = preferences.theme || this.theme;
+      this.fontSize = preferences.fontSize || this.fontSize;
+      this.notifications = preferences.notifications !== undefined ? preferences.notifications : this.notifications;
+    }
+  },
+  
+  savePreferences() {
+    const preferences = {
+      theme: this.theme,
+      fontSize: this.fontSize,
+      notifications: this.notifications
+    };
+    localStorage.setItem('userPreferences', JSON.stringify(preferences));
+  },
+  
+  applyPreferences() {
+    document.documentElement.setAttribute('data-theme', this.theme);
+    document.documentElement.style.fontSize = `${this.fontSize}px`;
+    
+    const notificationElement = document.getElementById('notificationToggle');
+    if (notificationElement) {
+      notificationElement.checked = this.notifications;
+    }
+  },
+  
+  toggleTheme() {
+    this.theme = this.theme === 'light' ? 'dark' : 'light';
+    this.applyPreferences();
+    this.savePreferences();
+  },
+  
+  updateFontSize(newSize) {
+    if (newSize >= 12 && newSize <= 24) {
+      this.fontSize = newSize;
+      this.applyPreferences();
+      this.savePreferences();
+    }
+  },
+  
+  toggleNotifications() {
+    this.notifications = !this.notifications;
+    this.savePreferences();
+  },
+  
+  setupEventListeners() {
+    const themeToggle = document.getElementById('themeToggle');
+    const fontSizeInput = document.getElementById('fontSizeInput');
+    const notificationToggle = document.getElementById('notificationToggle');
+    
+    if (themeToggle) {
+      themeToggle.addEventListener('click', () => this.toggleTheme());
+    }
+    
+    if (fontSizeInput) {
+      fontSizeInput.addEventListener('input', (e) => {
+        this.updateFontSize(parseInt(e.target.value));
+      });
+    }
+    
+    if (notificationToggle) {
+      notificationToggle.addEventListener('change', () => this.toggleNotifications());
+    }
+  },
+  
+  resetToDefaults() {
+    this.theme = 'light';
+    this.fontSize = 16;
+    this.notifications = true;
+    this.savePreferences();
+    this.applyPreferences();
+  }
+};
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = userPreferences;
+} else {
+  window.userPreferences = userPreferences;
+}
