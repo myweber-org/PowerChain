@@ -647,4 +647,70 @@ if (typeof module !== 'undefined' && module.exports) {
   };
 })();
 
-export default userPreferencesManager;
+export default userPreferencesManager;const UserPreferencesManager = (function() {
+    const PREFERENCES_KEY = 'app_preferences';
+    const DEFAULT_PREFERENCES = {
+        theme: 'light',
+        fontSize: 16,
+        notifications: true,
+        language: 'en'
+    };
+
+    function getPreferences() {
+        const stored = localStorage.getItem(PREFERENCES_KEY);
+        if (stored) {
+            try {
+                return { ...DEFAULT_PREFERENCES, ...JSON.parse(stored) };
+            } catch (error) {
+                console.error('Failed to parse preferences:', error);
+                return DEFAULT_PREFERENCES;
+            }
+        }
+        return DEFAULT_PREFERENCES;
+    }
+
+    function savePreferences(preferences) {
+        try {
+            const current = getPreferences();
+            const updated = { ...current, ...preferences };
+            localStorage.setItem(PREFERENCES_KEY, JSON.stringify(updated));
+            return updated;
+        } catch (error) {
+            console.error('Failed to save preferences:', error);
+            return null;
+        }
+    }
+
+    function resetPreferences() {
+        localStorage.removeItem(PREFERENCES_KEY);
+        return DEFAULT_PREFERENCES;
+    }
+
+    function getPreference(key) {
+        const prefs = getPreferences();
+        return prefs[key];
+    }
+
+    function setPreference(key, value) {
+        return savePreferences({ [key]: value });
+    }
+
+    function subscribe(callback) {
+        window.addEventListener('storage', function(event) {
+            if (event.key === PREFERENCES_KEY) {
+                callback(getPreferences());
+            }
+        });
+    }
+
+    return {
+        getPreferences,
+        savePreferences,
+        resetPreferences,
+        getPreference,
+        setPreference,
+        subscribe
+    };
+})();
+
+export default UserPreferencesManager;
