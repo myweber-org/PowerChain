@@ -3,30 +3,19 @@ function validateEmail(email) {
     return emailRegex.test(email);
 }
 
-function validatePhoneNumber(phone) {
-    const phoneRegex = /^\+?[\d\s\-\(\)]{10,}$/;
-    return phoneRegex.test(phone);
+function validatePassword(password) {
+    return password.length >= 8 && /[A-Z]/.test(password) && /\d/.test(password);
 }
 
-function validateFormData(data) {
-    const errors = {};
-    
-    if (data.email && !validateEmail(data.email)) {
-        errors.email = 'Invalid email format';
-    }
-    
-    if (data.phone && !validatePhoneNumber(data.phone)) {
-        errors.phone = 'Invalid phone number format';
-    }
-    
-    if (data.requiredField && data.requiredField.trim() === '') {
-        errors.requiredField = 'This field is required';
-    }
-    
-    return {
-        isValid: Object.keys(errors).length === 0,
-        errors: errors
-    };
+function validateUsername(username) {
+    const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
+    return usernameRegex.test(username);
 }
 
-export { validateEmail, validatePhoneNumber, validateFormData };
+function sanitizeInput(input) {
+    const div = document.createElement('div');
+    div.textContent = input;
+    return div.innerHTML;
+}
+
+export { validateEmail, validatePassword, validateUsername, sanitizeInput };
