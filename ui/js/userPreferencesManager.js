@@ -84,4 +84,62 @@ const userPreferencesManager = (() => {
     subscribe,
     defaults: { ...defaultPreferences }
   };
+})();const UserPreferencesManager = (() => {
+    const STORAGE_KEY = 'app_user_preferences';
+    const DEFAULT_PREFERENCES = {
+        theme: 'light',
+        language: 'en',
+        notifications: true,
+        fontSize: 16,
+        autoSave: false
+    };
+
+    let preferences = { ...DEFAULT_PREFERENCES };
+
+    const loadPreferences = () => {
+        try {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            if (stored) {
+                const parsed = JSON.parse(stored);
+                preferences = { ...DEFAULT_PREFERENCES, ...parsed };
+            }
+        } catch (error) {
+            console.warn('Failed to load preferences:', error);
+        }
+        return preferences;
+    };
+
+    const savePreferences = (newPreferences) => {
+        try {
+            preferences = { ...preferences, ...newPreferences };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(preferences));
+            return true;
+        } catch (error) {
+            console.error('Failed to save preferences:', error);
+            return false;
+        }
+    };
+
+    const getPreference = (key) => {
+        return preferences[key] !== undefined ? preferences[key] : null;
+    };
+
+    const resetToDefaults = () => {
+        preferences = { ...DEFAULT_PREFERENCES };
+        localStorage.removeItem(STORAGE_KEY);
+        return preferences;
+    };
+
+    const getAllPreferences = () => {
+        return { ...preferences };
+    };
+
+    loadPreferences();
+
+    return {
+        get: getPreference,
+        set: savePreferences,
+        reset: resetToDefaults,
+        getAll: getAllPreferences
+    };
 })();
