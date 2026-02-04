@@ -2,39 +2,6 @@ function celsiusToFahrenheit(celsius) {
     return (celsius * 9/5) + 32;
 }
 
-function fahrenheitToCelsius(fahrenheit) {
-    return (fahrenheit - 32) * 5/9;
-}
-
-function convertTemperature(value, unit) {
-    if (unit.toLowerCase() === 'c') {
-        return celsiusToFahrenheit(value);
-    } else if (unit.toLowerCase() === 'f') {
-        return fahrenheitToCelsius(value);
-    } else {
-        throw new Error('Invalid unit. Use "C" for Celsius or "F" for Fahrenheit.');
-    }
-}
-
-function formatTemperature(value, originalUnit) {
-    const convertedUnit = originalUnit.toLowerCase() === 'c' ? 'F' : 'C';
-    return `${value.toFixed(2)}°${convertedUnit}`;
-}
-
-function validateTemperatureInput(value) {
-    return !isNaN(parseFloat(value)) && isFinite(value);
-}
-
-module.exports = {
-    celsiusToFahrenheit,
-    fahrenheitToCelsius,
-    convertTemperature,
-    formatTemperature,
-    validateTemperatureInput
-};function celsiusToFahrenheit(celsius) {
-    return (celsius * 9/5) + 32;
-}
-
 function celsiusToKelvin(celsius) {
     return celsius + 273.15;
 }
