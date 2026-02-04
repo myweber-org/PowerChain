@@ -257,4 +257,45 @@ function generateSuggestions(password, config) {
   return suggestions;
 }
 
-export { checkPasswordStrength, calculateStrengthScore };
+export { checkPasswordStrength, calculateStrengthScore };function calculatePasswordEntropy(password) {
+    if (!password || password.length === 0) return 0;
+    
+    let charsetSize = 0;
+    if (/[a-z]/.test(password)) charsetSize += 26;
+    if (/[A-Z]/.test(password)) charsetSize += 26;
+    if (/[0-9]/.test(password)) charsetSize += 10;
+    if (/[^a-zA-Z0-9]/.test(password)) charsetSize += 32;
+    
+    const entropy = Math.log2(Math.pow(charsetSize, password.length));
+    return Math.round(entropy * 100) / 100;
+}
+
+function evaluatePasswordStrength(password) {
+    const entropy = calculatePasswordEntropy(password);
+    
+    if (entropy < 40) return 'Weak';
+    if (entropy < 60) return 'Moderate';
+    if (entropy < 80) return 'Strong';
+    return 'Very Strong';
+}
+
+function validatePassword(password) {
+    const strength = evaluatePasswordStrength(password);
+    const entropy = calculatePasswordEntropy(password);
+    const requirements = {
+        hasLowercase: /[a-z]/.test(password),
+        hasUppercase: /[A-Z]/.test(password),
+        hasNumber: /[0-9]/.test(password),
+        hasSpecial: /[^a-zA-Z0-9]/.test(password),
+        minLength: password.length >= 8
+    };
+    
+    return {
+        strength: strength,
+        entropy: entropy,
+        meetsRequirements: requirements,
+        isValid: Object.values(requirements).every(req => req === true)
+    };
+}
+
+export { validatePassword, calculatePasswordEntropy, evaluatePasswordStrength };
