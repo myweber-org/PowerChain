@@ -713,4 +713,98 @@ export default userPreferencesManager;const UserPreferencesManager = (function()
     };
 })();
 
+export default UserPreferencesManager;class UserPreferencesManager {
+  constructor(storageKey = 'user_preferences') {
+    this.storageKey = storageKey;
+    this.preferences = this.loadPreferences();
+  }
+
+  loadPreferences() {
+    try {
+      const stored = localStorage.getItem(this.storageKey);
+      return stored ? JSON.parse(stored) : {};
+    } catch (error) {
+      console.warn('Failed to load preferences:', error);
+      return {};
+    }
+  }
+
+  savePreferences() {
+    try {
+      localStorage.setItem(this.storageKey, JSON.stringify(this.preferences));
+      return true;
+    } catch (error) {
+      console.error('Failed to save preferences:', error);
+      return false;
+    }
+  }
+
+  setPreference(key, value) {
+    if (typeof key !== 'string' || key.trim() === '') {
+      throw new Error('Preference key must be a non-empty string');
+    }
+    
+    this.preferences[key] = value;
+    const saved = this.savePreferences();
+    
+    if (saved) {
+      this.dispatchPreferenceChange(key, value);
+    }
+    
+    return saved;
+  }
+
+  getPreference(key, defaultValue = null) {
+    return key in this.preferences ? this.preferences[key] : defaultValue;
+  }
+
+  removePreference(key) {
+    if (key in this.preferences) {
+      delete this.preferences[key];
+      const saved = this.savePreferences();
+      
+      if (saved) {
+        this.dispatchPreferenceChange(key, null);
+      }
+      
+      return saved;
+    }
+    return false;
+  }
+
+  getAllPreferences() {
+    return { ...this.preferences };
+  }
+
+  clearAllPreferences() {
+    this.preferences = {};
+    const cleared = localStorage.removeItem(this.storageKey);
+    
+    if (cleared) {
+      this.dispatchPreferenceChange('all', null);
+    }
+    
+    return cleared;
+  }
+
+  dispatchPreferenceChange(key, value) {
+    const event = new CustomEvent('preferenceChanged', {
+      detail: { key, value, timestamp: Date.now() }
+    });
+    window.dispatchEvent(event);
+  }
+
+  hasPreference(key) {
+    return key in this.preferences;
+  }
+
+  getPreferenceKeys() {
+    return Object.keys(this.preferences);
+  }
+
+  getPreferenceCount() {
+    return Object.keys(this.preferences).length;
+  }
+}
+
 export default UserPreferencesManager;
