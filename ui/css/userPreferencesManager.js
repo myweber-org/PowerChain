@@ -807,4 +807,50 @@ export default UserPreferencesManager;class UserPreferencesManager {
   }
 }
 
-export default UserPreferencesManager;
+export default UserPreferencesManager;const userPreferencesManager = (() => {
+    const PREFERENCES_KEY = 'app_preferences';
+    const DEFAULT_PREFERENCES = {
+        theme: 'light',
+        fontSize: 16,
+        notifications: true,
+        language: 'en'
+    };
+
+    function getPreferences() {
+        const stored = localStorage.getItem(PREFERENCES_KEY);
+        return stored ? JSON.parse(stored) : { ...DEFAULT_PREFERENCES };
+    }
+
+    function updatePreferences(newPreferences) {
+        const current = getPreferences();
+        const updated = { ...current, ...newPreferences };
+        localStorage.setItem(PREFERENCES_KEY, JSON.stringify(updated));
+        dispatchPreferencesChange(updated);
+        return updated;
+    }
+
+    function resetPreferences() {
+        localStorage.removeItem(PREFERENCES_KEY);
+        dispatchPreferencesChange(DEFAULT_PREFERENCES);
+        return { ...DEFAULT_PREFERENCES };
+    }
+
+    function dispatchPreferencesChange(preferences) {
+        window.dispatchEvent(new CustomEvent('preferencesChanged', {
+            detail: preferences
+        }));
+    }
+
+    function getPreference(key) {
+        const prefs = getPreferences();
+        return prefs[key] !== undefined ? prefs[key] : DEFAULT_PREFERENCES[key];
+    }
+
+    return {
+        get: getPreferences,
+        update: updatePreferences,
+        reset: resetPreferences,
+        getValue: getPreference,
+        DEFAULT: DEFAULT_PREFERENCES
+    };
+})();
