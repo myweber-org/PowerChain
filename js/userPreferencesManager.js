@@ -184,4 +184,77 @@ export default UserPreferences;const UserPreferencesManager = (function() {
             return () => window.removeEventListener('preferencesChanged', callback);
         }
     };
+})();const UserPreferencesManager = (function() {
+    const STORAGE_KEY = 'user_preferences';
+    const DEFAULT_PREFERENCES = {
+        theme: 'light',
+        fontSize: 16,
+        notifications: true,
+        language: 'en',
+        autoSave: false
+    };
+
+    function getPreferences() {
+        try {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            return stored ? JSON.parse(stored) : { ...DEFAULT_PREFERENCES };
+        } catch (error) {
+            console.error('Failed to retrieve preferences:', error);
+            return { ...DEFAULT_PREFERENCES };
+        }
+    }
+
+    function savePreferences(preferences) {
+        try {
+            const current = getPreferences();
+            const updated = { ...current, ...preferences };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+            return true;
+        } catch (error) {
+            console.error('Failed to save preferences:', error);
+            return false;
+        }
+    }
+
+    function resetPreferences() {
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_PREFERENCES));
+            return true;
+        } catch (error) {
+            console.error('Failed to reset preferences:', error);
+            return false;
+        }
+    }
+
+    function getPreference(key) {
+        const preferences = getPreferences();
+        return preferences[key] !== undefined ? preferences[key] : DEFAULT_PREFERENCES[key];
+    }
+
+    function setPreference(key, value) {
+        return savePreferences({ [key]: value });
+    }
+
+    function getAllPreferences() {
+        return getPreferences();
+    }
+
+    function clearPreferences() {
+        try {
+            localStorage.removeItem(STORAGE_KEY);
+            return true;
+        } catch (error) {
+            console.error('Failed to clear preferences:', error);
+            return false;
+        }
+    }
+
+    return {
+        get: getPreference,
+        set: setPreference,
+        getAll: getAllPreferences,
+        save: savePreferences,
+        reset: resetPreferences,
+        clear: clearPreferences
+    };
 })();
