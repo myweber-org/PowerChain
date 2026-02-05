@@ -1,49 +1,32 @@
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
-const userDataCache = new Map();
+async function fetchUserData(userId) {
+  const cacheKey = `user_${userId}`;
+  const cacheExpiry = 5 * 60 * 1000; // 5 minutes
 
-async function fetchUserData(userId, forceRefresh = false) {
-    const cacheKey = `user_${userId}`;
-    const cached = userDataCache.get(cacheKey);
-
-    if (!forceRefresh && cached && (Date.now() - cached.timestamp) < CACHE_DURATION) {
-        console.log(`Returning cached data for user ${userId}`);
-        return cached.data;
+  // Check cache first
+  const cached = localStorage.getItem(cacheKey);
+  if (cached) {
+    const { data, timestamp } = JSON.parse(cached);
+    if (Date.now() - timestamp < cacheExpiry) {
+      return data;
     }
+  }
 
-    try {
-        console.log(`Fetching fresh data for user ${userId}`);
-        const response = await fetch(`https://api.example.com/users/${userId}`);
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const userData = await response.json();
-        
-        userDataCache.set(cacheKey, {
-            data: userData,
-            timestamp: Date.now()
-        });
-        
-        return userData;
-    } catch (error) {
-        console.error('Failed to fetch user data:', error);
-        
-        if (cached) {
-            console.log('Returning stale cached data due to fetch error');
-            return cached.data;
-        }
-        
-        throw error;
+  try {
+    const response = await fetch(`https://api.example.com/users/${userId}`);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
+    const userData = await response.json();
+
+    // Cache the response
+    localStorage.setItem(cacheKey, JSON.stringify({
+      data: userData,
+      timestamp: Date.now()
+    }));
+
+    return userData;
+  } catch (error) {
+    console.error('Failed to fetch user data:', error);
+    throw error;
+  }
 }
-
-function clearUserCache(userId = null) {
-    if (userId) {
-        userDataCache.delete(`user_${userId}`);
-    } else {
-        userDataCache.clear();
-    }
-}
-
-export { fetchUserData, clearUserCache };
