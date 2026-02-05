@@ -362,4 +362,60 @@ export default UserPreferences;const userPreferencesManager = (() => {
         setPreference,
         subscribe
     };
+})();const UserPreferencesManager = (() => {
+  const STORAGE_KEY = 'app_preferences';
+  const DEFAULT_PREFERENCES = {
+    theme: 'light',
+    fontSize: 16,
+    notifications: true,
+    language: 'en'
+  };
+
+  const getPreferences = () => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      return stored ? JSON.parse(stored) : { ...DEFAULT_PREFERENCES };
+    } catch (error) {
+      console.warn('Failed to read preferences from localStorage:', error);
+      return { ...DEFAULT_PREFERENCES };
+    }
+  };
+
+  const savePreferences = (preferences) => {
+    try {
+      const merged = { ...getPreferences(), ...preferences };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
+      return merged;
+    } catch (error) {
+      console.error('Failed to save preferences:', error);
+      return null;
+    }
+  };
+
+  const resetPreferences = () => {
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+      return { ...DEFAULT_PREFERENCES };
+    } catch (error) {
+      console.error('Failed to reset preferences:', error);
+      return null;
+    }
+  };
+
+  const subscribe = (callback) => {
+    const handler = (event) => {
+      if (event.key === STORAGE_KEY) {
+        callback(getPreferences());
+      }
+    };
+    window.addEventListener('storage', handler);
+    return () => window.removeEventListener('storage', handler);
+  };
+
+  return {
+    get: getPreferences,
+    set: savePreferences,
+    reset: resetPreferences,
+    subscribe
+  };
 })();
