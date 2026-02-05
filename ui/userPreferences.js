@@ -104,4 +104,63 @@ function updateUserPreferences(updates) {
     return validated;
 }
 
-export { validateUserPreferences, initializeUserPreferences, updateUserPreferences };
+export { validateUserPreferences, initializeUserPreferences, updateUserPreferences };function initializeUserPreferences(preferences) {
+  const defaults = {
+    theme: 'light',
+    language: 'en',
+    notifications: true,
+    fontSize: 16,
+    autoSave: false
+  };
+
+  function validatePreferences(prefs) {
+    const validThemes = ['light', 'dark', 'auto'];
+    const validLanguages = ['en', 'es', 'fr', 'de'];
+    
+    if (prefs.theme && !validThemes.includes(prefs.theme)) {
+      console.warn(`Invalid theme: ${prefs.theme}. Using default.`);
+      prefs.theme = defaults.theme;
+    }
+    
+    if (prefs.language && !validLanguages.includes(prefs.language)) {
+      console.warn(`Invalid language: ${prefs.language}. Using default.`);
+      prefs.language = defaults.language;
+    }
+    
+    if (typeof prefs.notifications !== 'boolean') {
+      prefs.notifications = defaults.notifications;
+    }
+    
+    if (typeof prefs.fontSize !== 'number' || prefs.fontSize < 12 || prefs.fontSize > 24) {
+      prefs.fontSize = defaults.fontSize;
+    }
+    
+    if (typeof prefs.autoSave !== 'boolean') {
+      prefs.autoSave = defaults.autoSave;
+    }
+    
+    return prefs;
+  }
+
+  const validatedPrefs = validatePreferences({ ...defaults, ...preferences });
+  
+  Object.keys(validatedPrefs).forEach(key => {
+    localStorage.setItem(`userPref_${key}`, JSON.stringify(validatedPrefs[key]));
+  });
+  
+  return validatedPrefs;
+}
+
+function getUserPreference(key) {
+  const value = localStorage.getItem(`userPref_${key}`);
+  return value ? JSON.parse(value) : null;
+}
+
+function resetPreferencesToDefault() {
+  Object.keys(defaults).forEach(key => {
+    localStorage.setItem(`userPref_${key}`, JSON.stringify(defaults[key]));
+  });
+  return { ...defaults };
+}
+
+export { initializeUserPreferences, getUserPreference, resetPreferencesToDefault };
