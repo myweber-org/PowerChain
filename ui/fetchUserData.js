@@ -119,4 +119,28 @@ export { fetchUserData, clearUserCache };async function fetchUserData(userId) {
         console.error('Failed to fetch user data:', error);
         return null;
     }
+}async function fetchUserData(userId, maxRetries = 3) {
+    const baseUrl = 'https://api.example.com/users';
+    
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+            const response = await fetch(`${baseUrl}/${userId}`);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const userData = await response.json();
+            return userData;
+            
+        } catch (error) {
+            console.error(`Attempt ${attempt} failed:`, error.message);
+            
+            if (attempt === maxRetries) {
+                throw new Error(`Failed to fetch user data after ${maxRetries} attempts`);
+            }
+            
+            await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+        }
+    }
 }
