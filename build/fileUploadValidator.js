@@ -64,4 +64,34 @@ document.addEventListener('DOMContentLoaded', function() {
             handleFileSelect(event, imageUploadConfig.allowedTypes, imageUploadConfig.maxSize);
         });
     }
-});
+});const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif'];
+const MAX_SIZE = 5 * 1024 * 1024;
+
+function validateFile(file) {
+    if (!ALLOWED_TYPES.includes(file.type)) {
+        throw new Error('Invalid file type. Only JPEG, PNG, and GIF are allowed.');
+    }
+    
+    if (file.size > MAX_SIZE) {
+        throw new Error('File size exceeds the 5MB limit.');
+    }
+    
+    return true;
+}
+
+function handleFileUpload(event) {
+    const file = event.target.files[0];
+    
+    try {
+        validateFile(file);
+        console.log('File validation passed:', file.name);
+        return file;
+    } catch (error) {
+        console.error('Validation error:', error.message);
+        event.target.value = '';
+        alert(error.message);
+        return null;
+    }
+}
+
+export { validateFile, handleFileUpload };
