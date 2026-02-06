@@ -311,4 +311,47 @@ export default UserPreferences;const UserPreferencesManager = (function() {
         clear: clearAllPreferences,
         getAll: getAllPreferences
     };
+})();const UserPreferencesManager = (function() {
+    const STORAGE_KEY = 'app_preferences';
+    
+    function getPreferences() {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        return stored ? JSON.parse(stored) : {};
+    }
+    
+    function setPreference(key, value) {
+        const preferences = getPreferences();
+        preferences[key] = value;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(preferences));
+        return preferences;
+    }
+    
+    function getPreference(key, defaultValue = null) {
+        const preferences = getPreferences();
+        return preferences.hasOwnProperty(key) ? preferences[key] : defaultValue;
+    }
+    
+    function removePreference(key) {
+        const preferences = getPreferences();
+        delete preferences[key];
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(preferences));
+        return preferences;
+    }
+    
+    function clearPreferences() {
+        localStorage.removeItem(STORAGE_KEY);
+        return {};
+    }
+    
+    function getAllPreferences() {
+        return getPreferences();
+    }
+    
+    return {
+        get: getPreference,
+        set: setPreference,
+        remove: removePreference,
+        clear: clearPreferences,
+        getAll: getAllPreferences
+    };
 })();
