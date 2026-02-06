@@ -85,4 +85,51 @@ function getStrengthLevel(score) {
     return "Very Strong";
 }
 
-export { checkPasswordStrength };
+export { checkPasswordStrength };function checkPasswordStrength(password, options = {}) {
+    const defaults = {
+        minLength: 8,
+        requireUppercase: true,
+        requireLowercase: true,
+        requireNumbers: true,
+        requireSpecialChars: true,
+        specialChars: "!@#$%^&*()_+-=[]{}|;:,.<>?"
+    };
+    
+    const config = { ...defaults, ...options };
+    const errors = [];
+    
+    if (password.length < config.minLength) {
+        errors.push(`Password must be at least ${config.minLength} characters long`);
+    }
+    
+    if (config.requireUppercase && !/[A-Z]/.test(password)) {
+        errors.push("Password must contain at least one uppercase letter");
+    }
+    
+    if (config.requireLowercase && !/[a-z]/.test(password)) {
+        errors.push("Password must contain at least one lowercase letter");
+    }
+    
+    if (config.requireNumbers && !/\d/.test(password)) {
+        errors.push("Password must contain at least one number");
+    }
+    
+    if (config.requireSpecialChars) {
+        const specialCharRegex = new RegExp(`[${config.specialChars.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}]`);
+        if (!specialCharRegex.test(password)) {
+            errors.push("Password must contain at least one special character");
+        }
+    }
+    
+    const score = Math.max(0, 100 - (errors.length * 20));
+    const strength = score >= 80 ? "strong" : score >= 60 ? "medium" : "weak";
+    
+    return {
+        isValid: errors.length === 0,
+        score,
+        strength,
+        errors
+    };
+}
+
+module.exports = checkPasswordStrength;
