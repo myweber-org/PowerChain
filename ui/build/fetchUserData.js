@@ -250,4 +250,29 @@ function displayUserData(user) {
       <p>Location: ${user.location}</p>
     `;
   }
+}function fetchUserData(userId, maxRetries = 3) {
+    const apiUrl = `https://api.example.com/users/${userId}`;
+
+    async function attemptFetch(retryCount) {
+        try {
+            const response = await fetch(apiUrl);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            console.log('User data fetched successfully:', data);
+            return data;
+        } catch (error) {
+            if (retryCount < maxRetries) {
+                console.warn(`Attempt ${retryCount + 1} failed. Retrying...`);
+                await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, retryCount)));
+                return attemptFetch(retryCount + 1);
+            } else {
+                console.error('Max retries reached. Operation failed:', error);
+                throw error;
+            }
+        }
+    }
+
+    return attemptFetch(0);
 }
