@@ -1,39 +1,58 @@
 const crypto = require('crypto');
+const fs = require('fs');
 
-class FileEncryption {
-  constructor(key) {
-    if (!key || key.length !== 32) {
-      throw new Error('Encryption key must be 32 bytes for AES-256');
+class FileEncryptor {
+    constructor(key) {
+        this.algorithm = 'aes-256-cbc';
+        this.key = crypto.createHash('sha256').update(String(key)).digest();
     }
-    this.key = Buffer.from(key);
-  }
 
-  encrypt(data) {
-    const iv = crypto.randomBytes(16);
-    const cipher = crypto.createCipheriv('aes-256-cbc', this.key, iv);
-    
-    let encrypted = cipher.update(data, 'utf8', 'hex');
-    encrypted += cipher.final('hex');
-    
-    return {
-      iv: iv.toString('hex'),
-      content: encrypted
-    };
-  }
+    encryptFile(inputPath, outputPath) {
+        return new Promise((resolve, reject) => {
+            const iv = crypto.randomBytes(16);
+            const cipher = crypto.createCipheriv(this.algorithm, this.key, iv);
+            
+            const input = fs.createReadStream(inputPath);
+            const output = fs.createWriteStream(outputPath);
+            
+            output.write(iv);
+            
+            input.pipe(cipher).pipe(output);
+            
+            output.on('finish', () => {
+                resolve(outputPath);
+            });
+            
+            output.on('error', reject);
+        });
+    }
 
-  decrypt(encryptedData) {
-    const iv = Buffer.from(encryptedData.iv, 'hex');
-    const decipher = crypto.createDecipheriv('aes-256-cbc', this.key, iv);
-    
-    let decrypted = decipher.update(encryptedData.content, 'hex', 'utf8');
-    decrypted += decipher.final('utf8');
-    
-    return decrypted;
-  }
+    decryptFile(inputPath, outputPath) {
+        return new Promise((resolve, reject) => {
+            const input = fs.createReadStream(inputPath);
+            
+            input.once('readable', () => {
+                const iv = input.read(16);
+                const decipher = crypto.createDecipheriv(this.algorithm, this.key, iv);
+                
+                const output = fs.createWriteStream(outputPath);
+                
+                input.pipe(decipher).pipe(output);
+                
+                output.on('finish', () => {
+                    resolve(outputPath);
+                });
+                
+                output.on('error', reject);
+            });
+            
+            input.on('error', reject);
+        });
+    }
 
-  static generateKey() {
-    return crypto.randomBytes(32).toString('hex');
-  }
+    static generateRandomKey(length = 32) {
+        return crypto.randomBytes(length).toString('hex');
+    }
 }
 
-module.exports = FileEncryption;
+module.exports = FileEncryptor;
