@@ -74,4 +74,74 @@ function calculateStrengthScore(password) {
     return Math.min(score, 5);
 }
 
-export { validatePassword, calculateStrengthScore };
+export { validatePassword, calculateStrengthScore };function passwordStrengthChecker(password, options = {}) {
+    const defaultOptions = {
+        minLength: 8,
+        requireUppercase: true,
+        requireLowercase: true,
+        requireNumbers: true,
+        requireSpecialChars: true,
+        specialChars: "!@#$%^&*()_+-=[]{}|;:,.<>?"
+    };
+    
+    const config = { ...defaultOptions, ...options };
+    const errors = [];
+    const suggestions = [];
+    
+    if (password.length < config.minLength) {
+        errors.push(`Password must be at least ${config.minLength} characters long`);
+    }
+    
+    if (config.requireUppercase && !/[A-Z]/.test(password)) {
+        errors.push("Password must contain at least one uppercase letter");
+    }
+    
+    if (config.requireLowercase && !/[a-z]/.test(password)) {
+        errors.push("Password must contain at least one lowercase letter");
+    }
+    
+    if (config.requireNumbers && !/\d/.test(password)) {
+        errors.push("Password must contain at least one number");
+    }
+    
+    if (config.requireSpecialChars) {
+        const specialCharRegex = new RegExp(`[${config.specialChars.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}]`);
+        if (!specialCharRegex.test(password)) {
+            errors.push(`Password must contain at least one special character (${config.specialChars})`);
+        }
+    }
+    
+    if (errors.length === 0) {
+        const strengthScore = calculateStrengthScore(password);
+        if (strengthScore < 3) {
+            suggestions.push("Consider using a longer password or adding more character variety");
+        }
+        if (/(.)\1{2,}/.test(password)) {
+            suggestions.push("Avoid repeating characters multiple times in sequence");
+        }
+        if (/\b(?:password|123456|admin|qwerty)\b/i.test(password)) {
+            suggestions.push("Avoid using common passwords or dictionary words");
+        }
+    }
+    
+    return {
+        isValid: errors.length === 0,
+        errors,
+        suggestions,
+        strength: errors.length === 0 ? calculateStrengthScore(password) : 0
+    };
+    
+    function calculateStrengthScore(pwd) {
+        let score = 0;
+        if (pwd.length >= 12) score += 2;
+        else if (pwd.length >= 8) score += 1;
+        
+        if (/[A-Z]/.test(pwd) && /[a-z]/.test(pwd)) score += 1;
+        if (/\d/.test(pwd)) score += 1;
+        
+        const specialCharRegex = new RegExp(`[${config.specialChars.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}]`);
+        if (specialCharRegex.test(pwd)) score += 1;
+        
+        return Math.min(score, 5);
+    }
+}
