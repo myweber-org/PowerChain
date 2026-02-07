@@ -298,4 +298,71 @@ function validatePassword(password) {
     };
 }
 
-export { validatePassword, calculatePasswordEntropy, evaluatePasswordStrength };
+export { validatePassword, calculatePasswordEntropy, evaluatePasswordStrength };function checkPasswordStrength(password, options = {}) {
+    const defaults = {
+        minLength: 8,
+        requireUppercase: true,
+        requireLowercase: true,
+        requireNumbers: true,
+        requireSpecialChars: true,
+        specialChars: "!@#$%^&*()_+-=[]{}|;:,.<>?"
+    };
+    
+    const config = { ...defaults, ...options };
+    const errors = [];
+    const suggestions = [];
+    
+    if (password.length < config.minLength) {
+        errors.push(`Password must be at least ${config.minLength} characters long`);
+    }
+    
+    if (config.requireUppercase && !/[A-Z]/.test(password)) {
+        errors.push("Password must contain at least one uppercase letter");
+    }
+    
+    if (config.requireLowercase && !/[a-z]/.test(password)) {
+        errors.push("Password must contain at least one lowercase letter");
+    }
+    
+    if (config.requireNumbers && !/\d/.test(password)) {
+        errors.push("Password must contain at least one number");
+    }
+    
+    if (config.requireSpecialChars) {
+        const specialCharRegex = new RegExp(`[${config.specialChars.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}]`);
+        if (!specialCharRegex.test(password)) {
+            errors.push(`Password must contain at least one special character (${config.specialChars})`);
+        }
+    }
+    
+    if (password.length > 20) {
+        suggestions.push("Consider using a shorter password for better memorability");
+    }
+    
+    if (/(.)\1{2,}/.test(password)) {
+        suggestions.push("Avoid repeating characters multiple times in sequence");
+    }
+    
+    if (/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(password)) {
+        suggestions.push("Strong password! Consider using a passphrase for even better security");
+    }
+    
+    const score = errors.length === 0 ? 
+        (suggestions.length === 0 ? 100 : 80) : 
+        Math.max(0, 100 - (errors.length * 20));
+    
+    return {
+        isValid: errors.length === 0,
+        score: score,
+        errors: errors,
+        suggestions: suggestions,
+        meetsRequirements: {
+            length: password.length >= config.minLength,
+            hasUppercase: config.requireUppercase ? /[A-Z]/.test(password) : true,
+            hasLowercase: config.requireLowercase ? /[a-z]/.test(password) : true,
+            hasNumbers: config.requireNumbers ? /\d/.test(password) : true,
+            hasSpecialChars: config.requireSpecialChars ? 
+                new RegExp(`[${config.specialChars.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}]`).test(password) : true
+        }
+    };
+}
