@@ -72,4 +72,42 @@ const UserPreferencesManager = (function() {
 
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = UserPreferencesManager;
-}
+}const UserPreferencesManager = {
+    storageKey: 'user_preferences',
+
+    getPreferences() {
+        const stored = localStorage.getItem(this.storageKey);
+        return stored ? JSON.parse(stored) : {};
+    },
+
+    setPreference(key, value) {
+        const preferences = this.getPreferences();
+        preferences[key] = value;
+        localStorage.setItem(this.storageKey, JSON.stringify(preferences));
+        return true;
+    },
+
+    getPreference(key, defaultValue = null) {
+        const preferences = this.getPreferences();
+        return preferences.hasOwnProperty(key) ? preferences[key] : defaultValue;
+    },
+
+    removePreference(key) {
+        const preferences = this.getPreferences();
+        if (preferences.hasOwnProperty(key)) {
+            delete preferences[key];
+            localStorage.setItem(this.storageKey, JSON.stringify(preferences));
+            return true;
+        }
+        return false;
+    },
+
+    clearAllPreferences() {
+        localStorage.removeItem(this.storageKey);
+        return true;
+    },
+
+    getAllPreferences() {
+        return this.getPreferences();
+    }
+};
