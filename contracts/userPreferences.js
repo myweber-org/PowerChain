@@ -107,4 +107,48 @@ function saveUserPreferences(preferences) {
     return validated;
 }
 
-export { validateUserPreferences, initializeUserSettings, saveUserPreferences };
+export { validateUserPreferences, initializeUserSettings, saveUserPreferences };const defaultPreferences = {
+  theme: 'light',
+  notifications: true,
+  language: 'en',
+  timezone: 'UTC'
+};
+
+function validatePreferences(userPrefs) {
+  const validPrefs = {};
+  
+  Object.keys(defaultPreferences).forEach(key => {
+    if (userPrefs.hasOwnProperty(key)) {
+      const value = userPrefs[key];
+      const defaultValue = defaultPreferences[key];
+      
+      switch (key) {
+        case 'theme':
+          validPrefs[key] = ['light', 'dark', 'auto'].includes(value) ? value : defaultValue;
+          break;
+        case 'notifications':
+          validPrefs[key] = typeof value === 'boolean' ? value : defaultValue;
+          break;
+        case 'language':
+          validPrefs[key] = ['en', 'es', 'fr', 'de'].includes(value) ? value : defaultValue;
+          break;
+        case 'timezone':
+          validPrefs[key] = typeof value === 'string' && value.length > 0 ? value : defaultValue;
+          break;
+        default:
+          validPrefs[key] = defaultValue;
+      }
+    } else {
+      validPrefs[key] = defaultPreferences[key];
+    }
+  });
+  
+  return validPrefs;
+}
+
+function mergePreferences(existingPrefs, newPrefs) {
+  const validatedNewPrefs = validatePreferences(newPrefs);
+  return { ...existingPrefs, ...validatedNewPrefs };
+}
+
+export { defaultPreferences, validatePreferences, mergePreferences };
