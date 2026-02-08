@@ -365,4 +365,60 @@ export { validatePassword, calculatePasswordEntropy, evaluatePasswordStrength };
                 new RegExp(`[${config.specialChars.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}]`).test(password) : true
         }
     };
+}function validatePassword(password, options = {}) {
+    const defaults = {
+        minLength: 8,
+        requireUppercase: true,
+        requireLowercase: true,
+        requireNumbers: true,
+        requireSpecialChars: true,
+        specialChars: "!@#$%^&*()_+-=[]{}|;:,.<>?"
+    };
+    
+    const config = { ...defaults, ...options };
+    const errors = [];
+    
+    if (password.length < config.minLength) {
+        errors.push(`Password must be at least ${config.minLength} characters long`);
+    }
+    
+    if (config.requireUppercase && !/[A-Z]/.test(password)) {
+        errors.push("Password must contain at least one uppercase letter");
+    }
+    
+    if (config.requireLowercase && !/[a-z]/.test(password)) {
+        errors.push("Password must contain at least one lowercase letter");
+    }
+    
+    if (config.requireNumbers && !/\d/.test(password)) {
+        errors.push("Password must contain at least one number");
+    }
+    
+    if (config.requireSpecialChars) {
+        const specialRegex = new RegExp(`[${config.specialChars.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}]`);
+        if (!specialRegex.test(password)) {
+            errors.push(`Password must contain at least one special character (${config.specialChars})`);
+        }
+    }
+    
+    return {
+        isValid: errors.length === 0,
+        errors: errors,
+        score: calculateStrengthScore(password, errors.length)
+    };
 }
+
+function calculateStrengthScore(password, errorCount) {
+    let score = 100;
+    score -= errorCount * 15;
+    
+    if (password.length > 12) score += 10;
+    if (password.length > 16) score += 10;
+    
+    const uniqueChars = new Set(password).size;
+    if (uniqueChars / password.length > 0.8) score += 10;
+    
+    return Math.max(0, Math.min(100, score));
+}
+
+export { validatePassword, calculateStrengthScore };
