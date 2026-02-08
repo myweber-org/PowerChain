@@ -110,4 +110,77 @@ if (typeof module !== 'undefined' && module.exports) {
     getAllPreferences() {
         return this.getPreferences();
     }
-};
+};const userPreferencesManager = (() => {
+    const PREF_KEY = 'app_preferences';
+    const defaultPreferences = {
+        theme: 'light',
+        fontSize: 16,
+        notifications: true,
+        language: 'en'
+    };
+
+    const loadPreferences = () => {
+        try {
+            const stored = localStorage.getItem(PREF_KEY);
+            return stored ? JSON.parse(stored) : { ...defaultPreferences };
+        } catch (error) {
+            console.error('Failed to load preferences:', error);
+            return { ...defaultPreferences };
+        }
+    };
+
+    const savePreferences = (preferences) => {
+        try {
+            const current = loadPreferences();
+            const updated = { ...current, ...preferences };
+            localStorage.setItem(PREF_KEY, JSON.stringify(updated));
+            return updated;
+        } catch (error) {
+            console.error('Failed to save preferences:', error);
+            return null;
+        }
+    };
+
+    const resetPreferences = () => {
+        try {
+            localStorage.setItem(PREF_KEY, JSON.stringify(defaultPreferences));
+            return { ...defaultPreferences };
+        } catch (error) {
+            console.error('Failed to reset preferences:', error);
+            return null;
+        }
+    };
+
+    const getPreference = (key) => {
+        const prefs = loadPreferences();
+        return prefs[key] !== undefined ? prefs[key] : defaultPreferences[key];
+    };
+
+    const setPreference = (key, value) => {
+        return savePreferences({ [key]: value });
+    };
+
+    const getAllPreferences = () => {
+        return loadPreferences();
+    };
+
+    const subscribe = (callback) => {
+        const handler = (event) => {
+            if (event.key === PREF_KEY) {
+                callback(loadPreferences());
+            }
+        };
+        window.addEventListener('storage', handler);
+        return () => window.removeEventListener('storage', handler);
+    };
+
+    return {
+        loadPreferences,
+        savePreferences,
+        resetPreferences,
+        getPreference,
+        setPreference,
+        getAllPreferences,
+        subscribe
+    };
+})();
