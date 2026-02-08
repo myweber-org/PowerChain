@@ -83,4 +83,25 @@ function registerUser(email, password) {
     };
 }
 
-export { validateEmail, validatePassword, registerUser };
+export { validateEmail, validatePassword, registerUser };function validateRegistrationForm(email, password, confirmPassword) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{8,}$/;
+
+    if (!email || !password || !confirmPassword) {
+        return { isValid: false, message: "All fields are required" };
+    }
+
+    if (!emailRegex.test(email)) {
+        return { isValid: false, message: "Invalid email format" };
+    }
+
+    if (!passwordRegex.test(password)) {
+        return { isValid: false, message: "Password must be at least 8 characters long and contain both letters and numbers" };
+    }
+
+    if (password !== confirmPassword) {
+        return { isValid: false, message: "Passwords do not match" };
+    }
+
+    return { isValid: true, message: "Registration data is valid" };
+}
