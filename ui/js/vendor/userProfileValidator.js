@@ -99,4 +99,27 @@ function validateProfileData(userData) {
     };
 }
 
-export { validateProfileData, validateEmail, validateUsername, validatePassword };
+export { validateProfileData, validateEmail, validateUsername, validatePassword };function validateUserProfile(profile) {
+  const namePattern = /^[A-Z][a-zA-Z\s]{1,49}$/;
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const phonePattern = /^\+?[\d\s\-\(\)]{10,20}$/;
+
+  const errors = {};
+
+  if (!namePattern.test(profile.name?.trim())) {
+    errors.name = 'Name must start with capital letter and be 2-50 characters';
+  }
+
+  if (!emailPattern.test(profile.email?.trim())) {
+    errors.email = 'Invalid email format';
+  }
+
+  if (profile.phone && !phonePattern.test(profile.phone.replace(/\s/g, ''))) {
+    errors.phone = 'Phone must be 10-20 digits with optional country code';
+  }
+
+  return {
+    isValid: Object.keys(errors).length === 0,
+    errors
+  };
+}
