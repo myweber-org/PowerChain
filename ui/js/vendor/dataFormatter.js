@@ -1,20 +1,48 @@
-function formatDate(dateString) {
-  const date = new Date(dateString);
-  const options = { year: 'numeric', month: 'long', day: 'numeric' };
-  return date.toLocaleDateString('en-US', options);
+function formatDateWithTimezone(date, includeTime = true) {
+    if (!(date instanceof Date)) {
+        throw new TypeError('Input must be a Date object');
+    }
+
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+
+    if (!includeTime) {
+        return `${year}-${month}-${day}`;
+    }
+
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+
+    const tzOffset = -date.getTimezoneOffset();
+    const sign = tzOffset >= 0 ? '+' : '-';
+    const absOffset = Math.abs(tzOffset);
+    const offsetHours = String(Math.floor(absOffset / 60)).padStart(2, '0');
+    const offsetMinutes = String(absOffset % 60).padStart(2, '0');
+
+    return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}${sign}${offsetHours}:${offsetMinutes}`;
 }
 
-function getRelativeTime(dateString) {
-  const now = new Date();
-  const past = new Date(dateString);
-  const diffInSeconds = Math.floor((now - past) / 1000);
-  
-  if (diffInSeconds < 60) return 'just now';
-  if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} minutes ago`;
-  if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`;
-  if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)} days ago`;
-  
-  return formatDate(dateString);
+function parseFormattedDate(dateString) {
+    const isoRegex = /^(\d{4})-(\d{2})-(\d{2})(T(\d{2}):(\d{2}):(\d{2})([+-]\d{2}:\d{2})?)?$/;
+    const match = dateString.match(isoRegex);
+
+    if (!match) {
+        throw new Error('Invalid date format');
+    }
+
+    const [, year, month, day, , hours = '00', minutes = '00', seconds = '00', offset] = match;
+
+    let date = new Date(Date.UTC(year, month - 1, day, hours, minutes, seconds));
+
+    if (offset) {
+        const [_, sign, offsetHours, offsetMinutes] = offset.match(/([+-])(\d{2}):(\d{2})/);
+        const offsetTotalMinutes = (sign === '+' ? 1 : -1) * (parseInt(offsetHours) * 60 + parseInt(offsetMinutes));
+        date.setMinutes(date.getMinutes() - offsetTotalMinutes);
+    }
+
+    return date;
 }
 
-export { formatDate, getRelativeTime };
+export { formatDateWithTimezone, parseFormattedDate };
