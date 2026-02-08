@@ -238,4 +238,71 @@ function clearUserCache(userId = null) {
     }
 }
 
-export { fetchUserData, clearUserCache };
+export { fetchUserData, clearUserCache };const USER_DATA_CACHE_KEY = 'userDataCache';
+const CACHE_DURATION = 5 * 60 * 1000;
+
+function fetchUserData(userId) {
+    const cachedData = getCachedUserData(userId);
+    if (cachedData) {
+        return Promise.resolve(cachedData);
+    }
+
+    return fetch(`/api/users/${userId}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            cacheUserData(userId, data);
+            return data;
+        })
+        .catch(error => {
+            console.error('Failed to fetch user data:', error);
+            throw error;
+        });
+}
+
+function getCachedUserData(userId) {
+    try {
+        const cache = JSON.parse(localStorage.getItem(USER_DATA_CACHE_KEY)) || {};
+        const cachedItem = cache[userId];
+        
+        if (cachedItem && Date.now() - cachedItem.timestamp < CACHE_DURATION) {
+            return cachedItem.data;
+        }
+    } catch (error) {
+        console.warn('Failed to read cache:', error);
+    }
+    return null;
+}
+
+function cacheUserData(userId, data) {
+    try {
+        const cache = JSON.parse(localStorage.getItem(USER_DATA_CACHE_KEY)) || {};
+        cache[userId] = {
+            data: data,
+            timestamp: Date.now()
+        };
+        localStorage.setItem(USER_DATA_CACHE_KEY, JSON.stringify(cache));
+    } catch (error) {
+        console.warn('Failed to cache user data:', error);
+    }
+}
+
+function clearUserDataCache(userId = null) {
+    try {
+        if (userId) {
+            const cache = JSON.parse(localStorage.getItem(USER_DATA_CACHE_KEY)) || {};
+            delete cache[userId];
+            localStorage.setItem(USER_DATA_CACHE_KEY, JSON.stringify(cache));
+        } else {
+            localStorage.removeItem(USER_DATA_CACHE_KEY);
+        }
+    } catch (error) {
+        console.warn('Failed to clear cache:', error);
+    }
+}
+
+export { fetchUserData, clearUserDataCache };
