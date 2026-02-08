@@ -156,4 +156,87 @@ class CurrencyConverter {
     }
 }
 
-module.exports = CurrencyConverter;
+module.exports = CurrencyConverter;const exchangeRates = {
+  USD: 1.0,
+  EUR: 0.85,
+  GBP: 0.73,
+  JPY: 110.0,
+  CAD: 1.25,
+  AUD: 1.35,
+  CNY: 6.45
+};
+
+class CurrencyConverter {
+  constructor() {
+    this.cache = new Map();
+    this.lastUpdate = null;
+  }
+
+  convert(amount, fromCurrency, toCurrency) {
+    if (!this.validateInput(amount, fromCurrency, toCurrency)) {
+      throw new Error('Invalid input parameters');
+    }
+
+    const cacheKey = `${fromCurrency}_${toCurrency}`;
+    let rate = this.cache.get(cacheKey);
+
+    if (!rate || this.shouldRefreshCache()) {
+      rate = this.fetchExchangeRate(fromCurrency, toCurrency);
+      this.cache.set(cacheKey, rate);
+      this.lastUpdate = new Date();
+    }
+
+    return amount * rate;
+  }
+
+  validateInput(amount, fromCurrency, toCurrency) {
+    if (typeof amount !== 'number' || amount <= 0) {
+      return false;
+    }
+
+    if (!exchangeRates[fromCurrency] || !exchangeRates[toCurrency]) {
+      return false;
+    }
+
+    return true;
+  }
+
+  fetchExchangeRate(fromCurrency, toCurrency) {
+    const baseRate = exchangeRates[fromCurrency];
+    const targetRate = exchangeRates[toCurrency];
+    
+    if (!baseRate || !targetRate) {
+      throw new Error('Unsupported currency');
+    }
+
+    return targetRate / baseRate;
+  }
+
+  shouldRefreshCache() {
+    if (!this.lastUpdate) return true;
+    
+    const now = new Date();
+    const hoursSinceUpdate = (now - this.lastUpdate) / (1000 * 60 * 60);
+    return hoursSinceUpdate > 1;
+  }
+
+  clearCache() {
+    this.cache.clear();
+    this.lastUpdate = null;
+  }
+
+  getSupportedCurrencies() {
+    return Object.keys(exchangeRates);
+  }
+}
+
+const converter = new CurrencyConverter();
+
+function formatCurrency(amount, currencyCode) {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: currencyCode
+  }).format(amount);
+}
+
+export { CurrencyConverter, formatCurrency };
