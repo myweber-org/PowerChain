@@ -124,4 +124,22 @@ document.addEventListener('DOMContentLoaded', function() {
     if (uploadInput) {
         uploadInput.addEventListener('change', imageUploadHandler);
     }
-});
+});function validateFileUpload(file, allowedTypes, maxSizeMB) {
+    if (!file || !allowedTypes || !maxSizeMB) {
+        throw new Error('Missing required parameters for file validation.');
+    }
+
+    const fileExtension = file.name.split('.').pop().toLowerCase();
+    const isValidType = allowedTypes.some(type => fileExtension === type.toLowerCase());
+
+    if (!isValidType) {
+        return { valid: false, error: `File type not allowed. Allowed types: ${allowedTypes.join(', ')}` };
+    }
+
+    const maxSizeBytes = maxSizeMB * 1024 * 1024;
+    if (file.size > maxSizeBytes) {
+        return { valid: false, error: `File size exceeds limit of ${maxSizeMB}MB` };
+    }
+
+    return { valid: true, error: null };
+}
