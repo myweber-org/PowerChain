@@ -3,28 +3,26 @@ function validateUsername(username) {
     return usernameRegex.test(username);
 }
 
-function validatePassword(password) {
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;
-    return passwordRegex.test(password);
+function validateEmail(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
 }
 
-function validateUserInput(username, password) {
-    const isUsernameValid = validateUsername(username);
-    const isPasswordValid = validatePassword(password);
+function validateUserInput(username, email) {
+    const errors = [];
     
-    if (!isUsernameValid) {
-        throw new Error('Invalid username format');
+    if (!validateUsername(username)) {
+        errors.push('Username must be 3-20 characters and contain only letters, numbers, and underscores');
     }
     
-    if (!isPasswordValid) {
-        throw new Error('Invalid password format');
+    if (!validateEmail(email)) {
+        errors.push('Please enter a valid email address');
     }
     
-    return true;
+    return {
+        isValid: errors.length === 0,
+        errors: errors
+    };
 }
 
-module.exports = {
-    validateUsername,
-    validatePassword,
-    validateUserInput
-};
+module.exports = validateUserInput;
