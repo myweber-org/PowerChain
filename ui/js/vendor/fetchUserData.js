@@ -187,4 +187,22 @@ fetchUserData(1);async function fetchUserData(url) {
 }
 
 const apiUrl = 'https://jsonplaceholder.typicode.com/users/1';
-fetchUserData(apiUrl);
+fetchUserData(apiUrl);function fetchUserData(userId) {
+  const apiUrl = `https://api.example.com/users/${userId}`;
+  
+  return fetch(apiUrl)
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log('User data fetched successfully:', data);
+      return data;
+    })
+    .catch(error => {
+      console.error('Error fetching user data:', error);
+      throw error;
+    });
+}
