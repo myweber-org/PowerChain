@@ -195,4 +195,128 @@ FileUploader.prototype.uploadMultiple = function(files) {
     };
 })();
 
-export default fileUploader;
+export default fileUploader;const fileUploader = (() => {
+    const uploadQueue = new Map();
+    let uploadInProgress = false;
+
+    const validateFile = (file, allowedTypes, maxSize) => {
+        if (!allowedTypes.includes(file.type)) {
+            throw new Error(`File type ${file.type} not allowed`);
+        }
+        if (file.size > maxSize) {
+            throw new Error(`File size ${file.size} exceeds limit ${maxSize}`);
+        }
+        return true;
+    };
+
+    const uploadFile = async (file, uploadUrl, onProgress) => {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        return new Promise((resolve, reject) => {
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', uploadUrl, true);
+
+            xhr.upload.onprogress = (event) => {
+                if (event.lengthComputable && onProgress) {
+                    const percentComplete = (event.loaded / event.total) * 100;
+                    onProgress(percentComplete);
+                }
+            };
+
+            xhr.onload = () => {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    resolve(JSON.parse(xhr.responseText));
+                } else {
+                    reject(new Error(`Upload failed: ${xhr.statusText}`));
+                }
+            };
+
+            xhr.onerror = () => reject(new Error('Network error'));
+            xhr.send(formData);
+        });
+    };
+
+    const processQueue = async () => {
+        if (uploadInProgress || uploadQueue.size === 0) return;
+
+        uploadInProgress = true;
+        const [id, { file, uploadUrl, onProgress, resolve, reject }] = uploadQueue.entries().next().value;
+
+        try {
+            const result = await uploadFile(file, uploadUrl, onProgress);
+            resolve(result);
+        } catch (error) {
+            reject(error);
+        } finally {
+            uploadQueue.delete(id);
+            uploadInProgress = false;
+            processQueue();
+        }
+    };
+
+    return {
+        addToQueue: (file, uploadUrl, allowedTypes, maxSize, onProgress) => {
+            return new Promise((resolve, reject) => {
+                try {
+                    validateFile(file, allowedTypes, maxSize);
+                    const id = Date.now() + Math.random();
+                    uploadQueue.set(id, { file, uploadUrl, onProgress, resolve, reject });
+                    processQueue();
+                } catch (error) {
+                    reject(error);
+                }
+            });
+        },
+
+        cancelUpload: (id) => {
+            if (uploadQueue.has(id)) {
+                uploadQueue.delete(id);
+                return true;
+            }
+            return false;
+        },
+
+        getQueueSize: () => uploadQueue.size,
+
+        clearQueue: () => {
+            uploadQueue.clear();
+            uploadInProgress = false;
+        }
+    };
+})();
+
+const setupDropZone = (elementId) => {
+    const dropZone = document.getElementById(elementId);
+    if (!dropZone) return;
+
+    const preventDefaults = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+    };
+
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, preventDefaults, false);
+    });
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, () => {
+            dropZone.classList.add('drag-active');
+        }, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, () => {
+            dropZone.classList.remove('drag-active');
+        }, false);
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+        const files = Array.from(e.dataTransfer.files);
+        files.forEach(file => {
+            console.log('File dropped:', file.name);
+        });
+    }, false);
+};
+
+export { fileUploader, setupDropZone };
