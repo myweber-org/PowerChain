@@ -5,4 +5,21 @@ function fibonacci(n, memo = {}) {
     return memo[n];
 }
 
-console.log(fibonacci(10));
+console.log(fibonacci(10));function generateFibonacci(n) {
+    if (n <= 0) return [];
+    if (n === 1) return [0];
+    
+    const sequence = [0, 1];
+    for (let i = 2; i < n; i++) {
+        sequence.push(sequence[i - 1] + sequence[i - 2]);
+    }
+    return sequence;
+}
+
+function printFibonacci(n) {
+    const fibSequence = generateFibonacci(n);
+    console.log(`Fibonacci sequence (${n} terms):`, fibSequence);
+    return fibSequence;
+}
+
+module.exports = { generateFibonacci, printFibonacci };
