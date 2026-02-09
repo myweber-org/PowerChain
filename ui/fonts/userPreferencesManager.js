@@ -170,4 +170,68 @@ export default UserPreferencesManager;const userPreferencesManager = (function()
 
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = userPreferencesManager;
-}
+}const userPreferencesManager = (function() {
+    const PREFERENCES_KEY = 'user_preferences';
+    const DEFAULT_PREFERENCES = {
+        theme: 'light',
+        language: 'en',
+        notifications: true,
+        fontSize: 16
+    };
+
+    function getPreferences() {
+        const stored = localStorage.getItem(PREFERENCES_KEY);
+        if (stored) {
+            try {
+                return { ...DEFAULT_PREFERENCES, ...JSON.parse(stored) };
+            } catch (e) {
+                console.error('Failed to parse stored preferences:', e);
+                return DEFAULT_PREFERENCES;
+            }
+        }
+        return DEFAULT_PREFERENCES;
+    }
+
+    function savePreferences(preferences) {
+        try {
+            const current = getPreferences();
+            const merged = { ...current, ...preferences };
+            localStorage.setItem(PREFERENCES_KEY, JSON.stringify(merged));
+            return merged;
+        } catch (e) {
+            console.error('Failed to save preferences:', e);
+            return null;
+        }
+    }
+
+    function resetPreferences() {
+        localStorage.removeItem(PREFERENCES_KEY);
+        return DEFAULT_PREFERENCES;
+    }
+
+    function getPreference(key) {
+        const prefs = getPreferences();
+        return prefs[key] !== undefined ? prefs[key] : null;
+    }
+
+    function setPreference(key, value) {
+        return savePreferences({ [key]: value });
+    }
+
+    function subscribe(callback) {
+        window.addEventListener('storage', function(e) {
+            if (e.key === PREFERENCES_KEY) {
+                callback(getPreferences());
+            }
+        });
+    }
+
+    return {
+        get: getPreferences,
+        save: savePreferences,
+        reset: resetPreferences,
+        getPreference: getPreference,
+        setPreference: setPreference,
+        subscribe: subscribe
+    };
+})();
