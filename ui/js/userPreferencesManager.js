@@ -106,4 +106,90 @@ window.addEventListener('preferencechange', (event) => {
   });
 });
 
-export default preferenceManager;
+export default preferenceManager;class UserPreferencesManager {
+  constructor() {
+    this.prefs = this.loadPreferences();
+  }
+
+  loadPreferences() {
+    const saved = localStorage.getItem('userPreferences');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.warn('Failed to parse saved preferences:', e);
+      }
+    }
+    return this.getDefaultPreferences();
+  }
+
+  getDefaultPreferences() {
+    return {
+      theme: 'light',
+      fontSize: 16,
+      notifications: true,
+      language: 'en',
+      autoSave: true,
+      sidebarCollapsed: false
+    };
+  }
+
+  updatePreference(key, value) {
+    if (key in this.prefs) {
+      this.prefs[key] = value;
+      this.savePreferences();
+      return true;
+    }
+    return false;
+  }
+
+  getPreference(key) {
+    return this.prefs[key];
+  }
+
+  getAllPreferences() {
+    return { ...this.prefs };
+  }
+
+  resetToDefaults() {
+    this.prefs = this.getDefaultPreferences();
+    this.savePreferences();
+  }
+
+  savePreferences() {
+    try {
+      localStorage.setItem('userPreferences', JSON.stringify(this.prefs));
+      return true;
+    } catch (e) {
+      console.error('Failed to save preferences:', e);
+      return false;
+    }
+  }
+
+  exportPreferences() {
+    const dataStr = JSON.stringify(this.prefs, null, 2);
+    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+    return dataUri;
+  }
+
+  importPreferences(jsonString) {
+    try {
+      const imported = JSON.parse(jsonString);
+      const defaults = this.getDefaultPreferences();
+      
+      for (const key in defaults) {
+        if (key in imported) {
+          this.prefs[key] = imported[key];
+        }
+      }
+      
+      this.savePreferences();
+      return true;
+    } catch (e) {
+      console.error('Failed to import preferences:', e);
+      return false;
+    }
+  }
+}
+
+const userPrefs = new UserPreferencesManager();
