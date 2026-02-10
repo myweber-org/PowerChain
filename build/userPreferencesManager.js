@@ -535,4 +535,48 @@ UserPreferencesManager.initialize();const UserPreferencesManager = (function() {
         clear: clearAllPreferences,
         getAll: getAllPreferences
     };
-})();
+})();const UserPreferences = {
+  storageKey: 'app_preferences',
+
+  defaults: {
+    theme: 'light',
+    fontSize: 16,
+    notifications: true,
+    language: 'en'
+  },
+
+  getPreferences() {
+    const stored = localStorage.getItem(this.storageKey);
+    return stored ? JSON.parse(stored) : { ...this.defaults };
+  },
+
+  updatePreferences(newPrefs) {
+    const current = this.getPreferences();
+    const updated = { ...current, ...newPrefs };
+    localStorage.setItem(this.storageKey, JSON.stringify(updated));
+    return updated;
+  },
+
+  resetToDefaults() {
+    localStorage.setItem(this.storageKey, JSON.stringify(this.defaults));
+    return { ...this.defaults };
+  },
+
+  getPreference(key) {
+    const prefs = this.getPreferences();
+    return prefs[key] !== undefined ? prefs[key] : this.defaults[key];
+  },
+
+  setPreference(key, value) {
+    const prefs = this.getPreferences();
+    prefs[key] = value;
+    localStorage.setItem(this.storageKey, JSON.stringify(prefs));
+    return value;
+  },
+
+  clearAll() {
+    localStorage.removeItem(this.storageKey);
+  }
+};
+
+export default UserPreferences;
