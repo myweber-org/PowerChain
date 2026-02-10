@@ -1,6 +1,6 @@
 function formatDateWithTimezone(date, includeTime = true) {
-    if (!(date instanceof Date)) {
-        throw new TypeError('Input must be a Date object');
+    if (!(date instanceof Date) || isNaN(date)) {
+        throw new TypeError('Invalid Date object provided');
     }
 
     const year = date.getFullYear();
@@ -15,13 +15,14 @@ function formatDateWithTimezone(date, includeTime = true) {
     const minutes = String(date.getMinutes()).padStart(2, '0');
     const seconds = String(date.getSeconds()).padStart(2, '0');
 
-    const tzOffset = -date.getTimezoneOffset();
-    const sign = tzOffset >= 0 ? '+' : '-';
-    const absOffset = Math.abs(tzOffset);
-    const offsetHours = String(Math.floor(absOffset / 60)).padStart(2, '0');
-    const offsetMinutes = String(absOffset % 60).padStart(2, '0');
+    const timezoneOffset = -date.getTimezoneOffset();
+    const offsetHours = Math.floor(Math.abs(timezoneOffset) / 60);
+    const offsetMinutes = Math.abs(timezoneOffset) % 60;
+    const offsetSign = timezoneOffset >= 0 ? '+' : '-';
 
-    return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}${sign}${offsetHours}:${offsetMinutes}`;
+    const formattedOffset = `${offsetSign}${String(offsetHours).padStart(2, '0')}:${String(offsetMinutes).padStart(2, '0')}`;
+
+    return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}${formattedOffset}`;
 }
 
 function parseFormattedDate(dateString) {
@@ -29,17 +30,17 @@ function parseFormattedDate(dateString) {
     const match = dateString.match(isoRegex);
 
     if (!match) {
-        throw new Error('Invalid date format');
+        throw new Error('Invalid date format. Expected YYYY-MM-DD or ISO 8601 with timezone.');
     }
 
-    const [, year, month, day, , hours = '00', minutes = '00', seconds = '00', offset] = match;
-
-    let date = new Date(Date.UTC(year, month - 1, day, hours, minutes, seconds));
+    const [, year, month, day, , hours, minutes, seconds, offset] = match;
+    const date = new Date(Date.UTC(year, month - 1, day, hours || 0, minutes || 0, seconds || 0));
 
     if (offset) {
-        const [_, sign, offsetHours, offsetMinutes] = offset.match(/([+-])(\d{2}):(\d{2})/);
-        const offsetTotalMinutes = (sign === '+' ? 1 : -1) * (parseInt(offsetHours) * 60 + parseInt(offsetMinutes));
-        date.setMinutes(date.getMinutes() - offsetTotalMinutes);
+        const offsetSign = offset[0] === '+' ? 1 : -1;
+        const [offsetHours, offsetMinutes] = offset.slice(1).split(':').map(Number);
+        const totalOffsetMinutes = offsetSign * (offsetHours * 60 + offsetMinutes);
+        date.setMinutes(date.getMinutes() - totalOffsetMinutes);
     }
 
     return date;
