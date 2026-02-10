@@ -164,4 +164,43 @@ module.exports = { validateUserPreferences };function validateUserPreferences(pr
     }
 
     return true;
+}function validateUserPreferences(preferences) {
+    const validKeys = ['theme', 'language', 'notifications', 'timezone'];
+    const requiredKeys = ['theme', 'language'];
+    
+    if (!preferences || typeof preferences !== 'object') {
+        throw new Error('Preferences must be an object');
+    }
+    
+    const preferenceKeys = Object.keys(preferences);
+    
+    for (const key of preferenceKeys) {
+        if (!validKeys.includes(key)) {
+            throw new Error(`Invalid preference key: ${key}`);
+        }
+    }
+    
+    for (const requiredKey of requiredKeys) {
+        if (!preferenceKeys.includes(requiredKey)) {
+            throw new Error(`Missing required preference: ${requiredKey}`);
+        }
+    }
+    
+    if (preferences.theme && !['light', 'dark', 'auto'].includes(preferences.theme)) {
+        throw new Error('Theme must be light, dark, or auto');
+    }
+    
+    if (preferences.language && typeof preferences.language !== 'string') {
+        throw new Error('Language must be a string');
+    }
+    
+    if (preferences.notifications !== undefined && typeof preferences.notifications !== 'boolean') {
+        throw new Error('Notifications must be a boolean value');
+    }
+    
+    if (preferences.timezone && !/^[A-Za-z_]+\/[A-Za-z_]+$/.test(preferences.timezone)) {
+        throw new Error('Timezone must be in format Area/Location');
+    }
+    
+    return true;
 }
