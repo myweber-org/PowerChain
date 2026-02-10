@@ -25,4 +25,41 @@ function validatePreferences(preferences) {
         isValid: Object.keys(errors).length === 0,
         errors: errors
     };
+}function validateUserPreferences(preferences) {
+    const validations = {
+        theme: (value) => ['light', 'dark', 'auto'].includes(value),
+        notifications: (value) => typeof value === 'boolean',
+        language: (value) => /^[a-z]{2}(-[A-Z]{2})?$/.test(value),
+        timezone: (value) => Intl.supportedValuesOf('timeZone').includes(value),
+        itemsPerPage: (value) => Number.isInteger(value) && value >= 5 && value <= 100
+    };
+
+    const errors = [];
+
+    for (const [key, validator] of Object.entries(validations)) {
+        if (preferences.hasOwnProperty(key)) {
+            if (!validator(preferences[key])) {
+                errors.push(`Invalid value for ${key}: ${preferences[key]}`);
+            }
+        }
+    }
+
+    if (preferences.hasOwnProperty('customColors')) {
+        if (!Array.isArray(preferences.customColors)) {
+            errors.push('customColors must be an array');
+        } else {
+            preferences.customColors.forEach((color, index) => {
+                if (!/^#[0-9A-F]{6}$/i.test(color)) {
+                    errors.push(`Invalid hex color at index ${index}: ${color}`);
+                }
+            });
+        }
+    }
+
+    return {
+        isValid: errors.length === 0,
+        errors: errors
+    };
 }
+
+export default validateUserPreferences;
