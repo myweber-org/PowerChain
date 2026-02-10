@@ -122,4 +122,28 @@ function parseCurrency(formattedString, locale = 'en-US') {
     return parseFloat(normalized.replace(/[^\d.-]/g, ''));
 }
 
+export { formatCurrency, parseCurrency };function formatCurrency(value, currency = 'USD', locale = 'en-US') {
+  const formatter = new Intl.NumberFormat(locale, {
+    style: 'currency',
+    currency: currency,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+  
+  return formatter.format(value);
+}
+
+function parseCurrency(formattedValue, locale = 'en-US') {
+  const parts = new Intl.NumberFormat(locale).formatToParts(1111.11);
+  const decimalSeparator = parts.find(part => part.type === 'decimal')?.value || '.';
+  const groupSeparator = parts.find(part => part.type === 'group')?.value || ',';
+  
+  const cleanedValue = formattedValue
+    .replace(new RegExp(`\\${groupSeparator}`, 'g'), '')
+    .replace(new RegExp(`\\${decimalSeparator}`), '.')
+    .replace(/[^\d.-]/g, '');
+  
+  return parseFloat(cleanedValue);
+}
+
 export { formatCurrency, parseCurrency };
