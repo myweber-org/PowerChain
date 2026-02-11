@@ -224,4 +224,131 @@ document.addEventListener('DOMContentLoaded', function() {
     if (container) {
         container.appendChild(createUploadForm());
     }
-});
+});function createFileUploader(options) {
+  const defaults = {
+    maxSize: 10 * 1024 * 1024,
+    allowedTypes: ['image/jpeg', 'image/png', 'application/pdf'],
+    container: document.body
+  };
+  
+  const config = { ...defaults, ...options };
+  let dropZone;
+  
+  function validateFile(file) {
+    if (file.size > config.maxSize) {
+      throw new Error(`File size exceeds ${config.maxSize / 1024 / 1024}MB limit`);
+    }
+    
+    if (!config.allowedTypes.includes(file.type)) {
+      throw new Error(`File type ${file.type} not allowed`);
+    }
+    
+    return true;
+  }
+  
+  function handleFileSelect(files) {
+    Array.from(files).forEach(file => {
+      try {
+        validateFile(file);
+        processFile(file);
+      } catch (error) {
+        displayError(error.message);
+      }
+    });
+  }
+  
+  function processFile(file) {
+    const reader = new FileReader();
+    
+    reader.onload = function(e) {
+      const fileData = {
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        data: e.target.result,
+        uploadedAt: new Date().toISOString()
+      };
+      
+      dispatchUploadEvent('fileUploaded', fileData);
+    };
+    
+    reader.readAsDataURL(file);
+  }
+  
+  function displayError(message) {
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'upload-error';
+    errorDiv.textContent = message;
+    errorDiv.style.cssText = 'color: #dc3545; padding: 8px; margin: 4px 0; border: 1px solid #dc3545; border-radius: 4px;';
+    
+    config.container.appendChild(errorDiv);
+    
+    setTimeout(() => {
+      errorDiv.remove();
+    }, 5000);
+  }
+  
+  function dispatchUploadEvent(eventName, detail) {
+    const event = new CustomEvent(eventName, { detail });
+    document.dispatchEvent(event);
+  }
+  
+  function initializeDropZone() {
+    dropZone = document.createElement('div');
+    dropZone.className = 'file-drop-zone';
+    dropZone.style.cssText = 'border: 2px dashed #ccc; border-radius: 8px; padding: 40px; text-align: center; margin: 20px 0;';
+    dropZone.innerHTML = '<p>Drag & drop files here or click to browse</p>';
+    
+    dropZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropZone.style.borderColor = '#007bff';
+      dropZone.style.backgroundColor = '#f8f9fa';
+    });
+    
+    dropZone.addEventListener('dragleave', () => {
+      dropZone.style.borderColor = '#ccc';
+      dropZone.style.backgroundColor = 'transparent';
+    });
+    
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.style.borderColor = '#ccc';
+      dropZone.style.backgroundColor = 'transparent';
+      
+      if (e.dataTransfer.files.length) {
+        handleFileSelect(e.dataTransfer.files);
+      }
+    });
+    
+    dropZone.addEventListener('click', () => {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.multiple = true;
+      input.accept = config.allowedTypes.join(',');
+      
+      input.addEventListener('change', (e) => {
+        if (e.target.files.length) {
+          handleFileSelect(e.target.files);
+        }
+      });
+      
+      input.click();
+    });
+    
+    config.container.appendChild(dropZone);
+  }
+  
+  function destroy() {
+    if (dropZone && dropZone.parentNode) {
+      dropZone.parentNode.removeChild(dropZone);
+    }
+  }
+  
+  initializeDropZone();
+  
+  return {
+    destroy,
+    handleFileSelect,
+    config
+  };
+}
