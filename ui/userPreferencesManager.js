@@ -228,4 +228,66 @@ if (typeof module !== 'undefined' && module.exports) {
   };
 })();
 
-export default UserPreferencesManager;
+export default UserPreferencesManager;const UserPreferencesManager = (() => {
+  const STORAGE_KEY = 'app_user_preferences';
+  const DEFAULT_PREFERENCES = {
+    theme: 'light',
+    language: 'en',
+    notifications: true,
+    fontSize: 16,
+    autoSave: false
+  };
+
+  const getPreferences = () => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        return { ...DEFAULT_PREFERENCES, ...parsed };
+      }
+    } catch (error) {
+      console.error('Failed to retrieve preferences:', error);
+    }
+    return { ...DEFAULT_PREFERENCES };
+  };
+
+  const updatePreferences = (updates) => {
+    try {
+      const current = getPreferences();
+      const merged = { ...current, ...updates };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
+      return merged;
+    } catch (error) {
+      console.error('Failed to update preferences:', error);
+      return getPreferences();
+    }
+  };
+
+  const resetPreferences = () => {
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch (error) {
+      console.error('Failed to reset preferences:', error);
+    }
+    return { ...DEFAULT_PREFERENCES };
+  };
+
+  const exportPreferences = () => {
+    const prefs = getPreferences();
+    const dataStr = JSON.stringify(prefs, null, 2);
+    const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+    const exportFileName = `user_preferences_${new Date().toISOString().slice(0, 10)}.json`;
+    
+    const linkElement = document.createElement('a');
+    linkElement.setAttribute('href', dataUri);
+    linkElement.setAttribute('download', exportFileName);
+    linkElement.click();
+  };
+
+  return {
+    getPreferences,
+    updatePreferences,
+    resetPreferences,
+    exportPreferences
+  };
+})();
