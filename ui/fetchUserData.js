@@ -201,4 +201,34 @@ function clearUserCache(userId = null) {
     }
 }
 
-export { fetchUserData, clearUserCache };
+export { fetchUserData, clearUserCache };function fetchUserData(userId, maxRetries = 3) {
+    const apiUrl = `https://api.example.com/users/${userId}`;
+    let retryCount = 0;
+
+    async function attemptFetch() {
+        try {
+            const response = await fetch(apiUrl);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            console.log('User data fetched successfully:', data);
+            return data;
+        } catch (error) {
+            retryCount++;
+            console.error(`Attempt ${retryCount} failed:`, error.message);
+            
+            if (retryCount < maxRetries) {
+                console.log(`Retrying... (${retryCount}/${maxRetries})`);
+                const delay = Math.pow(2, retryCount) * 100;
+                await new Promise(resolve => setTimeout(resolve, delay));
+                return attemptFetch();
+            } else {
+                console.error('Max retries reached. Operation failed.');
+                throw new Error('Failed to fetch user data after multiple attempts');
+            }
+        }
+    }
+
+    return attemptFetch();
+}
