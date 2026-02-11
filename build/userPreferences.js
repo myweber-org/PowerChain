@@ -46,4 +46,38 @@ function saveUserPreferences(preferences) {
     return validated;
 }
 
-export { validateUserPreferences, initializeUserSettings, saveUserPreferences };
+export { validateUserPreferences, initializeUserSettings, saveUserPreferences };const userPreferences = {
+  preferences: {},
+
+  init() {
+    const stored = localStorage.getItem('userPreferences');
+    if (stored) {
+      this.preferences = JSON.parse(stored);
+    }
+  },
+
+  set(key, value) {
+    this.preferences[key] = value;
+    this.save();
+  },
+
+  get(key) {
+    return this.preferences[key];
+  },
+
+  remove(key) {
+    delete this.preferences[key];
+    this.save();
+  },
+
+  save() {
+    localStorage.setItem('userPreferences', JSON.stringify(this.preferences));
+  },
+
+  clear() {
+    this.preferences = {};
+    localStorage.removeItem('userPreferences');
+  }
+};
+
+userPreferences.init();
