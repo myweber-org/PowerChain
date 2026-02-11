@@ -152,4 +152,44 @@ module.exports = {
     validateEmail,
     validatePassword,
     sanitizeInput
-};
+};function validateEmail(email) {
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return regex.test(email);
+}
+
+function validatePhone(phone) {
+    const regex = /^\+?[\d\s\-\(\)]{10,}$/;
+    return regex.test(phone);
+}
+
+function sanitizeInput(input) {
+    return input.trim().replace(/[<>]/g, '');
+}
+
+function validateForm(data) {
+    const errors = [];
+    
+    if (!validateEmail(data.email)) {
+        errors.push('Invalid email format');
+    }
+    
+    if (!validatePhone(data.phone)) {
+        errors.push('Invalid phone number');
+    }
+    
+    if (data.name.length < 2) {
+        errors.push('Name must be at least 2 characters');
+    }
+    
+    return {
+        isValid: errors.length === 0,
+        errors: errors,
+        sanitizedData: {
+            name: sanitizeInput(data.name),
+            email: data.email.toLowerCase(),
+            phone: data.phone.replace(/\D/g, '')
+        }
+    };
+}
+
+export { validateEmail, validatePhone, sanitizeInput, validateForm };
