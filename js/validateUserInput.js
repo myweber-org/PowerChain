@@ -1,36 +1,37 @@
-function validateUserInput(username, email) {
-    const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
+function validateEmail(email) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+}
+
+function validatePassword(password) {
+    const minLength = 8;
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasNumbers = /\d/.test(password);
+    const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
     
-    if (!usernameRegex.test(username)) {
-        throw new Error('Invalid username format');
+    return password.length >= minLength && 
+           hasUpperCase && 
+           hasLowerCase && 
+           hasNumbers && 
+           hasSpecialChar;
+}
+
+function validateUserInput(email, password) {
+    const errors = [];
+    
+    if (!validateEmail(email)) {
+        errors.push('Invalid email format');
     }
     
-    if (!emailRegex.test(email)) {
-        throw new Error('Invalid email format');
-    }
-    
-    return true;
-}function validateUserInput(username, password) {
-    const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
-    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{8,}$/;
-    
-    if (!usernameRegex.test(username)) {
-        return {
-            isValid: false,
-            message: "Username must be 3-20 characters and contain only letters, numbers, and underscores."
-        };
-    }
-    
-    if (!passwordRegex.test(password)) {
-        return {
-            isValid: false,
-            message: "Password must be at least 8 characters with at least one letter and one number."
-        };
+    if (!validatePassword(password)) {
+        errors.push('Password must be at least 8 characters long and contain uppercase, lowercase, number, and special character');
     }
     
     return {
-        isValid: true,
-        message: "Input validation successful."
+        isValid: errors.length === 0,
+        errors: errors
     };
 }
+
+export { validateEmail, validatePassword, validateUserInput };
