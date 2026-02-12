@@ -187,4 +187,54 @@ function resetPreferences() {
   return { ...userPreferences };
 }
 
-export { userPreferences, savePreferences, loadPreferences, updatePreference, resetPreferences };
+export { userPreferences, savePreferences, loadPreferences, updatePreference, resetPreferences };const userPreferences = {
+  setPreference: function(key, value) {
+    try {
+      const data = JSON.stringify(value);
+      localStorage.setItem(`pref_${key}`, data);
+      return true;
+    } catch (error) {
+      console.error('Failed to save preference:', error);
+      return false;
+    }
+  },
+
+  getPreference: function(key, defaultValue = null) {
+    try {
+      const data = localStorage.getItem(`pref_${key}`);
+      return data ? JSON.parse(data) : defaultValue;
+    } catch (error) {
+      console.error('Failed to load preference:', error);
+      return defaultValue;
+    }
+  },
+
+  removePreference: function(key) {
+    try {
+      localStorage.removeItem(`pref_${key}`);
+      return true;
+    } catch (error) {
+      console.error('Failed to remove preference:', error);
+      return false;
+    }
+  },
+
+  clearAllPreferences: function() {
+    try {
+      const keysToRemove = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key.startsWith('pref_')) {
+          keysToRemove.push(key);
+        }
+      }
+      keysToRemove.forEach(key => localStorage.removeItem(key));
+      return true;
+    } catch (error) {
+      console.error('Failed to clear preferences:', error);
+      return false;
+    }
+  }
+};
+
+export default userPreferences;
