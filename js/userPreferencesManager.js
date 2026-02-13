@@ -174,4 +174,112 @@ const userPreferencesManager = (function() {
   };
 })();
 
+export default UserPreferencesManager;const UserPreferencesManager = (() => {
+  const STORAGE_KEY = 'app_user_preferences';
+  
+  const defaultPreferences = {
+    theme: 'light',
+    language: 'en',
+    notifications: true,
+    fontSize: 16,
+    autoSave: false,
+    sidebarCollapsed: false
+  };
+
+  const loadPreferences = () => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        return { ...defaultPreferences, ...JSON.parse(stored) };
+      }
+    } catch (error) {
+      console.error('Failed to load preferences:', error);
+    }
+    return { ...defaultPreferences };
+  };
+
+  const savePreferences = (preferences) => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(preferences));
+      return true;
+    } catch (error) {
+      console.error('Failed to save preferences:', error);
+      return false;
+    }
+  };
+
+  const resetToDefaults = () => {
+    localStorage.removeItem(STORAGE_KEY);
+    return { ...defaultPreferences };
+  };
+
+  const validatePreference = (key, value) => {
+    const validators = {
+      theme: (v) => ['light', 'dark', 'auto'].includes(v),
+      language: (v) => /^[a-z]{2}(-[A-Z]{2})?$/.test(v),
+      notifications: (v) => typeof v === 'boolean',
+      fontSize: (v) => Number.isInteger(v) && v >= 12 && v <= 24,
+      autoSave: (v) => typeof v === 'boolean',
+      sidebarCollapsed: (v) => typeof v === 'boolean'
+    };
+    
+    return validators[key] ? validators[key](value) : false;
+  };
+
+  return {
+    get: (key) => {
+      const prefs = loadPreferences();
+      return key ? prefs[key] : { ...prefs };
+    },
+    
+    set: (key, value) => {
+      if (!validatePreference(key, value)) {
+        throw new Error(`Invalid value for preference "${key}"`);
+      }
+      
+      const prefs = loadPreferences();
+      prefs[key] = value;
+      
+      if (savePreferences(prefs)) {
+        window.dispatchEvent(new CustomEvent('preferencesChanged', {
+          detail: { key, value, all: prefs }
+        }));
+        return true;
+      }
+      return false;
+    },
+    
+    update: (updates) => {
+      const prefs = loadPreferences();
+      
+      for (const [key, value] of Object.entries(updates)) {
+        if (validatePreference(key, value)) {
+          prefs[key] = value;
+        }
+      }
+      
+      if (savePreferences(prefs)) {
+        window.dispatchEvent(new CustomEvent('preferencesUpdated', {
+          detail: { updates, all: prefs }
+        }));
+        return true;
+      }
+      return false;
+    },
+    
+    reset: resetToDefaults,
+    
+    subscribe: (callback) => {
+      const handler = (event) => callback(event.detail);
+      window.addEventListener('preferencesChanged', handler);
+      window.addEventListener('preferencesUpdated', handler);
+      
+      return () => {
+        window.removeEventListener('preferencesChanged', handler);
+        window.removeEventListener('preferencesUpdated', handler);
+      };
+    }
+  };
+})();
+
 export default UserPreferencesManager;
