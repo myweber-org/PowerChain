@@ -182,4 +182,40 @@ function getStrengthLevel(score) {
     if (score >= 60) return "medium";
     if (score >= 40) return "weak";
     return "very-weak";
+}function validatePassword(password) {
+    const minLength = 8;
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasNumbers = /\d/.test(password);
+    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+
+    let strength = 0;
+    let feedback = [];
+
+    if (password.length >= minLength) strength++;
+    else feedback.push("Password must be at least 8 characters long");
+
+    if (hasUpperCase) strength++;
+    else feedback.push("Include at least one uppercase letter");
+
+    if (hasLowerCase) strength++;
+    else feedback.push("Include at least one lowercase letter");
+
+    if (hasNumbers) strength++;
+    else feedback.push("Include at least one number");
+
+    if (hasSpecialChar) strength++;
+    else feedback.push("Include at least one special character");
+
+    let strengthLevel;
+    if (strength === 5) strengthLevel = "Very Strong";
+    else if (strength >= 3) strengthLevel = "Moderate";
+    else strengthLevel = "Weak";
+
+    return {
+        isValid: strength === 5,
+        strength: strengthLevel,
+        score: strength,
+        feedback: feedback
+    };
 }
