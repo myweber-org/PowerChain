@@ -291,4 +291,54 @@ if (typeof module !== 'undefined' && module.exports) {
   };
 })();
 
-export default UserPreferencesManager;
+export default UserPreferencesManager;const UserPreferencesManager = (function() {
+    const STORAGE_KEY = 'user_preferences';
+    const DEFAULT_PREFERENCES = {
+        theme: 'light',
+        language: 'en',
+        fontSize: 'medium',
+        notifications: true
+    };
+
+    function getPreferences() {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        return stored ? JSON.parse(stored) : {...DEFAULT_PREFERENCES};
+    }
+
+    function savePreferences(preferences) {
+        const current = getPreferences();
+        const updated = {...current, ...preferences};
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+        dispatchPreferenceChange(updated);
+        return updated;
+    }
+
+    function resetPreferences() {
+        localStorage.removeItem(STORAGE_KEY);
+        dispatchPreferenceChange(DEFAULT_PREFERENCES);
+        return {...DEFAULT_PREFERENCES};
+    }
+
+    function dispatchPreferenceChange(preferences) {
+        const event = new CustomEvent('preferencesChanged', {
+            detail: preferences
+        });
+        window.dispatchEvent(event);
+    }
+
+    function getPreference(key) {
+        const preferences = getPreferences();
+        return preferences[key] || DEFAULT_PREFERENCES[key];
+    }
+
+    return {
+        get: getPreference,
+        getAll: getPreferences,
+        set: savePreferences,
+        reset: resetPreferences,
+        subscribe: function(callback) {
+            window.addEventListener('preferencesChanged', (e) => callback(e.detail));
+            return () => window.removeEventListener('preferencesChanged', callback);
+        }
+    };
+})();
