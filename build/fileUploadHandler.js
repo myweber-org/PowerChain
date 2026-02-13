@@ -58,4 +58,83 @@ document.addEventListener('DOMContentLoaded', function() {
     if (container) {
         container.appendChild(createUploadForm());
     }
-});
+});function handleFileUpload(file, options = {}) {
+    const {
+        maxSize = 10 * 1024 * 1024,
+        allowedTypes = ['image/jpeg', 'image/png', 'application/pdf'],
+        onProgress = () => {},
+        onComplete = () => {},
+        onError = () => {}
+    } = options;
+
+    return new Promise((resolve, reject) => {
+        if (!file) {
+            const error = new Error('No file provided');
+            onError(error);
+            return reject(error);
+        }
+
+        if (file.size > maxSize) {
+            const error = new Error(`File size exceeds ${maxSize} bytes limit`);
+            onError(error);
+            return reject(error);
+        }
+
+        if (!allowedTypes.includes(file.type)) {
+            const error = new Error(`File type ${file.type} not allowed`);
+            onError(error);
+            return reject(error);
+        }
+
+        const reader = new FileReader();
+        let progress = 0;
+
+        const progressInterval = setInterval(() => {
+            if (progress < 90) {
+                progress += 10;
+                onProgress(progress);
+            }
+        }, 100);
+
+        reader.onload = (event) => {
+            clearInterval(progressInterval);
+            onProgress(100);
+            
+            const result = {
+                name: file.name,
+                type: file.type,
+                size: file.size,
+                data: event.target.result,
+                uploadedAt: new Date().toISOString()
+            };
+            
+            onComplete(result);
+            resolve(result);
+        };
+
+        reader.onerror = (error) => {
+            clearInterval(progressInterval);
+            onError(error);
+            reject(error);
+        };
+
+        reader.readAsDataURL(file);
+    });
+}
+
+function validateFileExtension(filename, allowedExtensions = ['.jpg', '.png', '.pdf']) {
+    const extension = filename.slice(filename.lastIndexOf('.')).toLowerCase();
+    return allowedExtensions.includes(extension);
+}
+
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+export { handleFileUpload, validateFileExtension, formatFileSize };
