@@ -50,4 +50,34 @@ function validateUserInput(username, email) {
   };
 }
 
-export { validateUsername, validateEmail, validateUserInput };
+export { validateUsername, validateEmail, validateUserInput };function validateUsername(username) {
+    const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
+    return usernameRegex.test(username);
+}
+
+function validatePassword(password) {
+    if (password.length < 8) return false;
+    if (!/[A-Z]/.test(password)) return false;
+    if (!/[a-z]/.test(password)) return false;
+    if (!/[0-9]/.test(password)) return false;
+    if (!/[!@#$%^&*]/.test(password)) return false;
+    return true;
+}
+
+function validateUserInput(username, password) {
+    const usernameValid = validateUsername(username);
+    const passwordValid = validatePassword(password);
+    
+    if (!usernameValid && !passwordValid) {
+        return { valid: false, message: 'Invalid username and password' };
+    }
+    if (!usernameValid) {
+        return { valid: false, message: 'Invalid username format' };
+    }
+    if (!passwordValid) {
+        return { valid: false, message: 'Password does not meet requirements' };
+    }
+    return { valid: true, message: 'Input validation successful' };
+}
+
+module.exports = { validateUserInput, validateUsername, validatePassword };
