@@ -19,4 +19,43 @@ function validateUserProfile(profile) {
     };
 }
 
-module.exports = { validateUserProfile };
+module.exports = { validateUserProfile };function validateUserProfile(profile) {
+    const validationRules = {
+        name: /^[A-Z][a-zA-Z]{2,29}$/,
+        email: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+        phone: /^\+?[1-9]\d{1,14}$/
+    };
+
+    const errors = {};
+
+    if (!validationRules.name.test(profile.name)) {
+        errors.name = 'Name must start with capital letter and be 3-30 characters';
+    }
+
+    if (!validationRules.email.test(profile.email)) {
+        errors.email = 'Invalid email format';
+    }
+
+    if (profile.phone && !validationRules.phone.test(profile.phone)) {
+        errors.phone = 'Phone must be valid international format';
+    }
+
+    return {
+        isValid: Object.keys(errors).length === 0,
+        errors: errors
+    };
+}
+
+function formatValidationResults(validationResult) {
+    if (validationResult.isValid) {
+        return 'Profile validation passed';
+    }
+    
+    const errorMessages = Object.entries(validationResult.errors)
+        .map(([field, message]) => `${field}: ${message}`)
+        .join('\n');
+    
+    return `Validation failed:\n${errorMessages}`;
+}
+
+export { validateUserProfile, formatValidationResults };
