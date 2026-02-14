@@ -20,4 +20,33 @@ function validateAndSanitize(userInput) {
   return sanitized;
 }
 
-export { validateAndSanitize };
+export { validateAndSanitize };function sanitizeInput(input) {
+    if (typeof input !== 'string') {
+        return '';
+    }
+    
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#x27;',
+        '/': '&#x2F;'
+    };
+    
+    const reg = /[&<>"'/]/gi;
+    return input.replace(reg, (match) => map[match]);
+}
+
+function validateEmail(email) {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+export { sanitizeInput, validateEmail, escapeHtml };
