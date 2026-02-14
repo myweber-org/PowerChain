@@ -125,4 +125,48 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+});function validateEmail(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+}
+
+function validatePassword(password) {
+    return password.length >= 8;
+}
+
+function setupFormValidation(formId) {
+    const form = document.getElementById(formId);
+    if (!form) return;
+
+    const emailInput = form.querySelector('input[type="email"]');
+    const passwordInput = form.querySelector('input[type="password"]');
+    const submitButton = form.querySelector('button[type="submit"]');
+
+    if (!emailInput || !passwordInput || !submitButton) return;
+
+    function validateForm() {
+        const isEmailValid = validateEmail(emailInput.value);
+        const isPasswordValid = validatePassword(passwordInput.value);
+        
+        submitButton.disabled = !(isEmailValid && isPasswordValid);
+        
+        emailInput.classList.toggle('invalid', !isEmailValid);
+        passwordInput.classList.toggle('invalid', !isPasswordValid);
+    }
+
+    emailInput.addEventListener('input', validateForm);
+    passwordInput.addEventListener('input', validateForm);
+
+    form.addEventListener('submit', function(event) {
+        event.preventDefault();
+        if (validateEmail(emailInput.value) && validatePassword(passwordInput.value)) {
+            console.log('Form submitted successfully');
+        }
+    });
+
+    validateForm();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    setupFormValidation('loginForm');
 });
