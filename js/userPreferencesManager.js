@@ -282,4 +282,50 @@ export default UserPreferencesManager;const UserPreferencesManager = (() => {
   };
 })();
 
-export default UserPreferencesManager;
+export default UserPreferencesManager;const UserPreferences = {
+  preferences: {},
+
+  init() {
+    this.loadPreferences();
+    window.addEventListener('beforeunload', () => this.savePreferences());
+  },
+
+  setPreference(key, value) {
+    this.preferences[key] = value;
+    this.savePreferences();
+  },
+
+  getPreference(key, defaultValue = null) {
+    return this.preferences[key] || defaultValue;
+  },
+
+  removePreference(key) {
+    delete this.preferences[key];
+    this.savePreferences();
+  },
+
+  loadPreferences() {
+    try {
+      const stored = localStorage.getItem('userPreferences');
+      this.preferences = stored ? JSON.parse(stored) : {};
+    } catch (error) {
+      console.error('Failed to load preferences:', error);
+      this.preferences = {};
+    }
+  },
+
+  savePreferences() {
+    try {
+      localStorage.setItem('userPreferences', JSON.stringify(this.preferences));
+    } catch (error) {
+      console.error('Failed to save preferences:', error);
+    }
+  },
+
+  clearAll() {
+    this.preferences = {};
+    localStorage.removeItem('userPreferences');
+  }
+};
+
+UserPreferences.init();
