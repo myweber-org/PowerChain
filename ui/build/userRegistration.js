@@ -98,4 +98,27 @@ function handleRegistrationSubmit(event) {
         console.log("Registration errors:", validationResult.errors);
         return false;
     }
+}function validateRegistrationForm() {
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{8,}$/;
+    
+    if (!emailRegex.test(email)) {
+        alert('Please enter a valid email address.');
+        return false;
+    }
+    
+    if (!passwordRegex.test(password)) {
+        alert('Password must be at least 8 characters long and contain both letters and numbers.');
+        return false;
+    }
+    
+    if (password !== confirmPassword) {
+        alert('Passwords do not match.');
+        return false;
+    }
+    
+    return true;
 }
