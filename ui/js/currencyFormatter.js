@@ -54,4 +54,40 @@ function parseCurrency(formattedString, locale = 'en-US') {
     return isNaN(number) ? 0 : number;
 }
 
+export { formatCurrency, parseCurrency };function formatCurrency(value, options = {}) {
+  const {
+    locale = 'en-US',
+    currency = 'USD',
+    minimumFractionDigits = 2,
+    maximumFractionDigits = 2,
+    style = 'currency'
+  } = options;
+
+  if (typeof value !== 'number' || isNaN(value)) {
+    throw new TypeError('Value must be a valid number');
+  }
+
+  const formatter = new Intl.NumberFormat(locale, {
+    style,
+    currency,
+    minimumFractionDigits,
+    maximumFractionDigits
+  });
+
+  return formatter.format(value);
+}
+
+function parseCurrency(formattedString, locale = 'en-US') {
+  const example = formatCurrency(0, { locale });
+  const decimalSeparator = example.replace(/[\d\s]/g, '').charAt(0);
+  const groupSeparator = example.replace(/[\d\s]/g, '').charAt(1) || '';
+  
+  const cleanString = formattedString
+    .replace(new RegExp(`[${groupSeparator}]`, 'g'), '')
+    .replace(decimalSeparator, '.')
+    .replace(/[^\d.-]/g, '');
+  
+  return parseFloat(cleanString);
+}
+
 export { formatCurrency, parseCurrency };
