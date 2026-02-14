@@ -49,4 +49,27 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
+export { sanitizeInput, validateEmail, escapeHtml };function sanitizeInput(input) {
+    if (typeof input !== 'string') {
+        return '';
+    }
+    const element = document.createElement('div');
+    element.innerText = input;
+    return element.innerHTML;
+}
+
+function validateEmail(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+}
+
+function escapeHtml(unsafe) {
+    return unsafe
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
 export { sanitizeInput, validateEmail, escapeHtml };
