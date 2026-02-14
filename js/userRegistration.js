@@ -79,4 +79,95 @@ function handleRegistrationSubmit(event) {
     } else {
         console.log('Registration failed:', validationResult.errors);
     }
+}function validateEmail(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
 }
+
+function validatePassword(password) {
+    const minLength = 8;
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasNumbers = /\d/.test(password);
+    const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
+    
+    return password.length >= minLength && 
+           hasUpperCase && 
+           hasLowerCase && 
+           hasNumbers && 
+           hasSpecialChar;
+}
+
+function validateRegistration(userData) {
+    const errors = [];
+    
+    if (!validateEmail(userData.email)) {
+        errors.push('Invalid email format');
+    }
+    
+    if (!validatePassword(userData.password)) {
+        errors.push('Password must be at least 8 characters long and contain uppercase, lowercase, numbers, and special characters');
+    }
+    
+    if (userData.password !== userData.confirmPassword) {
+        errors.push('Passwords do not match');
+    }
+    
+    if (userData.age && (userData.age < 13 || userData.age > 120)) {
+        errors.push('Age must be between 13 and 120');
+    }
+    
+    return {
+        isValid: errors.length === 0,
+        errors: errors
+    };
+}
+
+function formatUserData(rawData) {
+    return {
+        email: rawData.email.trim().toLowerCase(),
+        password: rawData.password,
+        confirmPassword: rawData.confirmPassword,
+        age: parseInt(rawData.age) || null,
+        registrationDate: new Date().toISOString()
+    };
+}
+
+function registerUser(userInput) {
+    const formattedData = formatUserData(userInput);
+    const validationResult = validateRegistration(formattedData);
+    
+    if (!validationResult.isValid) {
+        return {
+            success: false,
+            message: 'Registration failed',
+            errors: validationResult.errors
+        };
+    }
+    
+    // Simulate database save
+    const userRecord = {
+        id: Date.now().toString(36) + Math.random().toString(36).substr(2),
+        email: formattedData.email,
+        age: formattedData.age,
+        registeredAt: formattedData.registrationDate,
+        status: 'active'
+    };
+    
+    return {
+        success: true,
+        message: 'User registered successfully',
+        data: userRecord
+    };
+}
+
+// Example usage simulation
+const sampleUser = {
+    email: 'test@example.com',
+    password: 'SecurePass123!',
+    confirmPassword: 'SecurePass123!',
+    age: '25'
+};
+
+const result = registerUser(sampleUser);
+console.log(result);
