@@ -1,39 +1,67 @@
-function fetchUserData(userId) {
-  const apiUrl = `https://jsonplaceholder.typicode.com/users/${userId}`;
+const fetchUserData = async (userId, maxRetries = 3) => {
+  let lastError;
   
-  fetch(apiUrl)
-    .then(response => {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const response = await fetch(`https://api.example.com/users/${userId}`);
+      
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-      return response.json();
-    })
-    .then(data => {
-      console.log('User Data:', data);
-      displayUserInfo(data);
-    })
-    .catch(error => {
-      console.error('Error fetching user data:', error);
-      displayErrorMessage(error.message);
-    });
-}
-
-function displayUserInfo(user) {
-  const outputDiv = document.getElementById('userOutput');
-  if (outputDiv) {
-    outputDiv.innerHTML = `
-      <h3>${user.name}</h3>
-      <p>Email: ${user.email}</p>
-      <p>Phone: ${user.phone}</p>
-      <p>Website: ${user.website}</p>
-      <p>Company: ${user.company.name}</p>
-    `;
+      
+      const data = await response.json();
+      return { success: true, data };
+      
+    } catch (error) {
+      lastError = error;
+      console.warn(`Attempt ${attempt} failed:`, error.message);
+      
+      if (attempt < maxRetries) {
+        const delay = Math.min(1000 * Math.pow(2, attempt - 1), 10000);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
   }
-}
+  
+  return { 
+    success: false, 
+    error: `Failed after ${maxRetries} attempts: ${lastError.message}` 
+  };
+};
 
-function displayErrorMessage(message) {
-  const outputDiv = document.getElementById('userOutput');
-  if (outputDiv) {
-    outputDiv.innerHTML = `<p class="error">Failed to load user data: ${message}</p>`;
+const validateUserData = (data) => {
+  const requiredFields = ['id', 'name', 'email'];
+  const missingFields = requiredFields.filter(field => !data[field]);
+  
+  if (missingFields.length > 0) {
+    throw new Error(`Missing required fields: ${missingFields.join(', ')}`);
   }
-}
+  
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(data.email)) {
+    throw new Error('Invalid email format');
+  }
+  
+  return true;
+};
+
+const processUserData = async (userId) => {
+  try {
+    const result = await fetchUserData(userId);
+    
+    if (!result.success) {
+      throw new Error(result.error);
+    }
+    
+    validateUserData(result.data);
+    
+    console.log('User data processed successfully:', result.data);
+    return result.data;
+    
+  } catch (error) {
+    console.error('Failed to process user data:', error.message);
+    throw error;
+  }
+};
+
+export { fetchUserData, validateUserData, processUserData };
