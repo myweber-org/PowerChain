@@ -123,4 +123,29 @@ function parseCurrency(formattedString, locale = 'en-US') {
     return parseFloat(cleaned);
 }
 
+export { formatCurrency, parseCurrency };function formatCurrency(amount, locale = 'en-US', currency = 'USD') {
+  try {
+    return new Intl.NumberFormat(locale, {
+      style: 'currency',
+      currency: currency
+    }).format(amount);
+  } catch (error) {
+    console.error('Currency formatting error:', error);
+    return amount.toString();
+  }
+}
+
+function parseCurrency(formattedString, locale = 'en-US') {
+  const parts = new Intl.NumberFormat(locale).formatToParts(1234.5);
+  const decimalSeparator = parts.find(part => part.type === 'decimal')?.value || '.';
+  const groupSeparator = parts.find(part => part.type === 'group')?.value || ',';
+  
+  const cleanString = formattedString
+    .replace(new RegExp(`\\${groupSeparator}`, 'g'), '')
+    .replace(new RegExp(`\\${decimalSeparator}`), '.')
+    .replace(/[^\d.-]/g, '');
+    
+  return parseFloat(cleanString);
+}
+
 export { formatCurrency, parseCurrency };
