@@ -580,4 +580,93 @@ export default UserPreferencesManager;const UserPreferencesManager = {
         setPreference,
         subscribe
     };
+})();const userPreferencesManager = (() => {
+  const STORAGE_KEY = 'app_preferences';
+  
+  const defaultPreferences = {
+    theme: 'light',
+    fontSize: 16,
+    notifications: true,
+    language: 'en',
+    autoSave: false,
+    lastUpdated: null
+  };
+
+  const getPreferences = () => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        return { ...defaultPreferences, ...parsed };
+      }
+      return { ...defaultPreferences };
+    } catch (error) {
+      console.error('Failed to retrieve preferences:', error);
+      return { ...defaultPreferences };
+    }
+  };
+
+  const savePreferences = (updates) => {
+    try {
+      const current = getPreferences();
+      const updated = {
+        ...current,
+        ...updates,
+        lastUpdated: new Date().toISOString()
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      return updated;
+    } catch (error) {
+      console.error('Failed to save preferences:', error);
+      return null;
+    }
+  };
+
+  const resetPreferences = () => {
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+      return { ...defaultPreferences };
+    } catch (error) {
+      console.error('Failed to reset preferences:', error);
+      return null;
+    }
+  };
+
+  const subscribe = (callback) => {
+    const storageHandler = (event) => {
+      if (event.key === STORAGE_KEY) {
+        callback(getPreferences());
+      }
+    };
+    window.addEventListener('storage', storageHandler);
+    
+    return () => {
+      window.removeEventListener('storage', storageHandler);
+    };
+  };
+
+  const validatePreference = (key, value) => {
+    const validators = {
+      theme: (val) => ['light', 'dark', 'auto'].includes(val),
+      fontSize: (val) => Number.isInteger(val) && val >= 12 && val <= 24,
+      notifications: (val) => typeof val === 'boolean',
+      language: (val) => ['en', 'es', 'fr', 'de'].includes(val),
+      autoSave: (val) => typeof val === 'boolean'
+    };
+
+    if (!validators[key]) return false;
+    return validators[key](value);
+  };
+
+  return {
+    getPreferences,
+    savePreferences,
+    resetPreferences,
+    subscribe,
+    validatePreference
+  };
 })();
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = userPreferencesManager;
+}
