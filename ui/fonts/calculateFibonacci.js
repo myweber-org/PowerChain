@@ -12,4 +12,9 @@ function calculateFibonacci(n) {
     if (n <= 2) return 1;
     memo[n] = fibonacci(n - 1, memo) + fibonacci(n - 2, memo);
     return memo[n];
+}function calculateFibonacci(n, memo = {}) {
+    if (n <= 1) return n;
+    if (memo[n]) return memo[n];
+    memo[n] = calculateFibonacci(n - 1, memo) + calculateFibonacci(n - 2, memo);
+    return memo[n];
 }
