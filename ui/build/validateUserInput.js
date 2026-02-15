@@ -134,4 +134,30 @@ function validateUserInput(username, password) {
     return { valid: true, message: "Input validation successful" };
 }
 
-module.exports = { validateUserInput, validateUsername, validatePassword };
+module.exports = { validateUserInput, validateUsername, validatePassword };function validateEmail(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+}
+
+function validatePassword(password) {
+    return password.length >= 8 && /[A-Z]/.test(password) && /\d/.test(password);
+}
+
+function validateUserCredentials(email, password) {
+    const errors = [];
+    
+    if (!validateEmail(email)) {
+        errors.push('Invalid email format');
+    }
+    
+    if (!validatePassword(password)) {
+        errors.push('Password must be at least 8 characters with one uppercase letter and one number');
+    }
+    
+    return {
+        isValid: errors.length === 0,
+        errors: errors
+    };
+}
+
+module.exports = { validateUserCredentials };
