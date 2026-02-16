@@ -4,119 +4,27 @@ function sanitizeInput(input) {
     return div.innerHTML;
 }
 
-function validateAndSanitizeUserInput(userInput) {
+function validateAndSanitize(userInput) {
     if (typeof userInput !== 'string') {
         return '';
     }
     
     const trimmedInput = userInput.trim();
-    const sanitizedInput = sanitizeInput(trimmedInput);
-    
-    const allowedPattern = /^[a-zA-Z0-9\s.,!?@-]+$/;
-    if (!allowedPattern.test(trimmedInput)) {
-        console.warn('Input contains potentially dangerous characters');
+    if (trimmedInput.length === 0) {
         return '';
     }
     
-    return sanitizedInput;
-}
-
-export { validateAndSanitizeUserInput };function sanitizeInput(input) {
-    const div = document.createElement('div');
-    div.textContent = input;
-    return div.innerHTML;
-}
-
-function validateAndSanitize(userInput) {
-    if (typeof userInput !== 'string') {
-        return '';
-    }
+    const sanitized = sanitizeInput(trimmedInput);
+    const dangerousPatterns = /<script|javascript:|on\w+\s*=/i;
     
-    const trimmed = userInput.trim();
-    const sanitized = sanitizeInput(trimmed);
-    
-    const regex = /^[a-zA-Z0-9\s.,!?-]+$/;
-    if (!regex.test(sanitized)) {
-        return '';
+    if (dangerousPatterns.test(sanitized)) {
+        console.warn('Potentially dangerous input detected and neutralized');
+        return sanitized.replace(dangerousPatterns, match => {
+            return match.replace(/./g, '�');
+        });
     }
     
     return sanitized;
 }
 
-export { validateAndSanitize };function sanitizeInput(input) {
-    if (typeof input !== 'string') {
-        return '';
-    }
-    
-    const map = {
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#x27;',
-        '/': '&#x2F;'
-    };
-    
-    const reg = /[&<>"'/]/ig;
-    return input.replace(reg, (match) => map[match]);
-}
-
-function validateEmail(email) {
-    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return re.test(email);
-}
-
-module.exports = {
-    sanitizeInput,
-    validateEmail
-};function sanitizeInput(input) {
-  const div = document.createElement('div');
-  div.textContent = input;
-  return div.innerHTML;
-}
-
-function validateAndSanitize(userInput) {
-  if (typeof userInput !== 'string') {
-    return '';
-  }
-  
-  const trimmed = userInput.trim();
-  const sanitized = sanitizeInput(trimmed);
-  
-  const patterns = {
-    script: /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi,
-    onEvent: /on\w+="[^"]*"/gi,
-    javascript: /javascript:/gi
-  };
-  
-  let result = sanitized;
-  for (const pattern in patterns) {
-    result = result.replace(patterns[pattern], '');
-  }
-  
-  return result;
-}
-
-export { validateAndSanitize };function sanitizeInput(input) {
-    const div = document.createElement('div');
-    div.textContent = input;
-    return div.innerHTML;
-}
-
-function validateEmail(email) {
-    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return re.test(email);
-}
-
-function escapeHtml(text) {
-    const map = {
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#039;'
-    };
-    return text.replace(/[&<>"']/g, function(m) { return map[m]; });
-}
-
-export { sanitizeInput, validateEmail, escapeHtml };
+export { validateAndSanitize };
