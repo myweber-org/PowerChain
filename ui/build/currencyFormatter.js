@@ -108,4 +108,17 @@ function parseCurrency(formattedString, locale = 'en-US') {
     return isNaN(parsedValue) ? null : parsedValue;
 }
 
+export { formatCurrency, parseCurrency };function formatCurrency(amount, locale = 'en-US', currency = 'USD') {
+  return new Intl.NumberFormat(locale, {
+    style: 'currency',
+    currency: currency
+  }).format(amount);
+}
+
+function parseCurrency(formattedString, locale = 'en-US') {
+  const example = formatCurrency(0, locale);
+  const cleanString = formattedString.replace(example.replace('0', ''), '');
+  return parseFloat(cleanString.replace(/[^\d.-]/g, ''));
+}
+
 export { formatCurrency, parseCurrency };
