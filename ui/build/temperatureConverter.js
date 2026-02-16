@@ -318,4 +318,34 @@ module.exports = {
     celsiusToFahrenheit,
     fahrenheitToCelsius,
     convertTemperature
+};function celsiusToFahrenheit(celsius) {
+    return (celsius * 9/5) + 32;
+}
+
+function fahrenheitToCelsius(fahrenheit) {
+    return (fahrenheit - 32) * 5/9;
+}
+
+function convertTemperature(value, unit) {
+    if (unit === 'C') {
+        return celsiusToFahrenheit(value);
+    } else if (unit === 'F') {
+        return fahrenheitToCelsius(value);
+    }
+    return null;
+}
+
+function formatTemperature(value, unit) {
+    const converted = convertTemperature(value, unit);
+    if (converted === null) return 'Invalid unit';
+    
+    const targetUnit = unit === 'C' ? 'F' : 'C';
+    return `${value}°${unit} = ${converted.toFixed(1)}°${targetUnit}`;
+}
+
+module.exports = {
+    celsiusToFahrenheit,
+    fahrenheitToCelsius,
+    convertTemperature,
+    formatTemperature
 };
