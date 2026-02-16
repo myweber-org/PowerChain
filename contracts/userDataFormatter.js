@@ -21,4 +21,13 @@ function calculateAge(birthDate) {
   }
   
   return age;
+}function formatUserData(users) {
+    return users.map(user => ({
+        id: user.id,
+        fullName: `${user.firstName} ${user.lastName}`.trim(),
+        email: user.email.toLowerCase(),
+        age: user.age,
+        isActive: user.status === 'active',
+        registeredDate: new Date(user.registeredAt).toLocaleDateString('en-US')
+    }));
 }
