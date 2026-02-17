@@ -10,4 +10,9 @@ function calculateCircleArea(radius) {
     return Math.PI * radius * radius;
 }
 
-module.exports = calculateCircleArea;
+module.exports = calculateCircleArea;function calculateCircleArea(radius) {
+    if (radius <= 0) {
+        throw new Error('Radius must be a positive number');
+    }
+    return Math.PI * Math.pow(radius, 2);
+}
