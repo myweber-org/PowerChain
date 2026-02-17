@@ -242,4 +242,70 @@ export default UserPreferences;const UserPreferencesManager = (function() {
 
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = UserPreferencesManager;
-}
+}const UserPreferences = {
+  storageKey: 'app_preferences',
+
+  defaults: {
+    theme: 'light',
+    language: 'en',
+    notifications: true,
+    fontSize: 16,
+    autoSave: false
+  },
+
+  load() {
+    try {
+      const stored = localStorage.getItem(this.storageKey);
+      return stored ? JSON.parse(stored) : { ...this.defaults };
+    } catch (error) {
+      console.warn('Failed to load preferences:', error);
+      return { ...this.defaults };
+    }
+  },
+
+  save(preferences) {
+    try {
+      const merged = { ...this.defaults, ...this.load(), ...preferences };
+      localStorage.setItem(this.storageKey, JSON.stringify(merged));
+      return true;
+    } catch (error) {
+      console.error('Failed to save preferences:', error);
+      return false;
+    }
+  },
+
+  reset() {
+    try {
+      localStorage.removeItem(this.storageKey);
+      return true;
+    } catch (error) {
+      console.error('Failed to reset preferences:', error);
+      return false;
+    }
+  },
+
+  get(key) {
+    const prefs = this.load();
+    return prefs[key] !== undefined ? prefs[key] : this.defaults[key];
+  },
+
+  set(key, value) {
+    return this.save({ [key]: value });
+  },
+
+  getAll() {
+    return this.load();
+  },
+
+  subscribe(callback) {
+    const handler = (event) => {
+      if (event.key === this.storageKey) {
+        callback(this.load());
+      }
+    };
+    window.addEventListener('storage', handler);
+    return () => window.removeEventListener('storage', handler);
+  }
+};
+
+export default UserPreferences;
