@@ -78,4 +78,59 @@ function isCommonPassword(password) {
     return commonPasswords.includes(password.toLowerCase());
 }
 
-export { checkPasswordStrength, calculateStrengthScore, isCommonPassword };
+export { checkPasswordStrength, calculateStrengthScore, isCommonPassword };function passwordStrengthChecker(password, options = {}) {
+    const defaults = {
+        minLength: 8,
+        requireUppercase: true,
+        requireLowercase: true,
+        requireNumbers: true,
+        requireSpecialChars: true,
+        specialChars: "!@#$%^&*()_+-=[]{}|;:,.<>?"
+    };
+    
+    const config = { ...defaults, ...options };
+    const errors = [];
+    const score = { total: 0, max: 5 };
+    
+    if (password.length >= config.minLength) {
+        score.total += 1;
+    } else {
+        errors.push(`Password must be at least ${config.minLength} characters long`);
+    }
+    
+    if (config.requireUppercase && /[A-Z]/.test(password)) {
+        score.total += 1;
+    } else if (config.requireUppercase) {
+        errors.push("Password must contain at least one uppercase letter");
+    }
+    
+    if (config.requireLowercase && /[a-z]/.test(password)) {
+        score.total += 1;
+    } else if (config.requireLowercase) {
+        errors.push("Password must contain at least one lowercase letter");
+    }
+    
+    if (config.requireNumbers && /\d/.test(password)) {
+        score.total += 1;
+    } else if (config.requireNumbers) {
+        errors.push("Password must contain at least one number");
+    }
+    
+    const specialCharRegex = new RegExp(`[${config.specialChars.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}]`);
+    if (config.requireSpecialChars && specialCharRegex.test(password)) {
+        score.total += 1;
+    } else if (config.requireSpecialChars) {
+        errors.push("Password must contain at least one special character");
+    }
+    
+    const strength = score.total >= 4 ? "strong" : score.total >= 3 ? "medium" : "weak";
+    
+    return {
+        isValid: errors.length === 0,
+        score: score.total,
+        maxScore: score.max,
+        strength: strength,
+        errors: errors,
+        suggestions: strength === "weak" ? ["Consider using a longer password", "Mix different character types"] : []
+    };
+}
