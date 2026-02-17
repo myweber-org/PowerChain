@@ -401,4 +401,53 @@ function convertCurrency(amount, baseCurrency, targetCurrency) {
         });
 }
 
-export { convertCurrency };
+export { convertCurrency };const exchangeRates = {};
+
+async function fetchExchangeRate(base, target) {
+    const cacheKey = `${base}_${target}`;
+    if (exchangeRates[cacheKey] && (Date.now() - exchangeRates[cacheKey].timestamp) < 3600000) {
+        return exchangeRates[cacheKey].rate;
+    }
+
+    try {
+        const response = await fetch(`https://api.exchangerate-api.com/v4/latest/${base}`);
+        const data = await response.json();
+        const rate = data.rates[target];
+        
+        if (rate) {
+            exchangeRates[cacheKey] = {
+                rate: rate,
+                timestamp: Date.now()
+            };
+            return rate;
+        } else {
+            throw new Error('Invalid target currency');
+        }
+    } catch (error) {
+        console.error('Failed to fetch exchange rate:', error);
+        throw error;
+    }
+}
+
+function convertCurrency(amount, baseCurrency, targetCurrency) {
+    return fetchExchangeRate(baseCurrency, targetCurrency)
+        .then(rate => {
+            const convertedAmount = amount * rate;
+            return {
+                amount: convertedAmount,
+                base: baseCurrency,
+                target: targetCurrency,
+                rate: rate,
+                timestamp: new Date().toISOString()
+            };
+        });
+}
+
+function formatCurrency(amount, currencyCode) {
+    return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: currencyCode
+    }).format(amount);
+}
+
+export { convertCurrency, formatCurrency };
