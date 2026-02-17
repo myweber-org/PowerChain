@@ -1,50 +1,44 @@
-const exchangeRates = {};
-
-async function fetchExchangeRate(fromCurrency, toCurrency) {
-    const cacheKey = `${fromCurrency}_${toCurrency}`;
-    const cacheDuration = 5 * 60 * 1000; // 5 minutes
-    
-    if (exchangeRates[cacheKey] && 
-        Date.now() - exchangeRates[cacheKey].timestamp < cacheDuration) {
-        return exchangeRates[cacheKey].rate;
-    }
-    
-    try {
-        const response = await fetch(
-            `https://api.exchangerate-api.com/v4/latest/${fromCurrency}`
-        );
-        const data = await response.json();
-        const rate = data.rates[toCurrency];
-        
-        exchangeRates[cacheKey] = {
-            rate: rate,
-            timestamp: Date.now()
-        };
-        
-        return rate;
-    } catch (error) {
-        console.error('Failed to fetch exchange rate:', error);
-        throw new Error('Exchange rate service unavailable');
-    }
-}
+const exchangeRates = {
+    USD: 1.0,
+    EUR: 0.85,
+    GBP: 0.73,
+    JPY: 110.0,
+    CAD: 1.25,
+    AUD: 1.35
+};
 
 function convertCurrency(amount, fromCurrency, toCurrency) {
-    return fetchExchangeRate(fromCurrency, toCurrency)
-        .then(rate => {
-            if (!rate) {
-                throw new Error(`Invalid currency pair: ${fromCurrency} to ${toCurrency}`);
-            }
-            return amount * rate;
-        });
+    if (!exchangeRates[fromCurrency] || !exchangeRates[toCurrency]) {
+        throw new Error('Invalid currency code');
+    }
+    
+    const amountInUSD = amount / exchangeRates[fromCurrency];
+    const convertedAmount = amountInUSD * exchangeRates[toCurrency];
+    
+    return parseFloat(convertedAmount.toFixed(2));
 }
 
 function formatCurrency(amount, currencyCode) {
-    return new Intl.NumberFormat('en-US', {
+    const formatter = new Intl.NumberFormat('en-US', {
         style: 'currency',
-        currency: currencyCode,
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-    }).format(amount);
+        currency: currencyCode
+    });
+    
+    return formatter.format(amount);
 }
 
-export { convertCurrency, formatCurrency };
+function updateExchangeRate(currency, rate) {
+    if (typeof rate !== 'number' || rate <= 0) {
+        throw new Error('Rate must be a positive number');
+    }
+    
+    exchangeRates[currency] = rate;
+    return true;
+}
+
+module.exports = {
+    convertCurrency,
+    formatCurrency,
+    updateExchangeRate,
+    getAvailableCurrencies: () => Object.keys(exchangeRates)
+};
