@@ -33,4 +33,25 @@ function validateUserProfile(user) {
   };
 }
 
-export { validateUserProfile, validateEmail, validatePhoneNumber };
+export { validateUserProfile, validateEmail, validatePhoneNumber };function validateUserProfile(data) {
+    const errors = {};
+    
+    if (!data.username || data.username.trim().length < 3) {
+        errors.username = 'Username must be at least 3 characters';
+    }
+    
+    if (!data.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
+        errors.email = 'Valid email is required';
+    }
+    
+    if (data.age && (data.age < 0 || data.age > 150)) {
+        errors.age = 'Age must be between 0 and 150';
+    }
+    
+    return {
+        isValid: Object.keys(errors).length === 0,
+        errors: errors
+    };
+}
+
+module.exports = { validateUserProfile };
