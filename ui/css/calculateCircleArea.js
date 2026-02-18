@@ -15,4 +15,15 @@ module.exports = calculateCircleArea;function calculateCircleArea(radius) {
         throw new Error('Radius must be a positive number');
     }
     return Math.PI * Math.pow(radius, 2);
+}function calculateCircleArea(radius) {
+    if (radius <= 0) {
+        throw new Error('Radius must be a positive number');
+    }
+    return Math.PI * Math.pow(radius, 2);
 }
+
+function formatArea(area, decimalPlaces = 2) {
+    return area.toFixed(decimalPlaces);
+}
+
+module.exports = { calculateCircleArea, formatArea };
