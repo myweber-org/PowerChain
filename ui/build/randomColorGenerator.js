@@ -1,8 +1,8 @@
-function generateRandomHexColor() {
-    const hexChars = '0123456789ABCDEF';
+function generateRandomColor() {
+    const letters = '0123456789ABCDEF';
     let color = '#';
     for (let i = 0; i < 6; i++) {
-        color += hexChars[Math.floor(Math.random() * 16)];
+        color += letters[Math.floor(Math.random() * 16)];
     }
     return color;
 }
@@ -14,19 +14,11 @@ function generateRandomRGBColor() {
     return `rgb(${r}, ${g}, ${b})`;
 }
 
-function generateRandomColor(format = 'hex') {
-    if (format.toLowerCase() === 'rgb') {
-        return generateRandomRGBColor();
-    }
-    return generateRandomHexColor();
+function generateRandomHSLColor() {
+    const h = Math.floor(Math.random() * 360);
+    const s = Math.floor(Math.random() * 101);
+    const l = Math.floor(Math.random() * 101);
+    return `hsl(${h}, ${s}%, ${l}%)`;
 }
 
-function generateMultipleColors(count, format = 'hex') {
-    const colors = [];
-    for (let i = 0; i < count; i++) {
-        colors.push(generateRandomColor(format));
-    }
-    return colors;
-}
-
-export { generateRandomColor, generateMultipleColors };
+export { generateRandomColor, generateRandomRGBColor, generateRandomHSLColor };
