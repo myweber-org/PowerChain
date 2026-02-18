@@ -165,4 +165,27 @@ function validateRegistrationData(userData) {
     };
 }
 
-module.exports = { validateRegistrationData, validateEmail, validatePassword };
+module.exports = { validateRegistrationData, validateEmail, validatePassword };function validateRegistrationForm(formData) {
+  const errors = {};
+  
+  if (!formData.username || formData.username.trim().length < 3) {
+    errors.username = 'Username must be at least 3 characters';
+  }
+  
+  if (!formData.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+    errors.email = 'Valid email is required';
+  }
+  
+  if (!formData.password || formData.password.length < 8) {
+    errors.password = 'Password must be at least 8 characters';
+  }
+  
+  if (formData.password !== formData.confirmPassword) {
+    errors.confirmPassword = 'Passwords do not match';
+  }
+  
+  return {
+    isValid: Object.keys(errors).length === 0,
+    errors: errors
+  };
+}
