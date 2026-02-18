@@ -180,4 +180,36 @@ function parseCurrency(formattedString, locale = 'en-US') {
   return isNaN(number) ? 0 : number;
 }
 
+export { formatCurrency, parseCurrency };function formatCurrency(value, locale = 'en-US', currency = 'USD', options = {}) {
+  const defaultOptions = {
+    style: 'currency',
+    currency: currency,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  };
+  
+  const mergedOptions = { ...defaultOptions, ...options };
+  
+  try {
+    const formatter = new Intl.NumberFormat(locale, mergedOptions);
+    return formatter.format(value);
+  } catch (error) {
+    console.error('Currency formatting error:', error);
+    return value.toString();
+  }
+}
+
+function parseCurrency(formattedValue, locale = 'en-US') {
+  const example = formatCurrency(123456.78, locale);
+  const groupSeparator = example.replace(/\d/g, '').charAt(1);
+  const decimalSeparator = example.replace(/\d/g, '').charAt(example.length - 3);
+  
+  const cleanedValue = formattedValue
+    .replace(new RegExp(`[${groupSeparator}]`, 'g'), '')
+    .replace(new RegExp(`[${decimalSeparator}]`), '.')
+    .replace(/[^\d.-]/g, '');
+  
+  return parseFloat(cleanedValue);
+}
+
 export { formatCurrency, parseCurrency };
