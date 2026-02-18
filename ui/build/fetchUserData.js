@@ -434,4 +434,38 @@ function displayErrorMessage(message) {
     if (container) {
         container.innerHTML = `<p class="error">${message}</p>`;
     }
-}
+}const fetchUserData = async (userId, maxRetries = 3) => {
+  const fetchWithRetry = async (attempt) => {
+    try {
+      const response = await fetch(`https://api.example.com/users/${userId}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      if (attempt < maxRetries) {
+        console.warn(`Attempt ${attempt} failed. Retrying...`);
+        return fetchWithRetry(attempt + 1);
+      } else {
+        console.error(`Failed after ${maxRetries} attempts:`, error);
+        throw error;
+      }
+    }
+  };
+
+  return fetchWithRetry(1);
+};
+
+const processUser = async (userId) => {
+  try {
+    const userData = await fetchUserData(userId);
+    console.log('User data retrieved:', userData);
+    return userData;
+  } catch (error) {
+    console.error('Failed to process user:', error);
+    return null;
+  }
+};
+
+export { fetchUserData, processUser };
