@@ -133,4 +133,119 @@ export { checkPasswordStrength, calculateStrengthScore, isCommonPassword };funct
         errors: errors,
         suggestions: strength === "weak" ? ["Consider using a longer password", "Mix different character types"] : []
     };
+}function checkPasswordStrength(password, options = {}) {
+  const defaults = {
+    minLength: 8,
+    requireUppercase: true,
+    requireLowercase: true,
+    requireNumbers: true,
+    requireSpecialChars: true,
+    specialChars: "!@#$%^&*()_+-=[]{}|;:,.<>?"
+  };
+  
+  const config = { ...defaults, ...options };
+  const errors = [];
+  const warnings = [];
+  
+  if (password.length < config.minLength) {
+    errors.push(`Password must be at least ${config.minLength} characters long`);
+  }
+  
+  if (config.requireUppercase && !/[A-Z]/.test(password)) {
+    errors.push("Password must contain at least one uppercase letter");
+  }
+  
+  if (config.requireLowercase && !/[a-z]/.test(password)) {
+    errors.push("Password must contain at least one lowercase letter");
+  }
+  
+  if (config.requireNumbers && !/\d/.test(password)) {
+    errors.push("Password must contain at least one number");
+  }
+  
+  if (config.requireSpecialChars) {
+    const specialCharRegex = new RegExp(`[${config.specialChars.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}]`);
+    if (!specialCharRegex.test(password)) {
+      errors.push("Password must contain at least one special character");
+    }
+  }
+  
+  if (password.length > 50) {
+    warnings.push("Password is unusually long and may be difficult to remember");
+  }
+  
+  if (/(.)\1{3,}/.test(password)) {
+    warnings.push("Password contains repeating characters which reduces security");
+  }
+  
+  if (/^[a-zA-Z]+$/.test(password)) {
+    warnings.push("Password contains only letters - consider adding numbers or special characters");
+  }
+  
+  if (/^\d+$/.test(password)) {
+    warnings.push("Password contains only numbers - consider adding letters or special characters");
+  }
+  
+  const score = calculatePasswordScore(password, errors.length);
+  
+  return {
+    isValid: errors.length === 0,
+    score: score,
+    errors: errors,
+    warnings: warnings,
+    suggestions: generateSuggestions(password, config)
+  };
 }
+
+function calculatePasswordScore(password, errorCount) {
+  let score = 100;
+  score -= errorCount * 15;
+  
+  if (password.length >= 12) score += 10;
+  if (password.length >= 16) score += 10;
+  
+  const charTypes = [
+    /[a-z]/.test(password),
+    /[A-Z]/.test(password),
+    /\d/.test(password),
+    /[^a-zA-Z0-9]/.test(password)
+  ].filter(Boolean).length;
+  
+  score += (charTypes - 1) * 10;
+  
+  if (/(.)\1{2,}/.test(password)) score -= 10;
+  
+  return Math.max(0, Math.min(100, Math.round(score)));
+}
+
+function generateSuggestions(password, config) {
+  const suggestions = [];
+  
+  if (password.length < config.minLength) {
+    suggestions.push(`Add ${config.minLength - password.length} more characters`);
+  }
+  
+  if (config.requireUppercase && !/[A-Z]/.test(password)) {
+    suggestions.push("Add at least one uppercase letter (A-Z)");
+  }
+  
+  if (config.requireLowercase && !/[a-z]/.test(password)) {
+    suggestions.push("Add at least one lowercase letter (a-z)");
+  }
+  
+  if (config.requireNumbers && !/\d/.test(password)) {
+    suggestions.push("Add at least one number (0-9)");
+  }
+  
+  if (config.requireSpecialChars && !new RegExp(`[${config.specialChars.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}]`).test(password)) {
+    suggestions.push(`Add at least one special character (${config.specialChars.substring(0, 10)}...)`);
+  }
+  
+  if (password.length < 12) {
+    suggestions.push("Consider using a longer password (12+ characters recommended)");
+  }
+  
+  return suggestions;
+}
+
+export { checkPasswordStrength };
