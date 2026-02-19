@@ -342,4 +342,87 @@ export {
   updatePreference,
   resetPreferences,
   getCurrentPreferences
-};
+};const userPreferencesManager = (() => {
+    const STORAGE_KEY = 'app_preferences';
+    const defaultPreferences = {
+        theme: 'light',
+        language: 'en',
+        notifications: true,
+        fontSize: 16,
+        autoSave: true
+    };
+
+    const loadPreferences = () => {
+        try {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            return stored ? { ...defaultPreferences, ...JSON.parse(stored) } : { ...defaultPreferences };
+        } catch (error) {
+            console.error('Failed to load preferences:', error);
+            return { ...defaultPreferences };
+        }
+    };
+
+    const savePreferences = (preferences) => {
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(preferences));
+            return true;
+        } catch (error) {
+            console.error('Failed to save preferences:', error);
+            return false;
+        }
+    };
+
+    const updatePreference = (key, value) => {
+        if (!defaultPreferences.hasOwnProperty(key)) {
+            console.warn(`Unknown preference key: ${key}`);
+            return false;
+        }
+
+        const current = loadPreferences();
+        current[key] = value;
+        return savePreferences(current);
+    };
+
+    const resetToDefaults = () => {
+        return savePreferences(defaultPreferences);
+    };
+
+    const getPreference = (key) => {
+        const prefs = loadPreferences();
+        return prefs[key] !== undefined ? prefs[key] : defaultPreferences[key];
+    };
+
+    const getAllPreferences = () => {
+        return loadPreferences();
+    };
+
+    const applyTheme = () => {
+        const theme = getPreference('theme');
+        document.documentElement.setAttribute('data-theme', theme);
+    };
+
+    const applyFontSize = () => {
+        const fontSize = getPreference('fontSize');
+        document.documentElement.style.fontSize = `${fontSize}px`;
+    };
+
+    const initialize = () => {
+        applyTheme();
+        applyFontSize();
+        console.log('User preferences initialized');
+    };
+
+    return {
+        initialize,
+        getPreference,
+        getAllPreferences,
+        updatePreference,
+        resetToDefaults,
+        applyTheme,
+        applyFontSize
+    };
+})();
+
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = userPreferencesManager;
+}
