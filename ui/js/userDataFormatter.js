@@ -98,3 +98,15 @@ function formatDate(dateString) {
     day: 'numeric'
   });
 }
+function formatUserData(users) {
+    return users.map(user => ({
+        id: user.id,
+        fullName: `${user.firstName} ${user.lastName}`.trim(),
+        email: user.email.toLowerCase(),
+        age: user.age || 'N/A',
+        isActive: user.status === 'active',
+        formattedDate: user.createdAt 
+            ? new Date(user.createdAt).toLocaleDateString('en-US')
+            : 'Unknown'
+    }));
+}
