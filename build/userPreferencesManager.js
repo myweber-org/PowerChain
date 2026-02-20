@@ -507,4 +507,79 @@ export default UserPreferences;const userPreferencesManager = (() => {
 
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = UserPreferencesManager;
+}const UserPreferencesManager = (function() {
+    const STORAGE_KEY = 'user_preferences';
+    const DEFAULT_PREFERENCES = {
+        theme: 'light',
+        fontSize: 'medium',
+        notifications: true,
+        language: 'en'
+    };
+
+    let currentPreferences = { ...DEFAULT_PREFERENCES };
+
+    function loadPreferences() {
+        try {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            if (stored) {
+                currentPreferences = { ...DEFAULT_PREFERENCES, ...JSON.parse(stored) };
+            }
+            return currentPreferences;
+        } catch (error) {
+            console.error('Failed to load preferences:', error);
+            return { ...DEFAULT_PREFERENCES };
+        }
+    }
+
+    function savePreferences(preferences) {
+        try {
+            const merged = { ...currentPreferences, ...preferences };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
+            currentPreferences = merged;
+            
+            const event = new CustomEvent('preferencesChanged', { 
+                detail: { preferences: merged }
+            });
+            window.dispatchEvent(event);
+            
+            return true;
+        } catch (error) {
+            console.error('Failed to save preferences:', error);
+            return false;
+        }
+    }
+
+    function resetPreferences() {
+        localStorage.removeItem(STORAGE_KEY);
+        currentPreferences = { ...DEFAULT_PREFERENCES };
+        
+        const event = new CustomEvent('preferencesReset', { 
+            detail: { preferences: currentPreferences }
+        });
+        window.dispatchEvent(event);
+        
+        return currentPreferences;
+    }
+
+    function getPreference(key) {
+        return currentPreferences[key] || DEFAULT_PREFERENCES[key];
+    }
+
+    function getAllPreferences() {
+        return { ...currentPreferences };
+    }
+
+    loadPreferences();
+
+    return {
+        save: savePreferences,
+        reset: resetPreferences,
+        get: getPreference,
+        getAll: getAllPreferences,
+        defaults: DEFAULT_PREFERENCES
+    };
+})();
+
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = UserPreferencesManager;
 }
