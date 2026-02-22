@@ -121,4 +121,31 @@ function parseCurrency(formattedString, locale = 'en-US') {
   return parseFloat(cleanString.replace(/[^\d.-]/g, ''));
 }
 
+export { formatCurrency, parseCurrency };function formatCurrency(amount, locale = 'en-US', currency = 'USD') {
+    if (typeof amount !== 'number' || isNaN(amount)) {
+        throw new Error('Amount must be a valid number');
+    }
+    
+    const formatter = new Intl.NumberFormat(locale, {
+        style: 'currency',
+        currency: currency,
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+    
+    return formatter.format(amount);
+}
+
+function parseCurrency(formattedString, locale = 'en-US') {
+    const parts = new Intl.NumberFormat(locale).formatToParts(1234.5);
+    const groupSeparator = parts.find(part => part.type === 'group').value;
+    const decimalSeparator = parts.find(part => part.type === 'decimal').value;
+    
+    const regex = new RegExp(`[^0-9${decimalSeparator}]`, 'g');
+    const cleaned = formattedString.replace(regex, '');
+    const normalized = cleaned.replace(decimalSeparator, '.');
+    
+    return parseFloat(normalized);
+}
+
 export { formatCurrency, parseCurrency };
