@@ -312,4 +312,27 @@ export { fetchUserData, clearUserCache };function fetchUserData(userId) {
             console.error('Error fetching user data:', error);
             return null;
         });
+}function fetchUserData(userId) {
+  const cacheKey = `user_${userId}`;
+  const cached = localStorage.getItem(cacheKey);
+  
+  if (cached) {
+    return Promise.resolve(JSON.parse(cached));
+  }
+  
+  return fetch(`https://api.example.com/users/${userId}`)
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      localStorage.setItem(cacheKey, JSON.stringify(data));
+      return data;
+    })
+    .catch(error => {
+      console.error('Failed to fetch user data:', error);
+      throw error;
+    });
 }
