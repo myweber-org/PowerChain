@@ -210,4 +210,22 @@ export default fetchUserData;function fetchUserData(userId, maxRetries = 3) {
     }
 
     return attemptFetch();
+}async function fetchUserData(userId) {
+  try {
+    const response = await fetch(`https://api.example.com/users/${userId}`);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const data = await response.json();
+    const processedData = {
+      id: data.id,
+      name: data.name.toUpperCase(),
+      email: data.email,
+      isActive: data.status === 'active'
+    };
+    return processedData;
+  } catch (error) {
+    console.error('Failed to fetch user data:', error);
+    return null;
+  }
 }
