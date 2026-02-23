@@ -78,3 +78,16 @@ export { fetchUserData, validateUserData, processUserData };async function fetch
         return null;
     }
 }
+async function fetchUserData(apiUrl) {
+  try {
+    const response = await fetch(apiUrl);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Failed to fetch user data:', error);
+    return null;
+  }
+}
