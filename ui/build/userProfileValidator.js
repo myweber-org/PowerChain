@@ -58,4 +58,25 @@ function formatValidationResults(validationResult) {
     return `Validation failed:\n${errorMessages}`;
 }
 
-export { validateUserProfile, formatValidationResults };
+export { validateUserProfile, formatValidationResults };function validateUserProfile(user) {
+    const errors = [];
+
+    if (!user.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(user.email)) {
+        errors.push('Invalid email format');
+    }
+
+    if (typeof user.age !== 'number' || user.age < 0 || user.age > 150) {
+        errors.push('Age must be a number between 0 and 150');
+    }
+
+    if (!user.username || user.username.trim().length < 3) {
+        errors.push('Username must be at least 3 characters long');
+    }
+
+    return {
+        isValid: errors.length === 0,
+        errors: errors
+    };
+}
+
+module.exports = { validateUserProfile };
