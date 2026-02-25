@@ -18,4 +18,18 @@ function formatDateWithTimezone(date) {
     const formattedOffset = `${offsetSign}${String(offsetHours).padStart(2, '0')}:${String(offsetMinutes).padStart(2, '0')}`;
 
     return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}${formattedOffset}`;
+}function formatDateToISOWithOffset(date) {
+    const pad = num => (num < 10 ? '0' + num : num);
+    const offset = -date.getTimezoneOffset();
+    const sign = offset >= 0 ? '+' : '-';
+    const absOffset = Math.abs(offset);
+    const offsetHours = pad(Math.floor(absOffset / 60));
+    const offsetMinutes = pad(absOffset % 60);
+    const year = date.getFullYear();
+    const month = pad(date.getMonth() + 1);
+    const day = pad(date.getDate());
+    const hours = pad(date.getHours());
+    const minutes = pad(date.getMinutes());
+    const seconds = pad(date.getSeconds());
+    return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}${sign}${offsetHours}:${offsetMinutes}`;
 }
