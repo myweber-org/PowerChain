@@ -271,4 +271,72 @@ if (typeof module !== 'undefined' && module.exports) {
 
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = userPreferencesManager;
-}
+}const UserPreferencesManager = (() => {
+  const STORAGE_KEY = 'app_user_preferences';
+  const DEFAULT_PREFERENCES = {
+    theme: 'light',
+    fontSize: 16,
+    notificationsEnabled: true,
+    language: 'en',
+    autoSave: false
+  };
+
+  const getPreferences = () => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        return { ...DEFAULT_PREFERENCES, ...parsed };
+      }
+    } catch (error) {
+      console.warn('Failed to retrieve preferences:', error);
+    }
+    return { ...DEFAULT_PREFERENCES };
+  };
+
+  const updatePreference = (key, value) => {
+    if (!Object.prototype.hasOwnProperty.call(DEFAULT_PREFERENCES, key)) {
+      throw new Error(`Invalid preference key: ${key}`);
+    }
+
+    const current = getPreferences();
+    const updated = { ...current, [key]: value };
+
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      return updated;
+    } catch (error) {
+      console.error('Failed to save preference:', error);
+      return current;
+    }
+  };
+
+  const resetPreferences = () => {
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+      return { ...DEFAULT_PREFERENCES };
+    } catch (error) {
+      console.error('Failed to reset preferences:', error);
+      return getPreferences();
+    }
+  };
+
+  const subscribe = (callback) => {
+    const handler = (event) => {
+      if (event.key === STORAGE_KEY) {
+        callback(getPreferences());
+      }
+    };
+    window.addEventListener('storage', handler);
+    return () => window.removeEventListener('storage', handler);
+  };
+
+  return {
+    getPreferences,
+    updatePreference,
+    resetPreferences,
+    subscribe
+  };
+})();
+
+export default UserPreferencesManager;
