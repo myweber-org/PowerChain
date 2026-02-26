@@ -163,4 +163,57 @@ function resetPreferencesToDefault() {
   return { ...defaults };
 }
 
-export { initializeUserPreferences, getUserPreference, resetPreferencesToDefault };
+export { initializeUserPreferences, getUserPreference, resetPreferencesToDefault };function validateUserPreferences(preferences) {
+    const defaults = {
+        theme: 'light',
+        language: 'en',
+        notifications: true,
+        timezone: 'UTC',
+        resultsPerPage: 25
+    };
+
+    const validated = { ...defaults };
+
+    if (preferences && typeof preferences === 'object') {
+        if (['light', 'dark', 'auto'].includes(preferences.theme)) {
+            validated.theme = preferences.theme;
+        }
+
+        if (['en', 'es', 'fr', 'de'].includes(preferences.language)) {
+            validated.language = preferences.language;
+        }
+
+        if (typeof preferences.notifications === 'boolean') {
+            validated.notifications = preferences.notifications;
+        }
+
+        if (typeof preferences.timezone === 'string' && preferences.timezone.length > 0) {
+            validated.timezone = preferences.timezone;
+        }
+
+        if (Number.isInteger(preferences.resultsPerPage) && preferences.resultsPerPage >= 10 && preferences.resultsPerPage <= 100) {
+            validated.resultsPerPage = preferences.resultsPerPage;
+        }
+    }
+
+    return validated;
+}
+
+function initializeUserPreferences() {
+    try {
+        const stored = localStorage.getItem('userPreferences');
+        const parsed = stored ? JSON.parse(stored) : {};
+        return validateUserPreferences(parsed);
+    } catch (error) {
+        console.error('Failed to initialize user preferences:', error);
+        return validateUserPreferences({});
+    }
+}
+
+function saveUserPreferences(preferences) {
+    const validated = validateUserPreferences(preferences);
+    localStorage.setItem('userPreferences', JSON.stringify(validated));
+    return validated;
+}
+
+export { validateUserPreferences, initializeUserPreferences, saveUserPreferences };
