@@ -205,4 +205,70 @@ Object.freeze(UserPreferencesManager);const UserPreferencesManager = (() => {
 
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = UserPreferencesManager;
+}const userPreferencesManager = (() => {
+  const STORAGE_KEY = 'app_user_preferences';
+  const defaultPreferences = {
+    theme: 'light',
+    language: 'en',
+    notifications: true,
+    fontSize: 'medium',
+    autoSave: false
+  };
+
+  function getPreferences() {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (!stored) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultPreferences));
+      return { ...defaultPreferences };
+    }
+    
+    try {
+      const parsed = JSON.parse(stored);
+      return { ...defaultPreferences, ...parsed };
+    } catch {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultPreferences));
+      return { ...defaultPreferences };
+    }
+  }
+
+  function updatePreferences(newPreferences) {
+    const current = getPreferences();
+    const updated = { ...current, ...newPreferences };
+    
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+    dispatchEvent(new CustomEvent('preferencesChanged', { detail: updated }));
+    return updated;
+  }
+
+  function resetPreferences() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultPreferences));
+    dispatchEvent(new CustomEvent('preferencesChanged', { detail: defaultPreferences }));
+    return { ...defaultPreferences };
+  }
+
+  function getPreference(key) {
+    const prefs = getPreferences();
+    return prefs[key] !== undefined ? prefs[key] : defaultPreferences[key];
+  }
+
+  function subscribe(callback) {
+    const handler = (event) => callback(event.detail);
+    addEventListener('preferencesChanged', handler);
+    
+    return () => {
+      removeEventListener('preferencesChanged', handler);
+    };
+  }
+
+  return {
+    getPreferences,
+    updatePreferences,
+    resetPreferences,
+    getPreference,
+    subscribe
+  };
+})();
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = userPreferencesManager;
 }
