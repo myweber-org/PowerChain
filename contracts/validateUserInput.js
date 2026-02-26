@@ -25,4 +25,19 @@ function validateUserInput(username, email) {
     };
 }
 
-module.exports = { validateUserInput, validateUsername, validateEmail };
+module.exports = { validateUserInput, validateUsername, validateEmail };function sanitizeInput(input) {
+    if (typeof input !== 'string') {
+        return '';
+    }
+    return input.trim()
+        .replace(/[<>]/g, '')
+        .replace(/javascript:/gi, '')
+        .substring(0, 255);
+}
+
+function validateEmail(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+}
+
+module.exports = { sanitizeInput, validateEmail };
