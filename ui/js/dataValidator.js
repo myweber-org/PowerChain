@@ -8,87 +8,21 @@ function validatePhone(phone) {
     return phoneRegex.test(phone);
 }
 
-function sanitizeInput(input) {
-    return input.trim()
-        .replace(/[<>]/g, '')
-        .substring(0, 255);
-}
-
-function validateFormData(data) {
-    const errors = [];
-    
-    if (!validateEmail(data.email)) {
-        errors.push('Invalid email format');
-    }
-    
-    if (!validatePhone(data.phone)) {
-        errors.push('Invalid phone number');
-    }
-    
-    if (data.name && data.name.length < 2) {
-        errors.push('Name must be at least 2 characters');
-    }
-    
-    return {
-        isValid: errors.length === 0,
-        errors: errors,
-        sanitizedData: {
-            name: sanitizeInput(data.name || ''),
-            email: sanitizeInput(data.email),
-            phone: sanitizeInput(data.phone)
-        }
-    };
-}
-
-export { validateEmail, validatePhone, sanitizeInput, validateFormData };function validateEmail(email) {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-}
-
-function validatePhoneNumber(phone) {
-    const phoneRegex = /^\+?[\d\s\-\(\)]{10,}$/;
-    return phoneRegex.test(phone);
-}
-
-function validateFormData(data) {
-    const errors = [];
-    
-    if (!validateEmail(data.email)) {
-        errors.push('Invalid email format');
-    }
-    
-    if (!validatePhoneNumber(data.phone)) {
-        errors.push('Invalid phone number format');
-    }
-    
-    if (!data.name || data.name.trim().length < 2) {
-        errors.push('Name must be at least 2 characters long');
-    }
-    
-    return {
-        isValid: errors.length === 0,
-        errors: errors
-    };
-}
-
-export { validateEmail, validatePhoneNumber, validateFormData };function validateEmail(email) {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
+function sanitizeString(input) {
+    return input.trim().replace(/[<>]/g, '');
 }
 
 function validatePassword(password) {
-    return password.length >= 8 && 
-           /[A-Z]/.test(password) && 
-           /[a-z]/.test(password) && 
-           /\d/.test(password);
-}
-
-function sanitizeInput(input) {
-    return input.replace(/[<>]/g, '');
+    if (password.length < 8) return false;
+    if (!/[A-Z]/.test(password)) return false;
+    if (!/[a-z]/.test(password)) return false;
+    if (!/\d/.test(password)) return false;
+    return true;
 }
 
 module.exports = {
     validateEmail,
-    validatePassword,
-    sanitizeInput
+    validatePhone,
+    sanitizeString,
+    validatePassword
 };
