@@ -137,4 +137,45 @@ function formatFileSize(bytes) {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
 
-export { handleFileUpload, validateFileExtension, formatFileSize };
+export { handleFileUpload, validateFileExtension, formatFileSize };const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'application/pdf'];
+
+function validateFile(file) {
+    if (!ALLOWED_TYPES.includes(file.type)) {
+        throw new Error('Invalid file type. Allowed types: JPEG, PNG, PDF');
+    }
+    
+    if (file.size > MAX_FILE_SIZE) {
+        throw new Error(`File size exceeds ${MAX_FILE_SIZE / 1024 / 1024}MB limit`);
+    }
+    
+    return {
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        lastModified: file.lastModified
+    };
+}
+
+function handleFileUpload(event) {
+    const fileInput = event.target;
+    const files = Array.from(fileInput.files);
+    
+    try {
+        const validatedFiles = files.map(validateFile);
+        console.log('Valid files:', validatedFiles);
+        return validatedFiles;
+    } catch (error) {
+        console.error('Upload error:', error.message);
+        fileInput.value = '';
+        alert(error.message);
+        return [];
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const uploadInput = document.getElementById('fileUpload');
+    if (uploadInput) {
+        uploadInput.addEventListener('change', handleFileUpload);
+    }
+});
