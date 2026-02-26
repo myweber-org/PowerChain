@@ -138,4 +138,21 @@ export { fetchUserData, processUserData };async function fetchUserData(userId) {
         console.error('Failed to fetch user data:', error);
         throw error;
     }
+}async function fetchUserData(userId) {
+    const apiUrl = `https://jsonplaceholder.typicode.com/users/${userId}`;
+    
+    try {
+        const response = await fetch(apiUrl);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const userData = await response.json();
+        console.log('User Data:', userData);
+        return userData;
+    } catch (error) {
+        console.error('Failed to fetch user data:', error.message);
+        return null;
+    }
 }
+
+fetchUserData(1);
