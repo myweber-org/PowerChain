@@ -134,4 +134,49 @@ async function fetchUserData(userId) {
       console.error('Failed to fetch user data:', error);
       throw error;
     });
+}function fetchUserData(userId) {
+    const apiUrl = `https://jsonplaceholder.typicode.com/users/${userId}`;
+    
+    fetch(apiUrl)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('User Data:', {
+                id: data.id,
+                name: data.name,
+                email: data.email,
+                company: data.company.name
+            });
+            return data;
+        })
+        .catch(error => {
+            console.error('Error fetching user data:', error);
+            throw error;
+        });
 }
+
+function displayUserInfo(userData) {
+    const outputDiv = document.getElementById('userOutput');
+    if (outputDiv && userData) {
+        outputDiv.innerHTML = `
+            <h3>User Information</h3>
+            <p><strong>ID:</strong> ${userData.id}</p>
+            <p><strong>Name:</strong> ${userData.name}</p>
+            <p><strong>Email:</strong> ${userData.email}</p>
+            <p><strong>Company:</strong> ${userData.company.name}</p>
+        `;
+    }
+}
+
+function initUserFetch() {
+    const userId = 1;
+    fetchUserData(userId)
+        .then(data => displayUserInfo(data))
+        .catch(error => console.error('Initialization failed:', error));
+}
+
+document.addEventListener('DOMContentLoaded', initUserFetch);
