@@ -251,4 +251,46 @@ function validateForm() {
     }
     
     return true;
+}function validateEmail(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
 }
+
+function validatePassword(password) {
+    return password.length >= 8;
+}
+
+function setupFormValidation(formId) {
+    const form = document.getElementById(formId);
+    if (!form) return;
+
+    const emailInput = form.querySelector('input[type="email"]');
+    const passwordInput = form.querySelector('input[type="password"]');
+    const submitButton = form.querySelector('button[type="submit"]');
+
+    function validateForm() {
+        const isEmailValid = validateEmail(emailInput.value);
+        const isPasswordValid = validatePassword(passwordInput.value);
+        
+        submitButton.disabled = !(isEmailValid && isPasswordValid);
+        
+        emailInput.classList.toggle('invalid', !isEmailValid);
+        passwordInput.classList.toggle('invalid', !isPasswordValid);
+    }
+
+    emailInput.addEventListener('input', validateForm);
+    passwordInput.addEventListener('input', validateForm);
+    
+    form.addEventListener('submit', function(event) {
+        if (!validateEmail(emailInput.value) || !validatePassword(passwordInput.value)) {
+            event.preventDefault();
+            alert('Please fix validation errors before submitting.');
+        }
+    });
+
+    validateForm();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    setupFormValidation('loginForm');
+});
