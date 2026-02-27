@@ -94,4 +94,38 @@ function escapeHtml(text) {
   return text.replace(/[&<>"']/g, function(m) { return map[m]; });
 }
 
-export { sanitizeInput, validateEmail, escapeHtml };
+export { sanitizeInput, validateEmail, escapeHtml };function sanitizeInput(input) {
+    if (typeof input !== 'string') {
+        return '';
+    }
+    
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#x27;',
+        '/': '&#x2F;'
+    };
+    
+    const reg = /[&<>"'/]/ig;
+    return input.replace(reg, (match) => map[match]);
+}
+
+function validateAndSanitize(userInput, maxLength = 1000) {
+    if (!userInput || typeof userInput !== 'string') {
+        return '';
+    }
+    
+    const trimmedInput = userInput.trim();
+    if (trimmedInput.length > maxLength) {
+        return trimmedInput.substring(0, maxLength);
+    }
+    
+    return sanitizeInput(trimmedInput);
+}
+
+module.exports = {
+    sanitizeInput,
+    validateAndSanitize
+};
