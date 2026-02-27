@@ -90,4 +90,19 @@ function parseCurrency(formattedString, locale = 'en-US') {
     return parsedValue;
 }
 
-export { formatCurrency, parseCurrency };
+export { formatCurrency, parseCurrency };function formatCurrency(value, locale = 'en-US', options = {}) {
+    const defaultOptions = {
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+        ...options
+    };
+
+    try {
+        return new Intl.NumberFormat(locale, defaultOptions).format(value);
+    } catch (error) {
+        console.error('Currency formatting error:', error);
+        return value.toString();
+    }
+}
