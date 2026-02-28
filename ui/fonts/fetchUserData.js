@@ -181,4 +181,43 @@ function displayUserData(user) {
             <p>Location: ${user.location}</p>
         `;
     }
+}function fetchUserData(userId, timeout = 5000) {
+    return new Promise((resolve, reject) => {
+        const controller = new AbortController();
+        const signal = controller.signal;
+        
+        const timeoutId = setTimeout(() => {
+            controller.abort();
+            reject(new Error('Request timeout'));
+        }, timeout);
+
+        fetch(`https://api.example.com/users/${userId}`, { signal })
+            .then(response => {
+                clearTimeout(timeoutId);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data && data.user) {
+                    resolve({
+                        id: data.user.id,
+                        name: data.user.name,
+                        email: data.user.email,
+                        lastLogin: new Date(data.user.lastLogin)
+                    });
+                } else {
+                    reject(new Error('Invalid user data structure'));
+                }
+            })
+            .catch(error => {
+                clearTimeout(timeoutId);
+                if (error.name === 'AbortError') {
+                    reject(new Error('Request was aborted due to timeout'));
+                } else {
+                    reject(error);
+                }
+            });
+    });
 }
