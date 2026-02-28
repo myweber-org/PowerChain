@@ -293,4 +293,22 @@ function setupFormValidation(formId) {
 
 document.addEventListener('DOMContentLoaded', function() {
     setupFormValidation('loginForm');
-});
+});function validateForm() {
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const passwordPattern = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
+
+    if (!emailPattern.test(email)) {
+        alert('Please enter a valid email address.');
+        return false;
+    }
+
+    if (!passwordPattern.test(password)) {
+        alert('Password must be at least 8 characters long and contain both letters and numbers.');
+        return false;
+    }
+
+    alert('Form submitted successfully!');
+    return true;
+}
