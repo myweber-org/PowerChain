@@ -111,4 +111,50 @@ document.addEventListener('DOMContentLoaded', function() {
     if (form) {
         form.addEventListener('submit', handleRegistrationSubmit);
     }
+});function validateRegistrationForm(email, password, confirmPassword) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{8,}$/;
+
+    if (!email || !password || !confirmPassword) {
+        return { valid: false, message: "All fields are required" };
+    }
+
+    if (!emailRegex.test(email)) {
+        return { valid: false, message: "Invalid email format" };
+    }
+
+    if (!passwordRegex.test(password)) {
+        return { valid: false, message: "Password must be at least 8 characters long and contain both letters and numbers" };
+    }
+
+    if (password !== confirmPassword) {
+        return { valid: false, message: "Passwords do not match" };
+    }
+
+    return { valid: true, message: "Registration data is valid" };
+}
+
+function handleRegistrationSubmit(event) {
+    event.preventDefault();
+    
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+
+    const validationResult = validateRegistrationForm(email, password, confirmPassword);
+    
+    const resultElement = document.getElementById('registrationResult');
+    resultElement.textContent = validationResult.message;
+    resultElement.className = validationResult.valid ? 'success' : 'error';
+    
+    if (validationResult.valid) {
+        console.log('Registration data is valid. Proceeding with submission...');
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const registrationForm = document.getElementById('registrationForm');
+    if (registrationForm) {
+        registrationForm.addEventListener('submit', handleRegistrationSubmit);
+    }
 });
