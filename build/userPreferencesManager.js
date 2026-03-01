@@ -723,4 +723,73 @@ UserPreferencesManager.init();const userPreferencesManager = (() => {
 
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = userPreferencesManager;
-}
+}const userPreferencesManager = (() => {
+  const STORAGE_KEY = 'app_preferences';
+  
+  const defaultPreferences = {
+    theme: 'light',
+    language: 'en',
+    notifications: true,
+    fontSize: 16,
+    autoSave: false,
+    lastUpdated: null
+  };
+
+  function getPreferences() {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        return { ...defaultPreferences, ...JSON.parse(stored) };
+      }
+    } catch (error) {
+      console.warn('Failed to load preferences:', error);
+    }
+    return { ...defaultPreferences };
+  }
+
+  function savePreferences(preferences) {
+    try {
+      const merged = { ...getPreferences(), ...preferences, lastUpdated: new Date().toISOString() };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
+      return true;
+    } catch (error) {
+      console.error('Failed to save preferences:', error);
+      return false;
+    }
+  }
+
+  function resetPreferences() {
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+      return true;
+    } catch (error) {
+      console.error('Failed to reset preferences:', error);
+      return false;
+    }
+  }
+
+  function watchPreference(key, callback) {
+    const storedHandler = (e) => {
+      if (e.key === STORAGE_KEY) {
+        try {
+          const newPrefs = JSON.parse(e.newValue || '{}');
+          if (key in newPrefs) {
+            callback(newPrefs[key]);
+          }
+        } catch (error) {
+          console.warn('Failed to parse updated preferences:', error);
+        }
+      }
+    };
+    window.addEventListener('storage', storedHandler);
+    return () => window.removeEventListener('storage', storedHandler);
+  }
+
+  return {
+    get: getPreferences,
+    set: savePreferences,
+    reset: resetPreferences,
+    watch: watchPreference,
+    defaults: { ...defaultPreferences }
+  };
+})();
