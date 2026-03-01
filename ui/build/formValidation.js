@@ -407,3 +407,45 @@ document.getElementById('loginForm').addEventListener('submit', function(event) 
 
     return isValid;
 }
+function validateForm() {
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const errorContainer = document.getElementById('error-message');
+    
+    errorContainer.textContent = '';
+    errorContainer.style.display = 'none';
+    
+    if (!email) {
+        showError('Email address is required');
+        return false;
+    }
+    
+    if (!emailPattern.test(email)) {
+        showError('Please enter a valid email address');
+        return false;
+    }
+    
+    if (!password) {
+        showError('Password is required');
+        return false;
+    }
+    
+    if (password.length < 8) {
+        showError('Password must be at least 8 characters long');
+        return false;
+    }
+    
+    return true;
+    
+    function showError(message) {
+        errorContainer.textContent = message;
+        errorContainer.style.display = 'block';
+        errorContainer.style.color = '#dc2626';
+        errorContainer.style.padding = '0.5rem';
+        errorContainer.style.marginTop = '0.5rem';
+        errorContainer.style.backgroundColor = '#fef2f2';
+        errorContainer.style.borderRadius = '0.25rem';
+        errorContainer.style.border = '1px solid #fecaca';
+    }
+}
