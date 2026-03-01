@@ -25,4 +25,39 @@ module.exports = {
     validatePhone,
     sanitizeString,
     validatePassword
-};
+};function sanitizeInput(input) {
+  if (typeof input !== 'string') {
+    return '';
+  }
+  
+  const trimmed = input.trim();
+  const sanitized = trimmed.replace(/[<>]/g, '');
+  
+  return sanitized.length > 100 ? sanitized.substring(0, 100) : sanitized;
+}
+
+function validateEmail(email) {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+}
+
+function validatePassword(password) {
+  const hasMinLength = password.length >= 8;
+  const hasUpperCase = /[A-Z]/.test(password);
+  const hasLowerCase = /[a-z]/.test(password);
+  const hasNumbers = /\d/.test(password);
+  const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+  
+  return {
+    isValid: hasMinLength && hasUpperCase && hasLowerCase && hasNumbers && hasSpecialChar,
+    requirements: {
+      minLength: hasMinLength,
+      upperCase: hasUpperCase,
+      lowerCase: hasLowerCase,
+      numbers: hasNumbers,
+      specialChar: hasSpecialChar
+    }
+  };
+}
+
+export { sanitizeInput, validateEmail, validatePassword };
