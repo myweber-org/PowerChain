@@ -93,4 +93,36 @@ function formatDate(dateString) {
   });
 }
 
-export { formatUserData, calculateAge, formatDate };
+export { formatUserData, calculateAge, formatDate };function formatUserData(users) {
+  return users.map(user => ({
+    id: user.id,
+    fullName: `${user.firstName} ${user.lastName}`.trim(),
+    email: user.email.toLowerCase(),
+    age: user.age || 'N/A',
+    isActive: user.status === 'active',
+    lastLogin: user.lastLogin ? new Date(user.lastLogin).toISOString().split('T')[0] : 'Never'
+  }));
+}
+
+function validateUserData(user) {
+  const errors = [];
+  
+  if (!user.firstName || user.firstName.length < 2) {
+    errors.push('First name must be at least 2 characters');
+  }
+  
+  if (!user.email || !user.email.includes('@')) {
+    errors.push('Valid email is required');
+  }
+  
+  if (user.age && (user.age < 0 || user.age > 150)) {
+    errors.push('Age must be between 0 and 150');
+  }
+  
+  return {
+    isValid: errors.length === 0,
+    errors: errors
+  };
+}
+
+export { formatUserData, validateUserData };
