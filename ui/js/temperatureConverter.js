@@ -91,4 +91,41 @@ module.exports = {
     celsiusToFahrenheit,
     fahrenheitToCelsius,
     convertTemperature
+};function celsiusToFahrenheit(celsius) {
+    return (celsius * 9/5) + 32;
+}
+
+function fahrenheitToCelsius(fahrenheit) {
+    return (fahrenheit - 32) * 5/9;
+}
+
+function convertTemperature(value, unit) {
+    if (unit.toLowerCase() === 'c') {
+        return {
+            value: value,
+            originalUnit: 'C',
+            convertedValue: celsiusToFahrenheit(value),
+            convertedUnit: 'F'
+        };
+    } else if (unit.toLowerCase() === 'f') {
+        return {
+            value: value,
+            originalUnit: 'F',
+            convertedValue: fahrenheitToCelsius(value),
+            convertedUnit: 'C'
+        };
+    } else {
+        throw new Error('Invalid unit. Use "C" for Celsius or "F" for Fahrenheit.');
+    }
+}
+
+function formatTemperatureResult(result) {
+    return `${result.value}°${result.originalUnit} = ${result.convertedValue.toFixed(2)}°${result.convertedUnit}`;
+}
+
+module.exports = {
+    celsiusToFahrenheit,
+    fahrenheitToCelsius,
+    convertTemperature,
+    formatTemperatureResult
 };
