@@ -58,4 +58,52 @@ function loadPreferencesFromStorage() {
     return initializeUserPreferences(null);
 }
 
-export { initializeUserPreferences, savePreferencesToStorage, loadPreferencesFromStorage };
+export { initializeUserPreferences, savePreferencesToStorage, loadPreferencesFromStorage };const defaultPreferences = {
+  theme: 'light',
+  notifications: true,
+  language: 'en',
+  resultsPerPage: 25
+};
+
+function validatePreferences(userPrefs) {
+  const validPreferences = {};
+  
+  // Validate theme
+  if (['light', 'dark', 'auto'].includes(userPrefs.theme)) {
+    validPreferences.theme = userPrefs.theme;
+  } else {
+    validPreferences.theme = defaultPreferences.theme;
+  }
+  
+  // Validate notifications
+  if (typeof userPrefs.notifications === 'boolean') {
+    validPreferences.notifications = userPrefs.notifications;
+  } else {
+    validPreferences.notifications = defaultPreferences.notifications;
+  }
+  
+  // Validate language
+  if (typeof userPrefs.language === 'string' && userPrefs.language.length === 2) {
+    validPreferences.language = userPrefs.language.toLowerCase();
+  } else {
+    validPreferences.language = defaultPreferences.language;
+  }
+  
+  // Validate results per page
+  if (Number.isInteger(userPrefs.resultsPerPage) && userPrefs.resultsPerPage >= 10 && userPrefs.resultsPerPage <= 100) {
+    validPreferences.resultsPerPage = userPrefs.resultsPerPage;
+  } else {
+    validPreferences.resultsPerPage = defaultPreferences.resultsPerPage;
+  }
+  
+  return validPreferences;
+}
+
+function mergeWithDefaults(userPrefs) {
+  return {
+    ...defaultPreferences,
+    ...validatePreferences(userPrefs)
+  };
+}
+
+export { validatePreferences, mergeWithDefaults, defaultPreferences };
