@@ -110,4 +110,78 @@ const UserPreferencesManager = (() => {
 
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = UserPreferencesManager;
-}
+}const userPreferencesManager = (() => {
+  const PREFERENCES_KEY = 'app_preferences';
+  
+  const defaultPreferences = {
+    theme: 'light',
+    fontSize: 16,
+    notifications: true,
+    language: 'en',
+    autoSave: false,
+    sidebarCollapsed: false
+  };
+
+  const getPreferences = () => {
+    try {
+      const stored = localStorage.getItem(PREFERENCES_KEY);
+      return stored ? { ...defaultPreferences, ...JSON.parse(stored) } : defaultPreferences;
+    } catch (error) {
+      console.error('Failed to load preferences:', error);
+      return defaultPreferences;
+    }
+  };
+
+  const savePreferences = (updates) => {
+    try {
+      const current = getPreferences();
+      const updated = { ...current, ...updates };
+      localStorage.setItem(PREFERENCES_KEY, JSON.stringify(updated));
+      return updated;
+    } catch (error) {
+      console.error('Failed to save preferences:', error);
+      return null;
+    }
+  };
+
+  const resetPreferences = () => {
+    try {
+      localStorage.removeItem(PREFERENCES_KEY);
+      return defaultPreferences;
+    } catch (error) {
+      console.error('Failed to reset preferences:', error);
+      return null;
+    }
+  };
+
+  const watchPreference = (key, callback) => {
+    if (!defaultPreferences.hasOwnProperty(key)) {
+      throw new Error(`Invalid preference key: ${key}`);
+    }
+
+    const handler = (event) => {
+      if (event.key === PREFERENCES_KEY) {
+        try {
+          const newValue = getPreferences()[key];
+          callback(newValue);
+        } catch (error) {
+          console.error('Preference watch error:', error);
+        }
+      }
+    };
+
+    window.addEventListener('storage', handler);
+    
+    return () => window.removeEventListener('storage', handler);
+  };
+
+  return {
+    get: getPreferences,
+    set: savePreferences,
+    reset: resetPreferences,
+    watch: watchPreference,
+    defaults: { ...defaultPreferences }
+  };
+})();
+
+export default userPreferencesManager;
