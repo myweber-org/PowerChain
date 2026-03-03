@@ -77,4 +77,42 @@ function clearUserCache(userId = null) {
     }
 }
 
-export { fetchUserData, clearUserCache };
+export { fetchUserData, clearUserCache };function fetchUserData() {
+    fetch('https://jsonplaceholder.typicode.com/users')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('User data fetched successfully:', data);
+            displayUsers(data);
+        })
+        .catch(error => {
+            console.error('There was a problem with the fetch operation:', error);
+        });
+}
+
+function displayUsers(users) {
+    const container = document.getElementById('userContainer');
+    if (!container) {
+        console.error('Container element not found');
+        return;
+    }
+
+    container.innerHTML = '';
+    users.forEach(user => {
+        const userElement = document.createElement('div');
+        userElement.className = 'user-card';
+        userElement.innerHTML = `
+            <h3>${user.name}</h3>
+            <p>Email: ${user.email}</p>
+            <p>Phone: ${user.phone}</p>
+            <p>Company: ${user.company.name}</p>
+        `;
+        container.appendChild(userElement);
+    });
+}
+
+document.addEventListener('DOMContentLoaded', fetchUserData);
