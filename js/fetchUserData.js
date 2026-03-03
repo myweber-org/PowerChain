@@ -140,4 +140,26 @@ function displayUserData(user) {
       </div>
     `;
   }
+}function fetchUserData(userId, maxRetries = 3) {
+    const fetchData = async (attempt = 1) => {
+        try {
+            const response = await fetch(`https://api.example.com/users/${userId}`);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            console.log('User data fetched successfully:', data);
+            return data;
+        } catch (error) {
+            console.error(`Attempt ${attempt} failed:`, error.message);
+            if (attempt < maxRetries) {
+                console.log(`Retrying... (${attempt + 1}/${maxRetries})`);
+                return fetchData(attempt + 1);
+            } else {
+                console.error('Max retries reached. Operation failed.');
+                throw new Error('Failed to fetch user data after multiple attempts');
+            }
+        }
+    };
+    return fetchData();
 }
