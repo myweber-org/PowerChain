@@ -134,4 +134,40 @@ function parseCurrency(formattedString, locale = 'en-US') {
     return isNaN(parsed) ? null : parsed;
 }
 
+export { formatCurrency, parseCurrency };function formatCurrency(value, options = {}) {
+  const {
+    locale = 'en-US',
+    currency = 'USD',
+    minimumFractionDigits = 2,
+    maximumFractionDigits = 2,
+    style = 'currency'
+  } = options;
+
+  if (typeof value !== 'number' || isNaN(value)) {
+    throw new TypeError('Value must be a valid number');
+  }
+
+  const formatter = new Intl.NumberFormat(locale, {
+    style,
+    currency,
+    minimumFractionDigits,
+    maximumFractionDigits
+  });
+
+  return formatter.format(value);
+}
+
+function parseCurrency(formattedString, locale = 'en-US') {
+  const example = formatCurrency(0, { locale });
+  const decimalSeparator = example.replace(/0/g, '').replace(/[^.,]/g, '');
+  const groupSeparator = example.includes(',') ? ',' : '.';
+  
+  const cleanString = formattedString
+    .replace(new RegExp(`[${groupSeparator}]`, 'g'), '')
+    .replace(new RegExp(`[${decimalSeparator}]`, 'g'), '.')
+    .replace(/[^\d.-]/g, '');
+  
+  return parseFloat(cleanString);
+}
+
 export { formatCurrency, parseCurrency };
