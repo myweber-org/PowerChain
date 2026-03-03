@@ -712,4 +712,91 @@ const UserPreferencesManager = (() => {
     validate: validatePreference,
     defaults: DEFAULT_PREFERENCES
   };
-})();
+})();const UserPreferences = {
+  storageKey: 'app_user_preferences',
+
+  defaults: {
+    theme: 'light',
+    language: 'en',
+    notifications: true,
+    fontSize: 16,
+    autoSave: true
+  },
+
+  load() {
+    try {
+      const stored = localStorage.getItem(this.storageKey);
+      if (stored) {
+        return { ...this.defaults, ...JSON.parse(stored) };
+      }
+    } catch (error) {
+      console.warn('Failed to load preferences:', error);
+    }
+    return { ...this.defaults };
+  },
+
+  save(preferences) {
+    try {
+      const validPrefs = this.validate(preferences);
+      localStorage.setItem(this.storageKey, JSON.stringify(validPrefs));
+      return true;
+    } catch (error) {
+      console.error('Failed to save preferences:', error);
+      return false;
+    }
+  },
+
+  validate(preferences) {
+    const validated = { ...this.defaults };
+    
+    for (const key in preferences) {
+      if (key in this.defaults) {
+        const value = preferences[key];
+        const defaultValue = this.defaults[key];
+        
+        if (typeof value === typeof defaultValue) {
+          validated[key] = value;
+        }
+      }
+    }
+    
+    return validated;
+  },
+
+  reset() {
+    try {
+      localStorage.removeItem(this.storageKey);
+      return true;
+    } catch (error) {
+      console.error('Failed to reset preferences:', error);
+      return false;
+    }
+  },
+
+  get(key) {
+    const prefs = this.load();
+    return prefs[key] !== undefined ? prefs[key] : this.defaults[key];
+  },
+
+  set(key, value) {
+    const prefs = this.load();
+    prefs[key] = value;
+    return this.save(prefs);
+  },
+
+  getAll() {
+    return this.load();
+  },
+
+  updateMultiple(updates) {
+    const prefs = this.load();
+    const updated = { ...prefs, ...updates };
+    return this.save(updated);
+  },
+
+  hasSavedPreferences() {
+    return localStorage.getItem(this.storageKey) !== null;
+  }
+};
+
+export default UserPreferences;
