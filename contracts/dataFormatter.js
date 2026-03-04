@@ -45,4 +45,48 @@ function parseFormattedDate(dateString) {
     return date;
 }
 
-export { formatDateWithTimezone, parseFormattedDate };
+export { formatDateWithTimezone, parseFormattedDate };function formatDate(dateString, locale = 'en-US') {
+  const date = new Date(dateString);
+  
+  if (isNaN(date.getTime())) {
+    throw new Error('Invalid date string provided');
+  }
+  
+  const options = {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    weekday: 'long',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    timeZoneName: 'short'
+  };
+  
+  return date.toLocaleDateString(locale, options);
+}
+
+function calculateTimeDifference(startDate, endDate) {
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  
+  if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+    throw new Error('Invalid date string provided');
+  }
+  
+  const difference = Math.abs(end - start);
+  const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+  const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+  
+  return {
+    totalMilliseconds: difference,
+    days: days,
+    hours: hours,
+    minutes: minutes,
+    seconds: seconds
+  };
+}
+
+export { formatDate, calculateTimeDifference };
