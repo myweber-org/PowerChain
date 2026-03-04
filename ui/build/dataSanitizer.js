@@ -53,4 +53,28 @@ function validateAndSanitizeUserInput(userInput) {
     return sanitized;
 }
 
-export { validateAndSanitizeUserInput };
+export { validateAndSanitizeUserInput };function sanitizeInput(input) {
+    if (typeof input !== 'string') {
+        return '';
+    }
+    
+    const element = document.createElement('div');
+    element.innerText = input;
+    return element.innerHTML;
+}
+
+function validateAndSanitizeUserInput(userInput, maxLength = 1000) {
+    if (!userInput || typeof userInput !== 'string') {
+        return '';
+    }
+    
+    const trimmedInput = userInput.trim();
+    
+    if (trimmedInput.length > maxLength) {
+        return sanitizeInput(trimmedInput.substring(0, maxLength));
+    }
+    
+    return sanitizeInput(trimmedInput);
+}
+
+export { sanitizeInput, validateAndSanitizeUserInput };
