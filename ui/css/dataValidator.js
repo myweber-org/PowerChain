@@ -65,4 +65,22 @@ function validateUserData(userData) {
     };
 }
 
-export { validateEmail, validatePassword, sanitizeInput, validateUserData };
+export { validateEmail, validatePassword, sanitizeInput, validateUserData };function validateEmail(email) {
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return regex.test(email);
+}
+
+function validatePhone(phone) {
+    const regex = /^\+?[\d\s\-\(\)]{10,}$/;
+    return regex.test(phone);
+}
+
+function sanitizeInput(input) {
+    return input.trim().replace(/[<>]/g, '');
+}
+
+module.exports = {
+    validateEmail,
+    validatePhone,
+    sanitizeInput
+};
