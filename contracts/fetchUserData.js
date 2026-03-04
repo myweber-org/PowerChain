@@ -323,4 +323,46 @@ fetchUserData(1);function fetchUserData(userId, cacheDuration = 300000) {
             console.error('Failed to fetch user data:', error);
             throw error;
         });
+}function fetchUserData(userId) {
+    fetch(`https://jsonplaceholder.typicode.com/users/${userId}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('User Data:', data);
+            displayUserData(data);
+        })
+        .catch(error => {
+            console.error('There was a problem with the fetch operation:', error);
+        });
 }
+
+function displayUserData(user) {
+    const outputDiv = document.getElementById('userOutput');
+    if (outputDiv) {
+        outputDiv.innerHTML = `
+            <h2>${user.name}</h2>
+            <p><strong>Email:</strong> ${user.email}</p>
+            <p><strong>Phone:</strong> ${user.phone}</p>
+            <p><strong>Website:</strong> ${user.website}</p>
+            <p><strong>Company:</strong> ${user.company.name}</p>
+        `;
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const button = document.getElementById('fetchUserButton');
+    if (button) {
+        button.addEventListener('click', function() {
+            const userId = document.getElementById('userIdInput').value;
+            if (userId) {
+                fetchUserData(userId);
+            } else {
+                alert('Please enter a user ID');
+            }
+        });
+    }
+});
