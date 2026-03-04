@@ -60,4 +60,21 @@ function validatePassword(password) {
   };
 }
 
-export { sanitizeInput, validateEmail, validatePassword };
+export { sanitizeInput, validateEmail, validatePassword };function validateEmail(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+}
+
+function validatePassword(password) {
+    return password.length >= 8 && /[A-Z]/.test(password) && /[0-9]/.test(password);
+}
+
+function sanitizeInput(input) {
+    return input.trim().replace(/[<>]/g, '');
+}
+
+module.exports = {
+    validateEmail,
+    validatePassword,
+    sanitizeInput
+};
