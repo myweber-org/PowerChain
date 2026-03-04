@@ -53,4 +53,9 @@ function escapeHtml(text) {
   return div.innerHTML;
 }
 
-export { sanitizeInput, validateEmail, escapeHtml };
+export { sanitizeInput, validateEmail, escapeHtml };function sanitizeInput(input) {
+    if (typeof input !== 'string') {
+        return '';
+    }
+    return input.trim().replace(/<[^>]*>/g, '');
+}
