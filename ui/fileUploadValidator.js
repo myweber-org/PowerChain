@@ -62,4 +62,33 @@ function handleFileSelect(event, callback) {
             error: error.message
         });
     }
+}function validateFileUpload(fileInput, maxSizeMB, allowedTypes) {
+    if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+        return { valid: false, error: 'No file selected' };
+    }
+
+    const file = fileInput.files[0];
+    const fileSizeMB = file.size / (1024 * 1024);
+    const fileExtension = file.name.split('.').pop().toLowerCase();
+
+    if (fileSizeMB > maxSizeMB) {
+        return {
+            valid: false,
+            error: `File size exceeds ${maxSizeMB} MB limit`
+        };
+    }
+
+    if (!allowedTypes.includes(fileExtension)) {
+        return {
+            valid: false,
+            error: `File type not allowed. Allowed types: ${allowedTypes.join(', ')}`
+        };
+    }
+
+    return {
+        valid: true,
+        fileName: file.name,
+        fileSize: file.size,
+        fileType: fileExtension
+    };
 }
