@@ -68,4 +68,71 @@ const userPreferencesManager = (() => {
   };
 })();
 
-export default userPreferencesManager;
+export default userPreferencesManager;const UserPreferencesManager = (() => {
+  const PREFIX = 'app_pref_';
+  const DEFAULTS = {
+    theme: 'light',
+    fontSize: 16,
+    notifications: true,
+    language: 'en'
+  };
+
+  const validateKey = (key) => {
+    if (!Object.keys(DEFAULTS).includes(key)) {
+      throw new Error(`Invalid preference key: ${key}`);
+    }
+  };
+
+  const get = (key) => {
+    validateKey(key);
+    const stored = localStorage.getItem(PREFIX + key);
+    if (stored !== null) {
+      try {
+        return JSON.parse(stored);
+      } catch {
+        return DEFAULTS[key];
+      }
+    }
+    return DEFAULTS[key];
+  };
+
+  const set = (key, value) => {
+    validateKey(key);
+    localStorage.setItem(PREFIX + key, JSON.stringify(value));
+    window.dispatchEvent(new CustomEvent('preferencesChanged', {
+      detail: { key, value }
+    }));
+  };
+
+  const reset = () => {
+    Object.keys(DEFAULTS).forEach(key => {
+      localStorage.removeItem(PREFIX + key);
+    });
+    window.dispatchEvent(new Event('preferencesReset'));
+  };
+
+  const getAll = () => {
+    return Object.keys(DEFAULTS).reduce((prefs, key) => {
+      prefs[key] = get(key);
+      return prefs;
+    }, {});
+  };
+
+  const subscribe = (callback) => {
+    const handler = (event) => callback(event.detail);
+    window.addEventListener('preferencesChanged', handler);
+    return () => window.removeEventListener('preferencesChanged', handler);
+  };
+
+  return {
+    get,
+    set,
+    reset,
+    getAll,
+    subscribe
+  };
+})();
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = UserPreferencesManager;
+}
