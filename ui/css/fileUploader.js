@@ -271,4 +271,58 @@ if (typeof module !== 'undefined' && module.exports) {
     }
 
     return Uploader;
-})();
+})();function validateFile(file, allowedTypes, maxSize) {
+    if (!allowedTypes.includes(file.type)) {
+        throw new Error('Invalid file type');
+    }
+    if (file.size > maxSize) {
+        throw new Error('File size exceeds limit');
+    }
+    return true;
+}
+
+function uploadFile(file, url, onProgress) {
+    return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        const formData = new FormData();
+        formData.append('file', file);
+
+        xhr.upload.addEventListener('progress', (event) => {
+            if (event.lengthComputable) {
+                const percentComplete = (event.loaded / event.total) * 100;
+                if (typeof onProgress === 'function') {
+                    onProgress(percentComplete);
+                }
+            }
+        });
+
+        xhr.addEventListener('load', () => {
+            if (xhr.status >= 200 && xhr.status < 300) {
+                resolve(xhr.responseText);
+            } else {
+                reject(new Error(`Upload failed with status: ${xhr.status}`));
+            }
+        });
+
+        xhr.addEventListener('error', () => {
+            reject(new Error('Network error during upload'));
+        });
+
+        xhr.open('POST', url, true);
+        xhr.send(formData);
+    });
+}
+
+function handleFileSelect(event, options) {
+    const files = Array.from(event.target.files);
+    const uploadPromises = files.map(file => {
+        try {
+            validateFile(file, options.allowedTypes, options.maxSize);
+            return uploadFile(file, options.uploadUrl, options.onProgress);
+        } catch (error) {
+            return Promise.reject(error);
+        }
+    });
+
+    return Promise.allSettled(uploadPromises);
+}
