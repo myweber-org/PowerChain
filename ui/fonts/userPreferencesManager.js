@@ -258,4 +258,76 @@ UserPreferencesManager.init();const UserPreferencesManager = (() => {
   };
 })();
 
-export default UserPreferencesManager;
+export default UserPreferencesManager;const UserPreferencesManager = (() => {
+    const STORAGE_KEY = 'app_preferences';
+    const DEFAULT_PREFERENCES = {
+        theme: 'light',
+        fontSize: 16,
+        notifications: true,
+        language: 'en',
+        autoSave: false
+    };
+
+    let preferences = { ...DEFAULT_PREFERENCES };
+
+    const loadPreferences = () => {
+        try {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            if (stored) {
+                preferences = { ...DEFAULT_PREFERENCES, ...JSON.parse(stored) };
+            }
+        } catch (error) {
+            console.warn('Failed to load preferences:', error);
+        }
+        return preferences;
+    };
+
+    const savePreferences = (newPreferences) => {
+        try {
+            preferences = { ...preferences, ...newPreferences };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(preferences));
+            return true;
+        } catch (error) {
+            console.error('Failed to save preferences:', error);
+            return false;
+        }
+    };
+
+    const resetPreferences = () => {
+        preferences = { ...DEFAULT_PREFERENCES };
+        localStorage.removeItem(STORAGE_KEY);
+        return preferences;
+    };
+
+    const getPreference = (key) => {
+        return preferences[key];
+    };
+
+    const getAllPreferences = () => {
+        return { ...preferences };
+    };
+
+    const subscribe = (callback) => {
+        window.addEventListener('storage', (event) => {
+            if (event.key === STORAGE_KEY) {
+                loadPreferences();
+                callback(getAllPreferences());
+            }
+        });
+    };
+
+    loadPreferences();
+
+    return {
+        save: savePreferences,
+        load: loadPreferences,
+        reset: resetPreferences,
+        get: getPreference,
+        getAll: getAllPreferences,
+        subscribe
+    };
+})();
+
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = UserPreferencesManager;
+}
