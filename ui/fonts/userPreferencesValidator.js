@@ -1,76 +1,4 @@
 function validateUserPreferences(preferences) {
-    const errors = [];
-
-    if (!preferences || typeof preferences !== 'object') {
-        errors.push('Preferences must be a valid object');
-        return errors;
-    }
-
-    if (preferences.theme && !['light', 'dark', 'auto'].includes(preferences.theme)) {
-        errors.push('Theme must be one of: light, dark, auto');
-    }
-
-    if (preferences.notifications !== undefined && typeof preferences.notifications !== 'boolean') {
-        errors.push('Notifications must be a boolean value');
-    }
-
-    if (preferences.language && typeof preferences.language !== 'string') {
-        errors.push('Language must be a string');
-    } else if (preferences.language && preferences.language.length !== 2) {
-        errors.push('Language must be a 2-letter code');
-    }
-
-    if (preferences.timezone !== undefined) {
-        const timezoneRegex = /^[A-Za-z_]+\/[A-Za-z_]+$/;
-        if (typeof preferences.timezone !== 'string' || !timezoneRegex.test(preferences.timezone)) {
-            errors.push('Timezone must be in format: Area/Location');
-        }
-    }
-
-    if (preferences.itemsPerPage !== undefined) {
-        if (!Number.isInteger(preferences.itemsPerPage)) {
-            errors.push('Items per page must be an integer');
-        } else if (preferences.itemsPerPage < 5 || preferences.itemsPerPage > 100) {
-            errors.push('Items per page must be between 5 and 100');
-        }
-    }
-
-    return errors;
-}function validatePreferences(preferences) {
-    const errors = [];
-
-    if (!preferences || typeof preferences !== 'object') {
-        errors.push('Preferences must be a valid object');
-        return errors;
-    }
-
-    if (preferences.theme && !['light', 'dark', 'auto'].includes(preferences.theme)) {
-        errors.push('Theme must be light, dark, or auto');
-    }
-
-    if (preferences.notifications !== undefined && typeof preferences.notifications !== 'boolean') {
-        errors.push('Notifications must be a boolean value');
-    }
-
-    if (preferences.language && typeof preferences.language !== 'string') {
-        errors.push('Language must be a string');
-    }
-
-    if (preferences.itemsPerPage) {
-        const items = Number(preferences.itemsPerPage);
-        if (isNaN(items) || items < 5 || items > 100) {
-            errors.push('Items per page must be a number between 5 and 100');
-        }
-    }
-
-    if (preferences.timezone && !Intl.supportedValuesOf('timeZone').includes(preferences.timezone)) {
-        errors.push('Timezone must be a valid IANA timezone');
-    }
-
-    return errors;
-}
-
-module.exports = { validatePreferences };function validateUserPreferences(prefs) {
     const requiredFields = ['theme', 'notifications', 'language'];
     const fieldTypes = {
         theme: 'string',
@@ -79,22 +7,22 @@ module.exports = { validatePreferences };function validateUserPreferences(prefs)
     };
 
     for (const field of requiredFields) {
-        if (!prefs.hasOwnProperty(field)) {
+        if (!preferences.hasOwnProperty(field)) {
             throw new Error(`Missing required field: ${field}`);
         }
-        if (typeof prefs[field] !== fieldTypes[field]) {
-            throw new TypeError(`Field ${field} must be of type ${fieldTypes[field]}`);
+        if (typeof preferences[field] !== fieldTypes[field]) {
+            throw new Error(`Invalid type for field ${field}. Expected ${fieldTypes[field]}, got ${typeof preferences[field]}`);
         }
     }
 
     const validThemes = ['light', 'dark', 'auto'];
-    if (!validThemes.includes(prefs.theme)) {
-        throw new Error(`Theme must be one of: ${validThemes.join(', ')}`);
+    if (!validThemes.includes(preferences.theme)) {
+        throw new Error(`Invalid theme value. Must be one of: ${validThemes.join(', ')}`);
     }
 
     const validLanguages = ['en', 'es', 'fr', 'de'];
-    if (!validLanguages.includes(prefs.language)) {
-        throw new Error(`Language must be one of: ${validLanguages.join(', ')}`);
+    if (!validLanguages.includes(preferences.language)) {
+        throw new Error(`Invalid language value. Must be one of: ${validLanguages.join(', ')}`);
     }
 
     return true;
