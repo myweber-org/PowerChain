@@ -80,4 +80,77 @@ function initializeUserPreferences() {
     };
 }
 
-const userPrefs = initializeUserPreferences();
+const userPrefs = initializeUserPreferences();const defaultPreferences = {
+  theme: 'light',
+  notifications: true,
+  language: 'en',
+  resultsPerPage: 25,
+  autoSave: false
+};
+
+const validThemes = ['light', 'dark', 'auto'];
+const validLanguages = ['en', 'es', 'fr', 'de'];
+const minResultsPerPage = 10;
+const maxResultsPerPage = 100;
+
+function validatePreferences(userPrefs) {
+  const validated = { ...defaultPreferences };
+  
+  if (userPrefs && typeof userPrefs === 'object') {
+    if (validThemes.includes(userPrefs.theme)) {
+      validated.theme = userPrefs.theme;
+    }
+    
+    if (typeof userPrefs.notifications === 'boolean') {
+      validated.notifications = userPrefs.notifications;
+    }
+    
+    if (validLanguages.includes(userPrefs.language)) {
+      validated.language = userPrefs.language;
+    }
+    
+    if (typeof userPrefs.resultsPerPage === 'number') {
+      validated.resultsPerPage = Math.max(
+        minResultsPerPage,
+        Math.min(maxResultsPerPage, userPrefs.resultsPerPage)
+      );
+    }
+    
+    if (typeof userPrefs.autoSave === 'boolean') {
+      validated.autoSave = userPrefs.autoSave;
+    }
+  }
+  
+  return validated;
+}
+
+function initializePreferences() {
+  let storedPrefs;
+  try {
+    storedPrefs = JSON.parse(localStorage.getItem('userPreferences'));
+  } catch (error) {
+    console.warn('Failed to parse stored preferences:', error);
+  }
+  
+  const preferences = validatePreferences(storedPrefs);
+  localStorage.setItem('userPreferences', JSON.stringify(preferences));
+  return preferences;
+}
+
+function updatePreference(key, value) {
+  const currentPrefs = initializePreferences();
+  
+  if (key in defaultPreferences) {
+    const testObj = { [key]: value };
+    const validated = validatePreferences({ ...currentPrefs, ...testObj });
+    
+    if (validated[key] !== undefined) {
+      localStorage.setItem('userPreferences', JSON.stringify(validated));
+      return true;
+    }
+  }
+  
+  return false;
+}
+
+export { initializePreferences, updatePreference, validatePreferences };
