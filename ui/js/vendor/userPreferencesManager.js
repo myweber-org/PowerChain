@@ -238,4 +238,52 @@ if (typeof module !== 'undefined' && module.exports) {
         reset: resetPreferences,
         subscribe
     };
-})();
+})();class UserPreferencesManager {
+    constructor() {
+        this.preferences = this.loadPreferences();
+    }
+
+    loadPreferences() {
+        const stored = localStorage.getItem('userPreferences');
+        return stored ? JSON.parse(stored) : {
+            theme: 'light',
+            language: 'en',
+            notifications: true,
+            fontSize: 16
+        };
+    }
+
+    savePreferences() {
+        localStorage.setItem('userPreferences', JSON.stringify(this.preferences));
+        return true;
+    }
+
+    updatePreference(key, value) {
+        if (key in this.preferences) {
+            this.preferences[key] = value;
+            this.savePreferences();
+            return true;
+        }
+        return false;
+    }
+
+    getPreference(key) {
+        return this.preferences[key];
+    }
+
+    getAllPreferences() {
+        return { ...this.preferences };
+    }
+
+    resetToDefaults() {
+        this.preferences = {
+            theme: 'light',
+            language: 'en',
+            notifications: true,
+            fontSize: 16
+        };
+        this.savePreferences();
+    }
+}
+
+export default UserPreferencesManager;
