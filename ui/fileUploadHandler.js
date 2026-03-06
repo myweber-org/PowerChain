@@ -351,4 +351,96 @@ document.addEventListener('DOMContentLoaded', function() {
     handleFileSelect,
     config
   };
-}
+}const uploadFile = async (file, uploadUrl) => {
+    if (!file || !uploadUrl) {
+        throw new Error('File and upload URL are required');
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const xhr = new XMLHttpRequest();
+
+    return new Promise((resolve, reject) => {
+        xhr.upload.addEventListener('progress', (event) => {
+            if (event.lengthComputable) {
+                const percentComplete = (event.loaded / event.total) * 100;
+                console.log(`Upload progress: ${percentComplete.toFixed(2)}%`);
+            }
+        });
+
+        xhr.addEventListener('load', () => {
+            if (xhr.status >= 200 && xhr.status < 300) {
+                try {
+                    const response = JSON.parse(xhr.responseText);
+                    resolve(response);
+                } catch (error) {
+                    resolve(xhr.responseText);
+                }
+            } else {
+                reject(new Error(`Upload failed with status: ${xhr.status}`));
+            }
+        });
+
+        xhr.addEventListener('error', () => {
+            reject(new Error('Network error during upload'));
+        });
+
+        xhr.addEventListener('abort', () => {
+            reject(new Error('Upload was cancelled'));
+        });
+
+        xhr.open('POST', uploadUrl);
+        xhr.send(formData);
+    });
+};
+
+const validateFile = (file, options = {}) => {
+    const {
+        maxSize = 10 * 1024 * 1024,
+        allowedTypes = ['image/jpeg', 'image/png', 'application/pdf']
+    } = options;
+
+    const errors = [];
+
+    if (file.size > maxSize) {
+        errors.push(`File size exceeds ${maxSize / (1024 * 1024)}MB limit`);
+    }
+
+    if (!allowedTypes.includes(file.type)) {
+        errors.push(`File type ${file.type} is not allowed`);
+    }
+
+    return {
+        isValid: errors.length === 0,
+        errors
+    };
+};
+
+const handleFileSelect = async (event, uploadUrl) => {
+    const file = event.target.files[0];
+    
+    if (!file) {
+        console.error('No file selected');
+        return;
+    }
+
+    const validation = validateFile(file);
+    
+    if (!validation.isValid) {
+        console.error('File validation failed:', validation.errors);
+        return;
+    }
+
+    try {
+        console.log(`Starting upload of: ${file.name}`);
+        const result = await uploadFile(file, uploadUrl);
+        console.log('Upload successful:', result);
+        return result;
+    } catch (error) {
+        console.error('Upload failed:', error.message);
+        throw error;
+    }
+};
+
+export { uploadFile, validateFile, handleFileSelect };
