@@ -57,4 +57,67 @@ class UserPreferencesManager {
   }
 }
 
-export default UserPreferencesManager;
+export default UserPreferencesManager;const UserPreferences = {
+  preferences: {},
+
+  init() {
+    this.loadPreferences();
+    return this;
+  },
+
+  loadPreferences() {
+    try {
+      const stored = localStorage.getItem('userPreferences');
+      this.preferences = stored ? JSON.parse(stored) : {};
+    } catch (error) {
+      console.error('Failed to load preferences:', error);
+      this.preferences = {};
+    }
+  },
+
+  savePreferences() {
+    try {
+      localStorage.setItem('userPreferences', JSON.stringify(this.preferences));
+      return true;
+    } catch (error) {
+      console.error('Failed to save preferences:', error);
+      return false;
+    }
+  },
+
+  setPreference(key, value) {
+    if (typeof key !== 'string' || key.trim() === '') {
+      throw new Error('Preference key must be a non-empty string');
+    }
+    
+    this.preferences[key] = value;
+    return this.savePreferences();
+  },
+
+  getPreference(key, defaultValue = null) {
+    return this.preferences.hasOwnProperty(key) ? this.preferences[key] : defaultValue;
+  },
+
+  removePreference(key) {
+    if (this.preferences.hasOwnProperty(key)) {
+      delete this.preferences[key];
+      return this.savePreferences();
+    }
+    return false;
+  },
+
+  clearAllPreferences() {
+    this.preferences = {};
+    return this.savePreferences();
+  },
+
+  getAllPreferences() {
+    return { ...this.preferences };
+  },
+
+  hasPreference(key) {
+    return this.preferences.hasOwnProperty(key);
+  }
+};
+
+export default UserPreferences.init();
