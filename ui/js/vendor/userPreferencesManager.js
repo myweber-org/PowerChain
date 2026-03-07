@@ -410,4 +410,81 @@ export default UserPreferencesManager;const UserPreferencesManager = (() => {
 
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = UserPreferencesManager;
-}
+}const userPreferencesManager = (() => {
+    const STORAGE_KEY = 'user_preferences';
+    const DEFAULT_PREFERENCES = {
+        theme: 'light',
+        language: 'en',
+        fontSize: 16,
+        notificationsEnabled: true
+    };
+
+    const getPreferences = () => {
+        try {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            return stored ? JSON.parse(stored) : { ...DEFAULT_PREFERENCES };
+        } catch (error) {
+            console.error('Error reading preferences:', error);
+            return { ...DEFAULT_PREFERENCES };
+        }
+    };
+
+    const savePreferences = (preferences) => {
+        try {
+            const current = getPreferences();
+            const updated = { ...current, ...preferences };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+            return updated;
+        } catch (error) {
+            console.error('Error saving preferences:', error);
+            return null;
+        }
+    };
+
+    const resetPreferences = () => {
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_PREFERENCES));
+            return { ...DEFAULT_PREFERENCES };
+        } catch (error) {
+            console.error('Error resetting preferences:', error);
+            return null;
+        }
+    };
+
+    const getPreference = (key) => {
+        const preferences = getPreferences();
+        return preferences[key] !== undefined ? preferences[key] : DEFAULT_PREFERENCES[key];
+    };
+
+    const setPreference = (key, value) => {
+        return savePreferences({ [key]: value });
+    };
+
+    const applyTheme = () => {
+        const theme = getPreference('theme');
+        document.documentElement.setAttribute('data-theme', theme);
+    };
+
+    const applyFontSize = () => {
+        const fontSize = getPreference('fontSize');
+        document.documentElement.style.fontSize = `${fontSize}px`;
+    };
+
+    const initialize = () => {
+        applyTheme();
+        applyFontSize();
+    };
+
+    return {
+        getPreferences,
+        savePreferences,
+        resetPreferences,
+        getPreference,
+        setPreference,
+        applyTheme,
+        applyFontSize,
+        initialize
+    };
+})();
+
+export default userPreferencesManager;
