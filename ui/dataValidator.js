@@ -3,19 +3,23 @@ function validateEmail(email) {
     return emailRegex.test(email);
 }
 
-function validatePassword(password) {
-    return password.length >= 8 && 
-           /[A-Z]/.test(password) && 
-           /[a-z]/.test(password) && 
-           /\d/.test(password);
+function validatePhone(phone) {
+    const phoneRegex = /^\+?[\d\s\-\(\)]{10,}$/;
+    return phoneRegex.test(phone);
 }
 
 function sanitizeInput(input) {
-    return input.replace(/[<>]/g, '');
+    return input.trim()
+        .replace(/[<>]/g, '')
+        .substring(0, 255);
 }
 
-module.exports = {
-    validateEmail,
-    validatePassword,
-    sanitizeInput
-};
+function validatePassword(password) {
+    if (password.length < 8) return false;
+    if (!/[A-Z]/.test(password)) return false;
+    if (!/[a-z]/.test(password)) return false;
+    if (!/\d/.test(password)) return false;
+    return true;
+}
+
+export { validateEmail, validatePhone, sanitizeInput, validatePassword };
