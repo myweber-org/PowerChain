@@ -142,4 +142,77 @@ const userPreferencesManager = (() => {
 
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = UserPreferencesManager;
-}
+}const UserPreferencesManager = (() => {
+  const STORAGE_KEY = 'user_preferences';
+  const DEFAULT_PREFERENCES = {
+    theme: 'light',
+    language: 'en',
+    fontSize: 'medium',
+    notifications: true
+  };
+
+  const getPreferences = () => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      return stored ? JSON.parse(stored) : { ...DEFAULT_PREFERENCES };
+    } catch (error) {
+      console.error('Error reading preferences:', error);
+      return { ...DEFAULT_PREFERENCES };
+    }
+  };
+
+  const savePreferences = (preferences) => {
+    try {
+      const current = getPreferences();
+      const updated = { ...current, ...preferences };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      return updated;
+    } catch (error) {
+      console.error('Error saving preferences:', error);
+      return null;
+    }
+  };
+
+  const resetPreferences = () => {
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+      return { ...DEFAULT_PREFERENCES };
+    } catch (error) {
+      console.error('Error resetting preferences:', error);
+      return null;
+    }
+  };
+
+  const getPreference = (key) => {
+    const preferences = getPreferences();
+    return preferences[key] !== undefined ? preferences[key] : DEFAULT_PREFERENCES[key];
+  };
+
+  const setPreference = (key, value) => {
+    return savePreferences({ [key]: value });
+  };
+
+  const applyTheme = () => {
+    const theme = getPreference('theme');
+    document.documentElement.setAttribute('data-theme', theme);
+  };
+
+  const applyFontSize = () => {
+    const fontSize = getPreference('fontSize');
+    document.documentElement.style.fontSize = {
+      small: '14px',
+      medium: '16px',
+      large: '18px'
+    }[fontSize] || '16px';
+  };
+
+  return {
+    getPreferences,
+    savePreferences,
+    resetPreferences,
+    getPreference,
+    setPreference,
+    applyTheme,
+    applyFontSize
+  };
+})();
