@@ -188,4 +188,59 @@ export function loadPreferences() {
     console.error('Failed to load preferences:', error);
     return defaultPreferences;
   }
+}const defaultPreferences = {
+  theme: 'light',
+  notifications: true,
+  language: 'en',
+  fontSize: 16,
+  autoSave: true
+};
+
+function validatePreferences(userPrefs) {
+  const validPreferences = { ...defaultPreferences };
+  
+  for (const key in userPrefs) {
+    if (key in defaultPreferences) {
+      if (typeof userPrefs[key] === typeof defaultPreferences[key]) {
+        validPreferences[key] = userPrefs[key];
+      } else {
+        console.warn(`Invalid type for preference "${key}". Using default.`);
+      }
+    } else {
+      console.warn(`Unknown preference "${key}" will be ignored.`);
+    }
+  }
+  
+  return validPreferences;
 }
+
+function savePreferences(preferences) {
+  try {
+    const validatedPrefs = validatePreferences(preferences);
+    localStorage.setItem('userPreferences', JSON.stringify(validatedPrefs));
+    return true;
+  } catch (error) {
+    console.error('Failed to save preferences:', error);
+    return false;
+  }
+}
+
+function loadPreferences() {
+  try {
+    const stored = localStorage.getItem('userPreferences');
+    if (stored) {
+      return validatePreferences(JSON.parse(stored));
+    }
+    return { ...defaultPreferences };
+  } catch (error) {
+    console.error('Failed to load preferences:', error);
+    return { ...defaultPreferences };
+  }
+}
+
+function resetPreferences() {
+  localStorage.removeItem('userPreferences');
+  return { ...defaultPreferences };
+}
+
+export { savePreferences, loadPreferences, resetPreferences, validatePreferences };
