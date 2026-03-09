@@ -288,4 +288,80 @@ if (typeof module !== 'undefined' && module.exports) {
   };
 })();
 
-export default userPreferencesManager;
+export default userPreferencesManager;const UserPreferencesManager = {
+  storageKey: 'app_user_preferences',
+
+  defaults: {
+    theme: 'light',
+    language: 'en',
+    notifications: true,
+    fontSize: 16,
+    autoSave: true,
+    sidebarCollapsed: false
+  },
+
+  getPreferences() {
+    try {
+      const stored = localStorage.getItem(this.storageKey);
+      if (stored) {
+        return { ...this.defaults, ...JSON.parse(stored) };
+      }
+      return { ...this.defaults };
+    } catch (error) {
+      console.warn('Failed to load preferences:', error);
+      return { ...this.defaults };
+    }
+  },
+
+  savePreferences(preferences) {
+    try {
+      const current = this.getPreferences();
+      const updated = { ...current, ...preferences };
+      localStorage.setItem(this.storageKey, JSON.stringify(updated));
+      return true;
+    } catch (error) {
+      console.error('Failed to save preferences:', error);
+      return false;
+    }
+  },
+
+  resetToDefaults() {
+    try {
+      localStorage.removeItem(this.storageKey);
+      return true;
+    } catch (error) {
+      console.error('Failed to reset preferences:', error);
+      return false;
+    }
+  },
+
+  getPreference(key) {
+    const prefs = this.getPreferences();
+    return prefs[key] !== undefined ? prefs[key] : this.defaults[key];
+  },
+
+  setPreference(key, value) {
+    return this.savePreferences({ [key]: value });
+  },
+
+  getAllKeys() {
+    return Object.keys(this.defaults);
+  },
+
+  exportPreferences() {
+    const prefs = this.getPreferences();
+    return JSON.stringify(prefs, null, 2);
+  },
+
+  importPreferences(jsonString) {
+    try {
+      const imported = JSON.parse(jsonString);
+      return this.savePreferences(imported);
+    } catch (error) {
+      console.error('Failed to import preferences:', error);
+      return false;
+    }
+  }
+};
+
+export default UserPreferencesManager;
