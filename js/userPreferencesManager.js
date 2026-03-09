@@ -340,4 +340,59 @@ export default UserPreferencesManager;const UserPreferencesManager = (function()
         reset: resetPreferences,
         getValue: getPreference
     };
-})();
+})();const userPreferences = {
+  theme: 'light',
+  language: 'en',
+  notifications: true,
+  fontSize: 16
+};
+
+const PREFERENCES_KEY = 'app_preferences';
+
+function savePreferences(prefs) {
+  try {
+    localStorage.setItem(PREFERENCES_KEY, JSON.stringify(prefs));
+    return true;
+  } catch (error) {
+    console.error('Failed to save preferences:', error);
+    return false;
+  }
+}
+
+function loadPreferences() {
+  try {
+    const saved = localStorage.getItem(PREFERENCES_KEY);
+    if (saved) {
+      return JSON.parse(saved);
+    }
+  } catch (error) {
+    console.error('Failed to load preferences:', error);
+  }
+  return { ...userPreferences };
+}
+
+function updatePreference(key, value) {
+  if (key in userPreferences) {
+    userPreferences[key] = value;
+    return savePreferences(userPreferences);
+  }
+  return false;
+}
+
+function resetPreferences() {
+  Object.assign(userPreferences, {
+    theme: 'light',
+    language: 'en',
+    notifications: true,
+    fontSize: 16
+  });
+  localStorage.removeItem(PREFERENCES_KEY);
+  return true;
+}
+
+function getCurrentPreferences() {
+  return { ...userPreferences };
+}
+
+const loadedPrefs = loadPreferences();
+Object.assign(userPreferences, loadedPrefs);
