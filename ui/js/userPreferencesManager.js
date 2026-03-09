@@ -364,4 +364,59 @@ export default userPreferencesManager;const UserPreferencesManager = {
   }
 };
 
-export default UserPreferencesManager;
+export default UserPreferencesManager;const userPreferencesManager = (() => {
+    const PREFERENCES_KEY = 'app_preferences';
+    const DEFAULT_PREFERENCES = {
+        theme: 'light',
+        fontSize: 16,
+        notifications: true,
+        language: 'en'
+    };
+
+    const getPreferences = () => {
+        const stored = localStorage.getItem(PREFERENCES_KEY);
+        if (stored) {
+            try {
+                return { ...DEFAULT_PREFERENCES, ...JSON.parse(stored) };
+            } catch (error) {
+                console.error('Failed to parse stored preferences:', error);
+                return DEFAULT_PREFERENCES;
+            }
+        }
+        return DEFAULT_PREFERENCES;
+    };
+
+    const savePreferences = (preferences) => {
+        try {
+            const current = getPreferences();
+            const updated = { ...current, ...preferences };
+            localStorage.setItem(PREFERENCES_KEY, JSON.stringify(updated));
+            return updated;
+        } catch (error) {
+            console.error('Failed to save preferences:', error);
+            return null;
+        }
+    };
+
+    const resetPreferences = () => {
+        localStorage.removeItem(PREFERENCES_KEY);
+        return DEFAULT_PREFERENCES;
+    };
+
+    const subscribe = (callback) => {
+        const handler = (event) => {
+            if (event.key === PREFERENCES_KEY) {
+                callback(getPreferences());
+            }
+        };
+        window.addEventListener('storage', handler);
+        return () => window.removeEventListener('storage', handler);
+    };
+
+    return {
+        getPreferences,
+        savePreferences,
+        resetPreferences,
+        subscribe
+    };
+})();
