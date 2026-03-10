@@ -491,4 +491,75 @@ export default UserPreferencesManager;const userPreferencesManager = (() => {
 
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = UserPreferencesManager;
-}
+}const UserPreferencesManager = (function() {
+    const STORAGE_KEY = 'user_preferences';
+    const DEFAULT_PREFERENCES = {
+        theme: 'light',
+        fontSize: 16,
+        notifications: true,
+        language: 'en',
+        autoSave: false
+    };
+
+    let preferences = {};
+
+    function loadPreferences() {
+        try {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            preferences = stored ? JSON.parse(stored) : { ...DEFAULT_PREFERENCES };
+        } catch (error) {
+            console.error('Failed to load preferences:', error);
+            preferences = { ...DEFAULT_PREFERENCES };
+        }
+        return { ...preferences };
+    }
+
+    function savePreferences() {
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(preferences));
+            return true;
+        } catch (error) {
+            console.error('Failed to save preferences:', error);
+            return false;
+        }
+    }
+
+    function updatePreferences(newPreferences) {
+        preferences = { ...preferences, ...newPreferences };
+        return savePreferences();
+    }
+
+    function resetPreferences() {
+        preferences = { ...DEFAULT_PREFERENCES };
+        return savePreferences();
+    }
+
+    function getPreference(key) {
+        return preferences[key] !== undefined ? preferences[key] : DEFAULT_PREFERENCES[key];
+    }
+
+    function getAllPreferences() {
+        return { ...preferences };
+    }
+
+    function subscribe(callback) {
+        const originalSave = savePreferences;
+        savePreferences = function() {
+            const result = originalSave.apply(this, arguments);
+            if (result) {
+                callback({ ...preferences });
+            }
+            return result;
+        };
+    }
+
+    loadPreferences();
+
+    return {
+        get: getPreference,
+        getAll: getAllPreferences,
+        update: updatePreferences,
+        reset: resetPreferences,
+        subscribe: subscribe
+    };
+})();
