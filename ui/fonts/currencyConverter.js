@@ -416,4 +416,49 @@ class CurrencyConverter {
     }
 }
 
-module.exports = CurrencyConverter;
+module.exports = CurrencyConverter;const exchangeRates = {};
+
+async function fetchExchangeRate(base, target) {
+    const cacheKey = `${base}_${target}`;
+    const cacheDuration = 5 * 60 * 1000; // 5 minutes
+    
+    if (exchangeRates[cacheKey] && 
+        Date.now() - exchangeRates[cacheKey].timestamp < cacheDuration) {
+        return exchangeRates[cacheKey].rate;
+    }
+    
+    try {
+        const response = await fetch(
+            `https://api.exchangerate-api.com/v4/latest/${base}`
+        );
+        const data = await response.json();
+        const rate = data.rates[target];
+        
+        exchangeRates[cacheKey] = {
+            rate: rate,
+            timestamp: Date.now()
+        };
+        
+        return rate;
+    } catch (error) {
+        console.error('Failed to fetch exchange rate:', error);
+        throw new Error('Exchange rate service unavailable');
+    }
+}
+
+function convertCurrency(amount, rate) {
+    if (typeof amount !== 'number' || amount < 0) {
+        throw new Error('Invalid amount');
+    }
+    if (typeof rate !== 'number' || rate <= 0) {
+        throw new Error('Invalid exchange rate');
+    }
+    return parseFloat((amount * rate).toFixed(2));
+}
+
+async function performConversion(amount, fromCurrency, toCurrency) {
+    const rate = await fetchExchangeRate(fromCurrency, toCurrency);
+    return convertCurrency(amount, rate);
+}
+
+export { performConversion, convertCurrency, fetchExchangeRate };
