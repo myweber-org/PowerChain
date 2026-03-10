@@ -72,4 +72,61 @@ class CurrencyConverter {
   }
 }
 
+module.exports = CurrencyConverter;const axios = require('axios');
+
+class CurrencyConverter {
+  constructor(apiKey) {
+    this.apiKey = apiKey;
+    this.baseUrl = 'https://api.exchangerate-api.com/v4/latest';
+    this.cache = new Map();
+    this.cacheDuration = 300000; // 5 minutes
+  }
+
+  async convert(amount, fromCurrency, toCurrency) {
+    if (fromCurrency === toCurrency) {
+      return amount;
+    }
+
+    const rates = await this.getExchangeRates(fromCurrency);
+    const rate = rates[toCurrency];
+
+    if (!rate) {
+      throw new Error(`Unsupported currency: ${toCurrency}`);
+    }
+
+    return amount * rate;
+  }
+
+  async getExchangeRates(baseCurrency) {
+    const cacheKey = baseCurrency;
+    const cached = this.cache.get(cacheKey);
+
+    if (cached && Date.now() - cached.timestamp < this.cacheDuration) {
+      return cached.rates;
+    }
+
+    try {
+      const response = await axios.get(`${this.baseUrl}/${baseCurrency}`);
+      const rates = response.data.rates;
+      
+      this.cache.set(cacheKey, {
+        rates: rates,
+        timestamp: Date.now()
+      });
+
+      return rates;
+    } catch (error) {
+      throw new Error(`Failed to fetch exchange rates: ${error.message}`);
+    }
+  }
+
+  clearCache() {
+    this.cache.clear();
+  }
+
+  getSupportedCurrencies() {
+    return ['USD', 'EUR', 'GBP', 'JPY', 'CAD', 'AUD', 'CHF', 'CNY', 'INR'];
+  }
+}
+
 module.exports = CurrencyConverter;
