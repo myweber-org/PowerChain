@@ -47,4 +47,29 @@ export { validateUsername, validateEmail, validateUserInput };function validateU
         valid: true,
         message: "Input validation successful."
     };
+}function validateUsername(username) {
+    const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
+    return usernameRegex.test(username);
 }
+
+function validatePassword(password) {
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    return passwordRegex.test(password);
+}
+
+function validateUserInput(username, password) {
+    const usernameValid = validateUsername(username);
+    const passwordValid = validatePassword(password);
+    
+    if (!usernameValid && !passwordValid) {
+        return 'Invalid username and password format';
+    } else if (!usernameValid) {
+        return 'Invalid username format';
+    } else if (!passwordValid) {
+        return 'Invalid password format';
+    }
+    
+    return 'Valid input';
+}
+
+module.exports = { validateUserInput, validateUsername, validatePassword };
