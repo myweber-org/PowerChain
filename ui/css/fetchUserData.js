@@ -1,69 +1,35 @@
-function fetchUserData(userId, maxRetries = 3) {
-    const apiUrl = `https://api.example.com/users/${userId}`;
-    let retryCount = 0;
+const CACHE_DURATION = 5 * 60 * 1000;
+const userCache = new Map();
 
-    function attemptFetch() {
-        return fetch(apiUrl)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                console.log('User data fetched successfully:', data);
-                return data;
-            })
-            .catch(error => {
-                retryCount++;
-                if (retryCount <= maxRetries) {
-                    console.warn(`Attempt ${retryCount} failed. Retrying...`);
-                    return attemptFetch();
-                } else {
-                    console.error('Max retries reached. Operation failed:', error);
-                    throw new Error('Failed to fetch user data after multiple attempts');
-                }
-            });
+async function fetchUserData(userId) {
+    const cached = userCache.get(userId);
+    if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+        return cached.data;
     }
 
-    return attemptFetch();
-}function fetchUserData(userId) {
-    return fetch(`https://api.example.com/users/${userId}`)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
-        })
-        .then(data => {
-            console.log('User data fetched:', data);
-            return data;
-        })
-        .catch(error => {
-            console.error('Error fetching user data:', error);
-            throw error;
+    try {
+        const response = await fetch(`https://api.example.com/users/${userId}`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        userCache.set(userId, {
+            data: data,
+            timestamp: Date.now()
         });
-}function fetchUserData(userId) {
-  const apiUrl = `https://api.example.com/users/${userId}`;
-  
-  return fetch(apiUrl)
-    .then(response => {
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return response.json();
-    })
-    .then(data => {
-      return {
-        id: data.id,
-        name: data.name,
-        email: data.email,
-        isActive: data.status === 'active',
-        lastLogin: new Date(data.last_login)
-      };
-    })
-    .catch(error => {
-      console.error('Error fetching user data:', error);
-      return null;
-    });
+        return data;
+    } catch (error) {
+        console.error('Failed to fetch user data:', error);
+        throw error;
+    }
 }
+
+function clearUserCache(userId = null) {
+    if (userId) {
+        userCache.delete(userId);
+    } else {
+        userCache.clear();
+    }
+}
+
+export { fetchUserData, clearUserCache };
