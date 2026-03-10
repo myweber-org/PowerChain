@@ -419,4 +419,76 @@ export default UserPreferencesManager;const userPreferencesManager = (() => {
         resetPreferences,
         subscribe
     };
+})();const UserPreferencesManager = (function() {
+    const STORAGE_KEY = 'user_preferences';
+    
+    const defaultPreferences = {
+        theme: 'light',
+        fontSize: 16,
+        notifications: true,
+        language: 'en',
+        autoSave: true
+    };
+
+    function getPreferences() {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+            return { ...defaultPreferences, ...JSON.parse(stored) };
+        }
+        return { ...defaultPreferences };
+    }
+
+    function savePreferences(preferences) {
+        const current = getPreferences();
+        const updated = { ...current, ...preferences };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+        return updated;
+    }
+
+    function resetPreferences() {
+        localStorage.removeItem(STORAGE_KEY);
+        return { ...defaultPreferences };
+    }
+
+    function getPreference(key) {
+        const prefs = getPreferences();
+        return prefs[key];
+    }
+
+    function setPreference(key, value) {
+        const prefs = getPreferences();
+        prefs[key] = value;
+        return savePreferences(prefs);
+    }
+
+    function exportPreferences() {
+        const prefs = getPreferences();
+        const dataStr = JSON.stringify(prefs, null, 2);
+        const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+        return dataUri;
+    }
+
+    function importPreferences(jsonString) {
+        try {
+            const imported = JSON.parse(jsonString);
+            return savePreferences(imported);
+        } catch (error) {
+            console.error('Invalid preferences format:', error);
+            return null;
+        }
+    }
+
+    return {
+        getPreferences,
+        savePreferences,
+        resetPreferences,
+        getPreference,
+        setPreference,
+        exportPreferences,
+        importPreferences
+    };
 })();
+
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = UserPreferencesManager;
+}
