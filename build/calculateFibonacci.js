@@ -25,4 +25,15 @@ function isFibonacciNumber(num) {
     return isPerfectSquare(check1) || isPerfectSquare(check2);
 }
 
-module.exports = { generateFibonacci, isFibonacciNumber };
+module.exports = { generateFibonacci, isFibonacciNumber };function calculateFibonacci(n) {
+    if (n <= 0) return [];
+    if (n === 1) return [0];
+    
+    let fib = [0, 1];
+    while (fib[fib.length - 1] + fib[fib.length - 2] <= n) {
+        fib.push(fib[fib.length - 1] + fib[fib.length - 2]);
+    }
+    return fib;
+}
+
+module.exports = calculateFibonacci;
