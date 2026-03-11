@@ -187,4 +187,154 @@ const FileUploader = (function() {
 
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = FileUploader;
-}
+}const FileUploader = (() => {
+    const uploadQueue = new Map();
+    let uploadEndpoint = '/api/upload';
+
+    const setEndpoint = (endpoint) => {
+        uploadEndpoint = endpoint;
+    };
+
+    const validateFile = (file, allowedTypes = ['image/jpeg', 'image/png', 'application/pdf']) => {
+        if (!allowedTypes.includes(file.type)) {
+            throw new Error(`File type ${file.type} not allowed`);
+        }
+        if (file.size > 10 * 1024 * 1024) {
+            throw new Error('File size exceeds 10MB limit');
+        }
+        return true;
+    };
+
+    const createProgressTracker = (fileId) => {
+        const progressElement = document.createElement('div');
+        progressElement.className = 'upload-progress';
+        progressElement.innerHTML = `
+            <div class="file-name"></div>
+            <div class="progress-bar">
+                <div class="progress-fill"></div>
+            </div>
+            <div class="progress-text">0%</div>
+        `;
+        
+        return {
+            element: progressElement,
+            update: (percentage) => {
+                const fill = progressElement.querySelector('.progress-fill');
+                const text = progressElement.querySelector('.progress-text');
+                fill.style.width = `${percentage}%`;
+                text.textContent = `${Math.round(percentage)}%`;
+                
+                if (percentage >= 100) {
+                    progressElement.classList.add('completed');
+                }
+            }
+        };
+    };
+
+    const uploadFile = async (file) => {
+        const fileId = `file_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('timestamp', Date.now());
+
+        const progressTracker = createProgressTracker(fileId);
+        document.body.appendChild(progressTracker.element);
+        uploadQueue.set(fileId, { file, progress: 0 });
+
+        try {
+            validateFile(file);
+            
+            const xhr = new XMLHttpRequest();
+            
+            xhr.upload.addEventListener('progress', (event) => {
+                if (event.lengthComputable) {
+                    const percentage = (event.loaded / event.total) * 100;
+                    uploadQueue.get(fileId).progress = percentage;
+                    progressTracker.update(percentage);
+                }
+            });
+
+            const uploadPromise = new Promise((resolve, reject) => {
+                xhr.onload = () => {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        const response = JSON.parse(xhr.responseText);
+                        uploadQueue.delete(fileId);
+                        progressTracker.update(100);
+                        resolve(response);
+                    } else {
+                        reject(new Error(`Upload failed: ${xhr.statusText}`));
+                    }
+                };
+
+                xhr.onerror = () => reject(new Error('Network error during upload'));
+                xhr.ontimeout = () => reject(new Error('Upload timeout'));
+            });
+
+            xhr.open('POST', uploadEndpoint, true);
+            xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+            xhr.timeout = 300000;
+            xhr.send(formData);
+
+            return await uploadPromise;
+        } catch (error) {
+            uploadQueue.delete(fileId);
+            progressTracker.element.classList.add('error');
+            throw error;
+        }
+    };
+
+    const handleDrop = (event) => {
+        event.preventDefault();
+        const files = Array.from(event.dataTransfer.files);
+        return Promise.all(files.map(uploadFile));
+    };
+
+    const setupDropZone = (elementId) => {
+        const dropZone = document.getElementById(elementId);
+        if (!dropZone) return;
+
+        dropZone.addEventListener('dragover', (event) => {
+            event.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('dragover');
+        });
+
+        dropZone.addEventListener('drop', (event) => {
+            dropZone.classList.remove('dragover');
+            handleDrop(event).catch(console.error);
+        });
+    };
+
+    const getQueueStatus = () => {
+        return {
+            total: uploadQueue.size,
+            files: Array.from(uploadQueue.entries()).map(([id, data]) => ({
+                id,
+                name: data.file.name,
+                progress: data.progress
+            }))
+        };
+    };
+
+    const cancelUpload = (fileId) => {
+        if (uploadQueue.has(fileId)) {
+            uploadQueue.delete(fileId);
+            return true;
+        }
+        return false;
+    };
+
+    return {
+        setEndpoint,
+        uploadFile,
+        setupDropZone,
+        getQueueStatus,
+        cancelUpload,
+        validateFile
+    };
+})();
+
+export default FileUploader;
