@@ -1,16 +1,30 @@
+function validateEmail(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+}
+
+function validatePhoneNumber(phone) {
+    const phoneRegex = /^\+?[\d\s\-\(\)]{10,}$/;
+    return phoneRegex.test(phone);
+}
+
 function validateUserProfile(profile) {
     const errors = [];
 
-    if (!profile.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(profile.email)) {
+    if (!profile.name || profile.name.trim().length < 2) {
+        errors.push('Name must be at least 2 characters long');
+    }
+
+    if (!validateEmail(profile.email)) {
         errors.push('Invalid email format');
     }
 
-    if (typeof profile.age !== 'number' || profile.age < 18 || profile.age > 120) {
-        errors.push('Age must be between 18 and 120');
+    if (!validatePhoneNumber(profile.phone)) {
+        errors.push('Invalid phone number format');
     }
 
-    if (!profile.username || profile.username.trim().length < 3) {
-        errors.push('Username must be at least 3 characters long');
+    if (profile.age && (profile.age < 0 || profile.age > 120)) {
+        errors.push('Age must be between 0 and 120');
     }
 
     return {
@@ -18,3 +32,5 @@ function validateUserProfile(profile) {
         errors: errors
     };
 }
+
+export { validateUserProfile, validateEmail, validatePhoneNumber };
