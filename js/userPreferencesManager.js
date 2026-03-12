@@ -608,4 +608,75 @@ Object.assign(userPreferences, loadedPrefs);const userPreferencesManager = (() =
         subscribe: subscribe,
         defaults: { ...defaultPreferences }
     };
+})();const userPreferencesManager = (() => {
+    const STORAGE_KEY = 'app_preferences';
+    const defaultPreferences = {
+        theme: 'light',
+        fontSize: 16,
+        notifications: true,
+        language: 'en',
+        autoSave: false
+    };
+
+    const getPreferences = () => {
+        try {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            return stored ? { ...defaultPreferences, ...JSON.parse(stored) } : { ...defaultPreferences };
+        } catch (error) {
+            console.error('Failed to load preferences:', error);
+            return { ...defaultPreferences };
+        }
+    };
+
+    const savePreferences = (updates) => {
+        try {
+            const current = getPreferences();
+            const updated = { ...current, ...updates };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+            return updated;
+        } catch (error) {
+            console.error('Failed to save preferences:', error);
+            return null;
+        }
+    };
+
+    const resetPreferences = () => {
+        try {
+            localStorage.removeItem(STORAGE_KEY);
+            return { ...defaultPreferences };
+        } catch (error) {
+            console.error('Failed to reset preferences:', error);
+            return null;
+        }
+    };
+
+    const validatePreference = (key, value) => {
+        const validators = {
+            theme: (val) => ['light', 'dark', 'auto'].includes(val),
+            fontSize: (val) => Number.isInteger(val) && val >= 12 && val <= 24,
+            notifications: (val) => typeof val === 'boolean',
+            language: (val) => ['en', 'es', 'fr', 'de'].includes(val),
+            autoSave: (val) => typeof val === 'boolean'
+        };
+
+        return validators[key] ? validators[key](value) : false;
+    };
+
+    const subscribe = (callback) => {
+        const handler = (event) => {
+            if (event.key === STORAGE_KEY) {
+                callback(getPreferences());
+            }
+        };
+        window.addEventListener('storage', handler);
+        return () => window.removeEventListener('storage', handler);
+    };
+
+    return {
+        getPreferences,
+        savePreferences,
+        resetPreferences,
+        validatePreference,
+        subscribe
+    };
 })();
