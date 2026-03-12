@@ -172,4 +172,60 @@ const uploadOptions = {
     onError: (errorMessage) => {
         console.error('Upload failed:', errorMessage);
     }
-};
+};const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'application/pdf'];
+
+function validateFile(file) {
+    if (!file) {
+        return { valid: false, error: 'No file selected' };
+    }
+
+    if (file.size > MAX_FILE_SIZE) {
+        return { 
+            valid: false, 
+            error: `File size exceeds ${MAX_FILE_SIZE / (1024 * 1024)}MB limit` 
+        };
+    }
+
+    if (!ALLOWED_TYPES.includes(file.type)) {
+        return { 
+            valid: false, 
+            error: 'File type not allowed. Allowed types: JPEG, PNG, PDF' 
+        };
+    }
+
+    return { valid: true, error: null };
+}
+
+function handleFileUpload(event) {
+    const file = event.target.files[0];
+    const validation = validateFile(file);
+
+    if (!validation.valid) {
+        displayErrorMessage(validation.error);
+        event.target.value = '';
+        return;
+    }
+
+    processUpload(file);
+}
+
+function processUpload(file) {
+    console.log(`Uploading file: ${file.name}`);
+    // Add actual upload logic here
+}
+
+function displayErrorMessage(message) {
+    const errorDiv = document.getElementById('upload-error');
+    if (errorDiv) {
+        errorDiv.textContent = message;
+        errorDiv.style.display = 'block';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const fileInput = document.getElementById('file-upload');
+    if (fileInput) {
+        fileInput.addEventListener('change', handleFileUpload);
+    }
+});
