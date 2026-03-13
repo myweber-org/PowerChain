@@ -771,4 +771,57 @@ Object.freeze(UserPreferencesManager);const UserPreferencesManager = (() => {
   };
 })();
 
-export default UserPreferencesManager;
+export default UserPreferencesManager;const UserPreferencesManager = {
+  preferences: {},
+
+  init() {
+    this.loadPreferences();
+    return this;
+  },
+
+  loadPreferences() {
+    const stored = localStorage.getItem('userPreferences');
+    if (stored) {
+      try {
+        this.preferences = JSON.parse(stored);
+      } catch (e) {
+        console.warn('Failed to parse stored preferences:', e);
+        this.preferences = {};
+      }
+    }
+    return this.preferences;
+  },
+
+  savePreferences() {
+    localStorage.setItem('userPreferences', JSON.stringify(this.preferences));
+    return this;
+  },
+
+  setPreference(key, value) {
+    this.preferences[key] = value;
+    this.savePreferences();
+    return this;
+  },
+
+  getPreference(key, defaultValue = null) {
+    return this.preferences[key] !== undefined ? this.preferences[key] : defaultValue;
+  },
+
+  removePreference(key) {
+    delete this.preferences[key];
+    this.savePreferences();
+    return this;
+  },
+
+  clearAll() {
+    this.preferences = {};
+    localStorage.removeItem('userPreferences');
+    return this;
+  },
+
+  getAllPreferences() {
+    return { ...this.preferences };
+  }
+};
+
+export default UserPreferencesManager.init();
