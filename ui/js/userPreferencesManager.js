@@ -68,4 +68,60 @@ const UserPreferencesManager = (function() {
 
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = UserPreferencesManager;
+}const userPreferences = {
+  theme: 'light',
+  language: 'en',
+  notifications: true,
+  fontSize: 16
+};
+
+const PREFERENCES_KEY = 'app_preferences';
+
+function savePreferences(prefs) {
+  try {
+    const serialized = JSON.stringify(prefs);
+    localStorage.setItem(PREFERENCES_KEY, serialized);
+    return true;
+  } catch (error) {
+    console.error('Failed to save preferences:', error);
+    return false;
+  }
 }
+
+function loadPreferences() {
+  try {
+    const stored = localStorage.getItem(PREFERENCES_KEY);
+    if (stored) {
+      return JSON.parse(stored);
+    }
+  } catch (error) {
+    console.error('Failed to load preferences:', error);
+  }
+  return { ...userPreferences };
+}
+
+function updatePreference(key, value) {
+  const current = loadPreferences();
+  if (current.hasOwnProperty(key)) {
+    current[key] = value;
+    return savePreferences(current);
+  }
+  return false;
+}
+
+function resetPreferences() {
+  return savePreferences({ ...userPreferences });
+}
+
+function getPreference(key) {
+  const prefs = loadPreferences();
+  return prefs[key];
+}
+
+export {
+  savePreferences,
+  loadPreferences,
+  updatePreference,
+  resetPreferences,
+  getPreference
+};
