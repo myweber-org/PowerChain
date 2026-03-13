@@ -1,27 +1,23 @@
 function sanitizeInput(input) {
+    if (typeof input !== 'string') {
+        return '';
+    }
+    
     const div = document.createElement('div');
     div.textContent = input;
     return div.innerHTML;
 }
 
-function validateAndSanitize(userInput) {
-    if (typeof userInput !== 'string') {
+function validateAndSanitizeUserInput(userInput, maxLength = 1000) {
+    if (!userInput || userInput.trim() === '') {
         return '';
     }
     
-    const trimmedInput = userInput.trim();
-    if (trimmedInput.length === 0) {
-        return '';
+    if (userInput.length > maxLength) {
+        userInput = userInput.substring(0, maxLength);
     }
     
-    const sanitized = sanitizeInput(trimmedInput);
-    const maxLength = 500;
-    
-    if (sanitized.length > maxLength) {
-        return sanitized.substring(0, maxLength);
-    }
-    
-    return sanitized;
+    return sanitizeInput(userInput);
 }
 
-export { validateAndSanitize, sanitizeInput };
+export { sanitizeInput, validateAndSanitizeUserInput };
