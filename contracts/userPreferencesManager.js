@@ -824,4 +824,48 @@ export default UserPreferencesManager;const UserPreferencesManager = {
   }
 };
 
-export default UserPreferencesManager.init();
+export default UserPreferencesManager.init();const UserPreferences = {
+    preferences: {},
+
+    init: function() {
+        const stored = localStorage.getItem('userPreferences');
+        if (stored) {
+            this.preferences = JSON.parse(stored);
+        }
+        return this;
+    },
+
+    set: function(key, value) {
+        this.preferences[key] = value;
+        this.save();
+        return this;
+    },
+
+    get: function(key, defaultValue = null) {
+        return this.preferences[key] !== undefined ? this.preferences[key] : defaultValue;
+    },
+
+    remove: function(key) {
+        delete this.preferences[key];
+        this.save();
+        return this;
+    },
+
+    clear: function() {
+        this.preferences = {};
+        this.save();
+        return this;
+    },
+
+    save: function() {
+        localStorage.setItem('userPreferences', JSON.stringify(this.preferences));
+        return this;
+    },
+
+    getAll: function() {
+        return {...this.preferences};
+    }
+};
+
+Object.freeze(UserPreferences);
+export default UserPreferences.init();
